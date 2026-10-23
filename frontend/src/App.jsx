@@ -66,11 +66,11 @@ function App() {
       {/* Universal Grainient WebGL Animated Background */}
       <div className="app-grainient-bg" aria-hidden="true">
         <Grainient
-          colors={["#000000", "#101317", "#0f1212", "#94a3b8", "#000000"]}
+          colors={["#030306", "#0b0c14", "#121422", "#222538", "#030306"]}
           angle={55}
           flow={0.8}
           silk={0.35}
-          grainAmount={0.08}
+          grainAmount={0.06}
         />
       </div>
 

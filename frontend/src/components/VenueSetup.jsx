@@ -15,9 +15,11 @@ import {
   Trash2,
   Cpu,
   RefreshCw,
-  MapPin
+  MapPin,
+  CheckCircle2,
+  Compass,
+  Navigation
 } from 'lucide-react';
-import TechText from './TechText';
 import './VenueSetup.css';
 
 const API = "http://localhost:5050";
@@ -234,35 +236,11 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
 
   return (
     <div className="venue-setup">
-      {/* ── Executive Header ── */}
+      {/* ── Minimal Classy Header ── */}
       <header className="page-header">
         <div>
-          <div className="vs-badge-row">
-            <span className="vs-tag-pill">VENUE &amp; CAMERA CONFIGURATION</span>
-            <span className="vs-active-ds-pill">
-              <MapPin size={12} />
-              ACTIVE VENUE: {activeDatasetId.toUpperCase()}
-            </span>
-          </div>
-          <h1 className="page-title">Fairgrounds &amp; Camera Calibration</h1>
-          <div className="techttext-subheading-wrap">
-            <TechText
-              text="Venue floorplan blueprint, camera coverage zones, and pedestrian route setup"
-              fontWeight={600}
-              fontSize={14}
-              align="left"
-              color="#1b1056"
-              accentColor="#4329d6"
-              reveal="off"
-              selection={false}
-              labels={false}
-              specks={0}
-              sweep={false}
-              clickKick
-              draggable
-              guides={false}
-            />
-          </div>
+          <h1 className="vs-main-title">Fairgrounds &amp; Camera Calibration</h1>
+          <p className="vs-page-subtitle">Venue floorplan blueprint, camera coverage zones, and pedestrian route setup</p>
         </div>
 
         <div className="header-actions">
@@ -275,17 +253,17 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             {isDeploying ? (
               <>
-                <RefreshCw size={16} className="spin-icon" />
+                <RefreshCw size={15} className="spin-icon" />
                 <span>Synchronizing AI...</span>
               </>
             ) : deployed ? (
               <>
-                <Check size={16} strokeWidth={2.5} />
+                <Check size={15} strokeWidth={2.5} />
                 <span>Deployed &amp; Live</span>
               </>
             ) : (
               <>
-                <Sparkles size={16} strokeWidth={2} />
+                <Sparkles size={15} strokeWidth={2} />
                 <span>Deploy to AI Engine</span>
               </>
             )}
@@ -296,7 +274,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       {/* Deployment Notification Toast */}
       {toastMsg && (
         <div className="vs-toast-banner">
-          <span className="vs-toast-icon">🚀</span>
+          <CheckCircle2 size={16} className="text-emerald-400" />
           <span className="vs-toast-text">{toastMsg}</span>
         </div>
       )}
@@ -304,8 +282,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       {/* ── Preset Venues Bar ── */}
       <div className="vs-preset-bar">
         <div className="vs-preset-title">
-          <Layers size={14} />
-          <span>PRESET VENUES &amp; LAYOUTS:</span>
+          <Layers size={13} />
+          <span>PRESET VENUES &amp; LAYOUTS</span>
         </div>
         <div className="vs-preset-chips">
           <button
@@ -313,7 +291,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'pets2009' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('pets2009')}
           >
-            <span className="preset-icon">🎓</span>
+            <Compass size={18} className="preset-card-icon" />
             <div>
               <div className="preset-name">Campus Grounds</div>
               <div className="preset-sub">University Quad &amp; Fairgrounds</div>
@@ -325,7 +303,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'shanghaitech' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('shanghaitech')}
           >
-            <span className="preset-icon">🏙️</span>
+            <Navigation size={18} className="preset-card-icon" />
             <div>
               <div className="preset-name">Urban Concourse</div>
               <div className="preset-sub">Pedestrian Corridor &amp; Entry Gates</div>
@@ -337,7 +315,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'crowd_default' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('crowd_default')}
           >
-            <span className="preset-icon">🎪</span>
+            <Layers size={18} className="preset-card-icon" />
             <div>
               <div className="preset-name">Festival Concourse</div>
               <div className="preset-sub">Main Exhibition Arena</div>
@@ -352,7 +330,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
               setDeployed(false);
             }}
           >
-            <span className="preset-icon">📁</span>
+            <UploadCloud size={18} className="preset-card-icon" />
             <div>
               <div className="preset-name">Custom Venue &amp; Map</div>
               <div className="preset-sub">Upload your own camera footage &amp; layout</div>
@@ -555,7 +533,10 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
 
           {deployed && (
             <div className="canvas-footer-banner">
-              <span className="banner-msg">✅ Configuration active &amp; streaming to neural engine</span>
+              <span className="banner-msg">
+                <CheckCircle2 size={15} className="text-emerald-400" />
+                <span>Configuration active &amp; streaming to neural engine</span>
+              </span>
               <button
                 type="button"
                 className="btn-primary"
