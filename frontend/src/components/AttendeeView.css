@@ -1,0 +1,53 @@
+﻿.attendee-page { display: flex; flex-direction: column; height: 100svh; background: var(--bg-base); }
+
+.att-header { display: flex; align-items: center; gap: 16px; padding: 14px 24px; background: var(--bg-surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.att-brand { display: flex; align-items: center; gap: 8px; }
+.att-brand-icon { font-size: 20px; }
+.att-brand-name { font-family: var(--heading); font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.att-venue { flex: 1; font-size: 13px; color: var(--text-secondary); text-align: center; }
+.att-badge { padding: 4px 12px; background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 20px; font-size: 12px; color: var(--green); font-weight: 600; }
+
+.att-body { display: grid; grid-template-columns: 1fr 380px; flex: 1; min-height: 0; overflow: hidden; }
+
+.att-map-wrap { position: relative; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+.att-map { flex: 1; position: relative; background: #0a0c14; overflow: hidden; }
+.canvas-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.2; }
+.att-map-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.35; }
+
+.att-zone { position: absolute; border-radius: 6px; pointer-events: none; }
+
+.route-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+.you-marker { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.you-dot { width: 14px; height: 14px; border-radius: 50%; background: #6366f1; border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(99,102,241,0.3), 0 0 12px #6366f1; animation: youPulse 2s infinite; }
+@keyframes youPulse { 0%,100%{box-shadow:0 0 0 4px rgba(99,102,241,0.3),0 0 12px #6366f1} 50%{box-shadow:0 0 0 8px rgba(99,102,241,0.1),0 0 20px #6366f1} }
+.you-label { font-size: 10px; background: #6366f1; color: #fff; padding: 2px 6px; border-radius: 4px; white-space: nowrap; font-weight: 600; }
+
+.dest-pin { position: absolute; transform: translate(-50%, -50%); font-size: 24px; filter: drop-shadow(0 2px 6px #000); animation: pinBounce 1s ease-in-out infinite; }
+@keyframes pinBounce { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-50%,-60%)} }
+
+.att-legend { display: flex; gap: 16px; padding: 10px 16px; background: var(--bg-surface); border-top: 1px solid var(--border); }
+.att-legend-item { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+
+.att-panel { display: flex; flex-direction: column; overflow-y: auto; background: var(--bg-surface); }
+.att-panel-header { padding: 20px 20px 0; }
+.att-panel-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.att-panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+
+.dest-list { display: flex; flex-direction: column; gap: 8px; padding: 0 16px; }
+.dest-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); cursor: pointer; text-align: left; color: var(--text-primary); transition: all 0.2s; width: 100%; }
+.dest-card:hover { border-color: var(--border-glow); transform: translateX(2px); }
+.dest-selected { border-color: var(--accent) !important; background: var(--accent-glow) !important; }
+.dest-icon { font-size: 22px; flex-shrink: 0; }
+.dest-info { flex: 1; }
+.dest-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.dest-alt  { font-size: 11px; color: var(--text-muted); }
+.dest-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.dest-eta  { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.dest-status { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap; }
+
+.route-info { margin: 16px 16px 20px; padding: 16px; background: var(--bg-elevated); border: 1px solid var(--border-glow); border-radius: 12px; }
+.route-info-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--accent-light); }
+.route-steps { display: flex; flex-direction: column; gap: 8px; }
+.route-step { font-size: 13px; color: var(--text-secondary); }
+.route-warning { margin-top: 12px; padding: 10px 12px; background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 8px; font-size: 12px; color: #fca5a5; }

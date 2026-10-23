@@ -1,0 +1,32 @@
+﻿.live-feed-page { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.page-title { font-size: 28px; font-weight: 700; margin-bottom: 4px; background: linear-gradient(135deg, var(--text-primary), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.page-sub { color: var(--text-secondary); font-size: 14px; }
+
+.live-badge { padding: 6px 14px; border-radius: 20px; background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); font-size: 13px; font-weight: 700; letter-spacing: 1px; animation: livePulse 1.5s infinite; }
+@keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+.feeds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+.feed-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.3s; }
+.feed-card:hover { border-color: var(--border-glow); }
+
+.feed-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+.feed-cam-icon { font-size: 20px; }
+.feed-meta { flex: 1; }
+.feed-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.feed-status { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.8px; }
+.feed-percent { font-size: 22px; font-weight: 700; font-family: var(--heading); }
+
+.feed-video { position: relative; height: 160px; background: #050508; overflow: hidden; }
+.video-scanlines { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px); pointer-events: none; z-index: 2; }
+.video-content { position: absolute; inset: 0; z-index: 1; }
+.crowd-sim { position: absolute; inset: 0; }
+.crowd-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; opacity: 0.8; animation: dotFloat 3s ease-in-out infinite; }
+@keyframes dotFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+.video-overlay-text { position: absolute; bottom: 8px; left: 10px; font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; font-family: monospace; }
+
+.density-bar-wrap { height: 4px; background: var(--bg-elevated); }
+.density-bar { height: 100%; transition: width 0.8s ease; }
+.density-label { padding: 8px 16px; font-size: 12px; color: var(--text-muted); }

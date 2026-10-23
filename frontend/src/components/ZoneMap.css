@@ -1,0 +1,48 @@
+﻿.zone-map-page { padding: 32px; display: flex; flex-direction: column; gap: 24px; height: 100%; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.page-title { font-size: 28px; font-weight: 700; margin-bottom: 4px; background: linear-gradient(135deg, var(--text-primary), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.page-sub { color: var(--text-secondary); font-size: 14px; }
+
+.zone-stats { display: flex; gap: 12px; }
+.zone-stat { display: flex; flex-direction: column; align-items: center; padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; gap: 2px; }
+.zone-stat-count { font-size: 24px; font-weight: 700; font-family: var(--heading); color: var(--text-primary); }
+.zone-stat-label { color: var(--text-muted); }
+
+.zone-body { display: grid; grid-template-columns: 1fr 280px; gap: 20px; flex: 1; min-height: 0; }
+.zone-right { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary); }
+.mt-12 { margin-top: 12px; }
+
+.zone-canvas-card { display: flex; flex-direction: column; }
+.zone-canvas { flex: 1; position: relative; background: #0d0f1a; border-radius: 10px; overflow: hidden; min-height: 350px; margin-top: 8px; }
+.canvas-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.3; }
+.zone-map-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.4; }
+
+.zone-block { position: absolute; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; padding: 8px; transition: all 0.3s; background: transparent; overflow: hidden; }
+.zone-block:hover { filter: brightness(1.4); z-index: 10; }
+.zone-selected { box-shadow: 0 0 0 3px #fff3, 0 4px 20px #0008; z-index: 10; }
+.zone-block-label { font-size: 10px; font-weight: 700; text-shadow: 0 1px 4px #000; line-height: 1.2; }
+.zone-block-density { font-size: 16px; font-weight: 800; font-family: var(--heading); text-shadow: 0 2px 6px #000; }
+.zone-pulse { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.4)} }
+
+.zone-detail { display: flex; flex-direction: column; gap: 0; }
+.placeholder-card { align-items: center; justify-content: center; gap: 12px; color: var(--text-muted); min-height: 140px; display: flex; flex-direction: column; }
+.detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-secondary); }
+.detail-row:last-of-type { border-bottom: none; }
+
+.density-bar-wrap { height: 6px; background: var(--bg-elevated); border-radius: 3px; overflow: hidden; }
+.density-bar { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+
+.alerts-card { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.alerts-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.alert-item { padding: 12px; border-radius: 8px; }
+.alert-red    { background: var(--red-bg);    border-left: 3px solid var(--red); }
+.alert-yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
+.alert-green  { background: var(--green-bg);  border-left: 3px solid var(--green); }
+.alert-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.alert-time { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+.alert-zone { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.alert-msg  { font-size: 12px; color: var(--text-primary); }

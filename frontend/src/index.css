@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-base:        #0a0b0f;
+  --bg-surface:     #111218;
+  --bg-elevated:    #181a22;
+  --bg-card:        #1e2130;
+  --border:         #2a2d3e;
+  --border-glow:    #3d4060;
+
+  --text-primary:   #f0f2ff;
+  --text-secondary: #8b91b0;
+  --text-muted:     #555a78;
+
+  --accent:         #6366f1;
+  --accent-light:   #818cf8;
+  --accent-glow:    rgba(99, 102, 241, 0.25);
+
+  --green:          #22c55e;
+  --green-bg:       rgba(34, 197, 94, 0.12);
+  --green-border:   rgba(34, 197, 94, 0.3);
+
+  --yellow:         #eab308;
+  --yellow-bg:      rgba(234, 179, 8, 0.12);
+  --yellow-border:  rgba(234, 179, 8, 0.3);
+
+  --red:            #ef4444;
+  --red-bg:         rgba(239, 68, 68, 0.12);
+  --red-border:     rgba(239, 68, 68, 0.3);
+
+  --sans: 'Inter', system-ui, sans-serif;
+  --heading: 'Space Grotesk', system-ui, sans-serif;
+
+  color-scheme: dark;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+body { margin: 0; overflow-x: hidden; }
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border: none;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--heading);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+
