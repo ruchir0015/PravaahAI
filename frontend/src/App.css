@@ -1,1 +1,16 @@
-/* App-level layout handled in components */
+.app-shell {
+  display: flex;
+  height: 100svh;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-base);
+}
+
+.main-content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -7,35 +7,120 @@
 }
 
 :root {
-  --bg-base:        #0a0b0f;
-  --bg-surface:     #111218;
-  --bg-elevated:    #181a22;
-  --bg-card:        #1e2130;
-  --border:         #2a2d3e;
-  --border-glow:    #3d4060;
+  /* ============================================================ */
+  /* User-Defined Color Palette                                   */
+  /* ============================================================ */
 
-  --text-primary:   #f0f2ff;
-  --text-secondary: #8b91b0;
-  --text-muted:     #555a78;
+  /* Indigo Ink */
+  --color-indigo-ink-50: #eceafb;
+  --color-indigo-ink-100: #d9d4f7;
+  --color-indigo-ink-200: #b4a9ef;
+  --color-indigo-ink-300: #8e7ee7;
+  --color-indigo-ink-400: #6854de;
+  --color-indigo-ink-500: #4329d6;
+  --color-indigo-ink-600: #3521ab;
+  --color-indigo-ink-700: #281881;
+  --color-indigo-ink-800: #1b1056;
+  --color-indigo-ink-900: #0d082b;
+  --color-indigo-ink-950: #09061e;
 
-  --accent:         #6366f1;
-  --accent-light:   #818cf8;
-  --accent-glow:    rgba(99, 102, 241, 0.25);
+  /* Cornflower Blue */
+  --color-cornflower-blue-50: #e6eaff;
+  --color-cornflower-blue-100: #cdd5fe;
+  --color-cornflower-blue-200: #9babfd;
+  --color-cornflower-blue-300: #6881fd;
+  --color-cornflower-blue-400: #3657fc;
+  --color-cornflower-blue-500: #042dfb;
+  --color-cornflower-blue-600: #0324c9;
+  --color-cornflower-blue-700: #021b97;
+  --color-cornflower-blue-800: #021264;
+  --color-cornflower-blue-900: #010932;
+  --color-cornflower-blue-950: #010623;
 
-  --green:          #22c55e;
-  --green-bg:       rgba(34, 197, 94, 0.12);
-  --green-border:   rgba(34, 197, 94, 0.3);
+  /* Periwinkle */
+  --color-periwinkle-50: #e6e9ff;
+  --color-periwinkle-100: #cdd2fe;
+  --color-periwinkle-200: #9aa6fe;
+  --color-periwinkle-300: #6879fd;
+  --color-periwinkle-400: #354cfd;
+  --color-periwinkle-500: #0320fc;
+  --color-periwinkle-600: #0219ca;
+  --color-periwinkle-700: #021397;
+  --color-periwinkle-800: #010d65;
+  --color-periwinkle-900: #010632;
+  --color-periwinkle-950: #000423;
 
-  --yellow:         #eab308;
-  --yellow-bg:      rgba(234, 179, 8, 0.12);
-  --yellow-border:  rgba(234, 179, 8, 0.3);
+  /* Onyx (Mint & Emerald) */
+  --color-onyx-50: #e5fff3;
+  --color-onyx-100: #ccffe7;
+  --color-onyx-200: #99ffcf;
+  --color-onyx-300: #66ffb8;
+  --color-onyx-400: #33ffa0;
+  --color-onyx-500: #00ff88;
+  --color-onyx-600: #00cc6d;
+  --color-onyx-700: #009952;
+  --color-onyx-800: #006636;
+  --color-onyx-900: #00331b;
+  --color-onyx-950: #002413;
 
-  --red:            #ef4444;
-  --red-bg:         rgba(239, 68, 68, 0.12);
-  --red-border:     rgba(239, 68, 68, 0.3);
+  /* Seagrass (Slate & Sage) */
+  --color-seagrass-50: #eff5f4;
+  --color-seagrass-100: #e0ebe9;
+  --color-seagrass-200: #c1d7d3;
+  --color-seagrass-300: #a2c3bd;
+  --color-seagrass-400: #83afa7;
+  --color-seagrass-500: #639c91;
+  --color-seagrass-600: #507c74;
+  --color-seagrass-700: #3c5d57;
+  --color-seagrass-800: #283e3a;
+  --color-seagrass-900: #141f1d;
+  --color-seagrass-950: #0e1614;
 
-  --sans: 'Inter', system-ui, sans-serif;
+  /* ============================================================ */
+  /* Semantic Design System Tokens                                 */
+  /* ============================================================ */
+  --bg-base:        var(--color-indigo-ink-950);
+  --bg-surface:     rgba(13, 8, 43, 0.7);
+  --bg-elevated:    rgba(27, 16, 86, 0.4);
+  --bg-card:        rgba(13, 8, 43, 0.6);
+  --bg-card-hover:  rgba(27, 16, 86, 0.55);
+
+  --border:         rgba(180, 169, 239, 0.12);
+  --border-subtle:  rgba(180, 169, 239, 0.06);
+  --border-light:   rgba(180, 169, 239, 0.22);
+  --border-glow:    rgba(142, 126, 231, 0.45);
+  --border-accent:  var(--color-indigo-ink-400);
+
+  --text-primary:   var(--color-indigo-ink-50);
+  --text-secondary: var(--color-indigo-ink-200);
+  --text-muted:     var(--color-seagrass-400);
+  --text-accent:    var(--color-cornflower-blue-200);
+
+  --accent:         var(--color-indigo-ink-400);
+  --accent-light:   var(--color-indigo-ink-200);
+  --accent-vibrant: var(--color-periwinkle-400);
+  --accent-glow:    rgba(104, 84, 222, 0.25);
+  --accent-gradient: linear-gradient(135deg, var(--color-indigo-ink-400), var(--color-periwinkle-400));
+
+  /* Status Tokens */
+  --green:          var(--color-onyx-500);
+  --green-bg:       rgba(0, 255, 136, 0.1);
+  --green-border:   rgba(0, 255, 136, 0.35);
+  --green-text:     var(--color-onyx-200);
+
+  --yellow:         #ffc107;
+  --yellow-bg:      rgba(255, 193, 7, 0.1);
+  --yellow-border:  rgba(255, 193, 7, 0.35);
+  --yellow-text:    #ffe082;
+
+  --red:            #ff3b5c;
+  --red-bg:         rgba(255, 59, 92, 0.12);
+  --red-border:     rgba(255, 59, 92, 0.35);
+  --red-text:       #ff8ca0;
+
+  --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --heading: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
 
   color-scheme: dark;
   font-family: var(--sans);
@@ -46,7 +131,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
-body { margin: 0; overflow-x: hidden; }
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
 
 #root {
   width: 100%;
@@ -57,14 +147,61 @@ body { margin: 0; overflow-x: hidden; }
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--heading);
   color: var(--text-primary);
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
-button { cursor: pointer; font-family: inherit; }
-input, textarea, select { font-family: inherit; }
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+}
 
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(180, 169, 239, 0.15);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 169, 239, 0.3);
+}
+
+/* Common Minimal Utilities */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.glow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}

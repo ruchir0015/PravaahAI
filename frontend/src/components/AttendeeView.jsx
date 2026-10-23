@@ -1,5 +1,8 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import './AttendeeView.css';
+import SpotlightCard from './react-bits/SpotlightCard.jsx';
+import ShinyText from './react-bits/ShinyText.jsx';
+import DecryptedText from './react-bits/DecryptedText.jsx';
 
 const DESTINATIONS = [
   { id: 'main-stage',    label: 'Main Stage',      icon: '🎤', status: 'red',    eta: '12 min', alt: 'Via Gate B side path' },
@@ -12,12 +15,11 @@ const DESTINATIONS = [
 ];
 
 const STATUS_MAP = {
-  red:    { label: 'HIGH CROWD', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)' },
-  yellow: { label: 'MODERATE',   color: '#eab308', bg: 'rgba(234,179,8,0.15)', border: 'rgba(234,179,8,0.3)' },
-  green:  { label: 'CLEAR',      color: '#22c55e', bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)' },
+  red:    { label: 'HIGH CROWD', color: '#ff3b5c', bg: 'rgba(255, 59, 92, 0.15)', border: 'rgba(255, 59, 92, 0.35)' },
+  yellow: { label: 'MODERATE',   color: '#ffc107', bg: 'rgba(255, 193, 7, 0.15)', border: 'rgba(255, 193, 7, 0.35)' },
+  green:  { label: 'OPTIMAL',    color: 'var(--color-onyx-500)', bg: 'rgba(0, 255, 136, 0.15)', border: 'rgba(0, 255, 136, 0.35)' },
 };
 
-/* Simulated venue map with zones shown as color-coded regions */
 const ZONE_POSITIONS = [
   { id: 'main-stage',   x: 38, y: 22, w: 24, h: 18, color: 'red'    },
   { id: 'food-court',   x: 12, y: 52, w: 28, h: 20, color: 'yellow' },
@@ -27,7 +29,6 @@ const ZONE_POSITIONS = [
   { id: 'vip-lounge',  x: 38,  y: 45, w: 22, h: 14, color: 'green'  },
 ];
 
-// Simple path lines between You are here (50,90) and zones
 const YOU_X = 50, YOU_Y = 88;
 
 export default function AttendeeView({ venueData }) {
@@ -41,17 +42,28 @@ export default function AttendeeView({ venueData }) {
       <header className="att-header">
         <div className="att-brand">
           <span className="att-brand-icon">⚡</span>
-          <span className="att-brand-name">Pravaah</span>
+          <span className="att-brand-name">
+            <ShinyText text="Pravaah" speed={4} />
+          </span>
         </div>
-        <div className="att-venue">{venueData?.name ?? 'TechTrix 2026 — Hall A'}</div>
-        <div className="att-badge">🎟️ General · ATT-001</div>
+        <div className="att-venue">
+          <DecryptedText
+            text={venueData?.name ?? 'TechTrix 2026 — Hall A'}
+            animateOn="mount"
+            speed={25}
+          />
+        </div>
+        <div className="att-badge">
+          <span className="att-badge-dot" />
+          <span>PASS ACTIVE · ATT-001</span>
+        </div>
       </header>
 
       <div className="att-body">
-        {/* Interactive map */}
+        {/* Interactive Map */}
         <div className="att-map-wrap">
           <div className="att-map" id="attendee-map">
-            <div className="canvas-grid" />
+            <div className="canvas-grid-lines" />
 
             {venueData?.mapImage && (
               <img src={venueData.mapImage} alt="venue" className="att-map-img" />
@@ -65,45 +77,58 @@ export default function AttendeeView({ venueData }) {
                   key={z.id}
                   className="att-zone"
                   style={{
-                    left: `${z.x}%`, top: `${z.y}%`,
-                    width: `${z.w}%`, height: `${z.h}%`,
-                    background: c.bg, border: `1.5px solid ${c.border}`,
+                    left: `${z.x}%`,
+                    top: `${z.y}%`,
+                    width: `${z.w}%`,
+                    height: `${z.h}%`,
+                    background: c.bg,
+                    borderColor: c.border,
                   }}
                 />
               );
             })}
 
-            {/* Route line */}
+            {/* Dynamic Route Path */}
             {destZone && (
               <svg className="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <defs>
-                  <marker id="arrowhead" markerWidth="4" markerHeight="4" refX="2" refY="2" orient="auto">
-                    <polygon points="0 0, 4 2, 0 4" fill="#6366f1" />
+                  <linearGradient id="routeGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="var(--color-onyx-500)" />
+                    <stop offset="100%" stopColor="var(--color-periwinkle-400)" />
+                  </linearGradient>
+                  <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                    <polygon points="0 0, 6 3, 0 6" fill="var(--color-periwinkle-300)" />
                   </marker>
                 </defs>
                 <line
-                  x1={YOU_X} y1={YOU_Y}
+                  x1={YOU_X}
+                  y1={YOU_Y}
                   x2={destZone.x + destZone.w / 2}
                   y2={destZone.y + destZone.h / 2}
-                  stroke="#6366f1" strokeWidth="1.5" strokeDasharray="3 2"
+                  stroke="url(#routeGradient)"
+                  strokeWidth="2"
+                  strokeDasharray="4 2"
                   markerEnd="url(#arrowhead)"
+                  className="animated-route-line"
                 />
               </svg>
             )}
 
-            {/* You are here marker */}
+            {/* You Are Here Marker */}
             <div className="you-marker" style={{ left: `${YOU_X}%`, top: `${YOU_Y}%` }}>
-              <div className="you-dot" />
-              <div className="you-label">You are here</div>
+              <div className="you-dot">
+                <div className="you-dot-inner" />
+              </div>
+              <div className="you-label">You Are Here</div>
             </div>
 
-            {/* Destination pin */}
+            {/* Destination Pin */}
             {destZone && (
               <div
                 className="dest-pin"
                 style={{
                   left: `${destZone.x + destZone.w / 2}%`,
-                  top:  `${destZone.y + destZone.h / 2}%`,
+                  top: `${destZone.y + destZone.h / 2}%`,
                 }}
               >
                 📍
@@ -111,32 +136,34 @@ export default function AttendeeView({ venueData }) {
             )}
           </div>
 
-          {/* Legend */}
+          {/* Map Legend */}
           <div className="att-legend">
             {Object.entries(STATUS_MAP).map(([k, v]) => (
               <span key={k} className="att-legend-item" style={{ color: v.color }}>
-                ● {v.label}
+                <span className="legend-indicator-dot" style={{ background: v.color }} />
+                {v.label}
               </span>
             ))}
           </div>
         </div>
 
-        {/* Destination picker */}
+        {/* Destination Picker Panel */}
         <div className="att-panel">
           <div className="att-panel-header">
             <h2 className="att-panel-title">Where do you want to go?</h2>
-            <p className="att-panel-sub">Routes avoid crowded zones automatically</p>
+            <p className="att-panel-sub">Smart real-time route bypasses high congestion areas</p>
           </div>
 
           <div className="dest-list">
             {DESTINATIONS.map((d) => {
               const s = STATUS_MAP[d.status];
+              const isChosen = chosen === d.id;
               return (
                 <button
                   key={d.id}
                   id={`dest-${d.id}`}
-                  className={`dest-card ${chosen === d.id ? 'dest-selected' : ''}`}
-                  onClick={() => setChosen(chosen === d.id ? null : d.id)}
+                  className={`dest-card ${isChosen ? 'dest-selected' : ''}`}
+                  onClick={() => setChosen(isChosen ? null : d.id)}
                 >
                   <span className="dest-icon">{d.icon}</span>
                   <div className="dest-info">
@@ -145,7 +172,10 @@ export default function AttendeeView({ venueData }) {
                   </div>
                   <div className="dest-right">
                     <div className="dest-eta">⏱ {d.eta}</div>
-                    <div className="dest-status" style={{ color: s.color, background: s.bg, border: `1px solid ${s.border}` }}>
+                    <div
+                      className="dest-status"
+                      style={{ color: s.color, background: s.bg, borderColor: s.border }}
+                    >
                       {s.label}
                     </div>
                   </div>
@@ -155,19 +185,31 @@ export default function AttendeeView({ venueData }) {
           </div>
 
           {dest && (
-            <div className="route-info">
-              <div className="route-info-title">Route to {dest.label}</div>
+            <SpotlightCard className="route-info-card" spotlightColor="rgba(104, 84, 222, 0.16)">
+              <div className="route-info-title">
+                <span>Optimized Path: {dest.label}</span>
+                <span className="route-eta-badge">{dest.eta}</span>
+              </div>
               <div className="route-steps">
-                <div className="route-step">📍 Start at your current location (Gate A entrance)</div>
-                <div className="route-step">➡️ {dest.alt}</div>
-                <div className="route-step">🏁 Arrive at {dest.label} in approx. {dest.eta}</div>
+                <div className="route-step">
+                  <span className="step-num">1</span>
+                  <span>Start at your current position (Gate A entrance)</span>
+                </div>
+                <div className="route-step">
+                  <span className="step-num">2</span>
+                  <span>{dest.alt}</span>
+                </div>
+                <div className="route-step">
+                  <span className="step-num">3</span>
+                  <span>Arrive smoothly at {dest.label}</span>
+                </div>
               </div>
               {dest.status === 'red' && (
                 <div className="route-warning">
-                  ⚠️ This destination is at HIGH capacity. Consider visiting later or explore alternatives.
+                  ⚠️ This destination is currently at peak capacity. An alternate pathway has been highlighted.
                 </div>
               )}
-            </div>
+            </SpotlightCard>
           )}
         </div>
       </div>

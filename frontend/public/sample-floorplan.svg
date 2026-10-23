@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="100%" height="100%">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(180, 169, 239, 0.08)" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#281881" stopOpacity="0.8"/>
+      <stop offset="100%" stopColor="#1b1056" stopOpacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="glowLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#6854de" stopOpacity="0.1"/>
+      <stop offset="50%" stopColor="#354cfd" stopOpacity="0.6"/>
+      <stop offset="100%" stopColor="#6854de" stopOpacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1000" height="650" fill="#09061e" />
+  <rect width="1000" height="650" fill="url(#grid)" />
+
+  <!-- Outer Architectural Perimeter -->
+  <rect x="40" y="40" width="920" height="570" rx="16" fill="rgba(13, 8, 43, 0.6)" stroke="#3521ab" stroke-width="2" />
+  
+  <!-- Boundary Glow Accent -->
+  <rect x="44" y="44" width="912" height="562" rx="12" fill="none" stroke="rgba(104, 84, 222, 0.2)" stroke-width="1" />
+
+  <!-- Corridors & Flow Arrows -->
+  <path d="M 250 500 L 250 200 L 750 200 L 750 500" fill="none" stroke="url(#glowLine)" stroke-width="2" stroke-dasharray="8 6" />
+
+  <!-- Main Stage Arena (North Center) -->
+  <g id="svg-main-stage">
+    <rect x="360" y="70" width="280" height="150" rx="10" fill="rgba(255, 59, 92, 0.12)" stroke="rgba(255, 59, 92, 0.4)" stroke-width="1.5" />
+    <path d="M 390 190 Q 500 210 610 190" fill="none" stroke="#ff8ca0" stroke-width="2" />
+    <text x="500" y="130" fill="#eceafb" font-family="'Space Grotesk', sans-serif" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="1">MAIN PERFORMANCE STAGE</text>
+    <text x="500" y="155" fill="#a2c3bd" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle">AUDIO-VISUAL RIG / CAP 1,500</text>
+  </g>
+
+  <!-- Food Court & Dining (West) -->
+  <g id="svg-food-court">
+    <rect x="70" y="260" width="260" height="200" rx="10" fill="rgba(255, 193, 7, 0.1)" stroke="rgba(255, 193, 7, 0.35)" stroke-width="1.5" />
+    <circle cx="150" cy="330" r="22" fill="rgba(255, 193, 7, 0.08)" stroke="rgba(255, 193, 7, 0.2)" stroke-width="1" />
+    <circle cx="250" cy="330" r="22" fill="rgba(255, 193, 7, 0.08)" stroke="rgba(255, 193, 7, 0.2)" stroke-width="1" />
+    <circle cx="200" cy="400" r="22" fill="rgba(255, 193, 7, 0.08)" stroke="rgba(255, 193, 7, 0.2)" stroke-width="1" />
+    <text x="200" y="300" fill="#eceafb" font-family="'Space Grotesk', sans-serif" font-size="15" font-weight="700" text-anchor="middle">FOOD COURT &amp; LOUNGE</text>
+    <text x="200" y="445" fill="#a2c3bd" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle">REFRESHMENTS &amp; SEATING</text>
+  </g>
+
+  <!-- Merch & Tech Expo (East) -->
+  <g id="svg-merch-zone">
+    <rect x="670" y="120" width="260" height="230" rx="10" fill="rgba(0, 255, 136, 0.08)" stroke="rgba(0, 255, 136, 0.3)" stroke-width="1.5" />
+    <rect x="700" y="180" width="90" height="50" rx="4" fill="rgba(0, 255, 136, 0.05)" stroke="rgba(0, 255, 136, 0.2)" />
+    <rect x="810" y="180" width="90" height="50" rx="4" fill="rgba(0, 255, 136, 0.05)" stroke="rgba(0, 255, 136, 0.2)" />
+    <rect x="755" y="250" width="90" height="50" rx="4" fill="rgba(0, 255, 136, 0.05)" stroke="rgba(0, 255, 136, 0.2)" />
+    <text x="800" y="155" fill="#eceafb" font-family="'Space Grotesk', sans-serif" font-size="15" font-weight="700" text-anchor="middle">MERCH &amp; EXHIBITS</text>
+    <text x="800" y="330" fill="#a2c3bd" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle">INTERACTIVE BOOTHS</text>
+  </g>
+
+  <!-- VIP & Media Lounge (Center) -->
+  <g id="svg-vip-lounge">
+    <rect x="390" y="290" width="220" height="130" rx="8" fill="rgba(104, 84, 222, 0.12)" stroke="rgba(142, 126, 231, 0.35)" stroke-width="1.5" />
+    <text x="500" y="350" fill="#eceafb" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">VIP &amp; EXECUTIVE SUITE</text>
+    <text x="500" y="375" fill="#b4a9ef" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle">PRIORITY PASS ACCESS</text>
+  </g>
+
+  <!-- Entry Gate A (South West) -->
+  <g id="svg-gate-a">
+    <rect x="60" y="520" width="180" height="70" rx="6" fill="rgba(0, 255, 136, 0.1)" stroke="#00ff88" stroke-width="1.5" />
+    <text x="150" y="555" fill="#00ff88" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">ENTRY GATE A</text>
+    <text x="150" y="575" fill="#99ffcf" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" text-anchor="middle">MAIN TURNSTILES</text>
+  </g>
+
+  <!-- Entry Gate B (South East) -->
+  <g id="svg-gate-b">
+    <rect x="760" y="520" width="180" height="70" rx="6" fill="rgba(0, 255, 136, 0.1)" stroke="#00ff88" stroke-width="1.5" />
+    <text x="850" y="555" fill="#00ff88" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">ENTRY GATE B</text>
+    <text x="850" y="575" fill="#99ffcf" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" text-anchor="middle">RAPID DISCHARGE EXIT</text>
+  </g>
+
+  <!-- Emergency Exits -->
+  <line x1="500" y1="40" x2="500" y2="25" stroke="#ff3b5c" stroke-width="4" />
+  <text x="500" y="20" fill="#ff8ca0" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" text-anchor="middle">EMERGENCY EXIT 01</text>
+</svg>

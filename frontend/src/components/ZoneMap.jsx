@@ -1,5 +1,8 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './ZoneMap.css';
+import SpotlightCard from './react-bits/SpotlightCard.jsx';
+import ShinyText from './react-bits/ShinyText.jsx';
+import DecryptedText from './react-bits/DecryptedText.jsx';
 
 const INITIAL_ZONES = [
   { id: 'main-stage',    label: 'Main Stage',      x: 38, y: 22, w: 24, h: 18, density: 92, capacity: 500 },
@@ -17,15 +20,15 @@ function getColor(density) {
 }
 
 const COLOR_MAP = {
-  red:    { bg: 'rgba(239,68,68,0.3)',    border: '#ef4444', text: '#fca5a5' },
-  yellow: { bg: 'rgba(234,179,8,0.3)',    border: '#eab308', text: '#fde047' },
-  green:  { bg: 'rgba(34,197,94,0.3)',    border: '#22c55e', text: '#86efac' },
+  red:    { bg: 'rgba(255, 59, 92, 0.25)',   border: '#ff3b5c', text: '#ff8ca0' },
+  yellow: { bg: 'rgba(255, 193, 7, 0.25)',   border: '#ffc107', text: '#ffe082' },
+  green:  { bg: 'rgba(0, 255, 136, 0.25)',   border: '#00ff88', text: '#99ffcf' },
 };
 
 const ALERTS = [
-  { id: 1, time: '14:32', zone: 'Main Stage', msg: 'Capacity at 92% — redirect attendees', level: 'red' },
-  { id: 2, time: '14:28', zone: 'Food Court', msg: 'Density rising, open overflow lane', level: 'yellow' },
-  { id: 3, time: '14:15', zone: 'Entry Gate A', msg: 'Flow normalised', level: 'green' },
+  { id: 1, time: '14:32:08', zone: 'Main Stage', msg: 'Capacity at 92% — dispatch redirect beacons', level: 'red' },
+  { id: 2, time: '14:28:44', zone: 'Food Court', msg: 'Density rising, open auxiliary corridor B', level: 'yellow' },
+  { id: 3, time: '14:15:19', zone: 'Entry Gate A', msg: 'Flow rate normalised, gate cleared', level: 'green' },
 ];
 
 export default function ZoneMap({ venueData, zoneData }) {
@@ -34,10 +37,12 @@ export default function ZoneMap({ venueData, zoneData }) {
 
   useEffect(() => {
     const iv = setInterval(() => {
-      setZones((prev) => prev.map((z) => ({
-        ...z,
-        density: Math.min(100, Math.max(5, z.density + (Math.random() * 8 - 4))),
-      })));
+      setZones((prev) =>
+        prev.map((z) => ({
+          ...z,
+          density: Math.min(100, Math.max(5, z.density + (Math.random() * 8 - 4))),
+        }))
+      );
     }, 2500);
     return () => clearInterval(iv);
   }, []);
@@ -48,102 +53,154 @@ export default function ZoneMap({ venueData, zoneData }) {
     <div className="zone-map-page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Zone Monitor</h1>
+          <h1 className="page-title">
+            <ShinyText text="Zone Monitor" speed={3.5} />
+          </h1>
           <p className="page-sub">
-            {venueData ? venueData.name : 'Live crowd density across all venue zones'}
+            {venueData ? venueData.name : 'Real-time telemetry and crowd density matrix'}
           </p>
         </div>
-        <div className="zone-stats">
-          {[['red','🔴','Critical'],['yellow','🟡','Moderate'],['green','🟢','Clear']].map(([c,e,l]) => (
-            <div key={c} className="zone-stat">
-              <span>{e}</span>
-              <span className="zone-stat-count">{zones.filter(z=>getColor(z.density)===c).length}</span>
-              <span className="zone-stat-label">{l}</span>
+        <div className="zone-stats-bar">
+          {[
+            ['red', 'Critical', zones.filter((z) => getColor(z.density) === 'red').length],
+            ['yellow', 'Moderate', zones.filter((z) => getColor(z.density) === 'yellow').length],
+            ['green', 'Clear', zones.filter((z) => getColor(z.density) === 'green').length],
+          ].map(([c, label, count]) => (
+            <div key={c} className={`zone-stat-badge stat-badge-${c}`}>
+              <span className="stat-indicator-dot" />
+              <span className="zone-stat-count">{count}</span>
+              <span className="zone-stat-label">{label}</span>
             </div>
           ))}
         </div>
       </header>
 
       <div className="zone-body">
-        {/* Map */}
-        <div className="card zone-canvas-card">
-          <h3 className="card-title">Venue Heatmap</h3>
+        {/* Map Canvas */}
+        <SpotlightCard className="zone-canvas-card" spotlightColor="rgba(104, 84, 222, 0.14)">
+          <div className="canvas-header-row">
+            <div>
+              <h3 className="card-title">Venue Heatmap &amp; Sensor Grid</h3>
+              <span className="hint-text">Select any sector for telemetry inspection</span>
+            </div>
+            <div className="telemetry-badge">
+              <span className="telemetry-pulse" />
+              <span>LIVE TELEMETRY</span>
+            </div>
+          </div>
+
           <div className="zone-canvas">
-            {/* Background grid */}
-            <div className="canvas-grid" />
+            <div className="canvas-grid-lines" />
             {venueData?.mapImage && (
               <img src={venueData.mapImage} alt="venue" className="zone-map-img" />
             )}
             {zones.map((z) => {
               const color = getColor(z.density);
               const c = COLOR_MAP[color];
+              const isSel = selected === z.id;
               return (
                 <button
                   key={z.id}
                   id={`zone-btn-${z.id}`}
-                  className={`zone-block ${selected === z.id ? 'zone-selected' : ''}`}
+                  className={`zone-block ${isSel ? 'zone-selected' : ''}`}
                   style={{
-                    left: `${z.x}%`, top: `${z.y}%`,
-                    width: `${z.w}%`, height: `${z.h}%`,
-                    background: c.bg, border: `2px solid ${c.border}`,
+                    left: `${z.x}%`,
+                    top: `${z.y}%`,
+                    width: `${z.w}%`,
+                    height: `${z.h}%`,
+                    background: c.bg,
+                    borderColor: c.border,
                   }}
-                  onClick={() => setSelected(selected === z.id ? null : z.id)}
+                  onClick={() => setSelected(isSel ? null : z.id)}
                 >
                   <span className="zone-block-label" style={{ color: c.text }}>{z.label}</span>
-                  <span className="zone-block-density" style={{ color: c.text }}>{Math.round(z.density)}%</span>
+                  <span className="zone-block-density" style={{ color: c.text }}>
+                    {Math.round(z.density)}%
+                  </span>
                   <div className="zone-pulse" style={{ background: c.border }} />
                 </button>
               );
             })}
           </div>
-        </div>
+        </SpotlightCard>
 
-        {/* Right panel */}
+        {/* Right side panel */}
         <div className="zone-right">
-          {/* Detail panel */}
+          {/* Detail card */}
           {sel ? (
-            <div className="card zone-detail">
-              <h3 className="card-title">{sel.label}</h3>
-              <div className="detail-row">
-                <span>Density</span>
-                <strong style={{ color: COLOR_MAP[getColor(sel.density)].text }}>{Math.round(sel.density)}%</strong>
-              </div>
-              <div className="detail-row">
-                <span>Estimated occupancy</span>
-                <strong>{Math.round(sel.density / 100 * sel.capacity)} / {sel.capacity}</strong>
-              </div>
-              <div className="detail-row">
-                <span>Status</span>
-                <strong style={{ color: COLOR_MAP[getColor(sel.density)].text }}>
+            <SpotlightCard className="zone-detail-card" spotlightColor="rgba(53, 76, 253, 0.16)">
+              <div className="detail-header">
+                <div>
+                  <div className="detail-tag">SECTOR DETAILS</div>
+                  <h3 className="detail-zone-name">{sel.label}</h3>
+                </div>
+                <span
+                  className="detail-status-pill"
+                  style={{
+                    color: COLOR_MAP[getColor(sel.density)].text,
+                    background: COLOR_MAP[getColor(sel.density)].bg,
+                    borderColor: COLOR_MAP[getColor(sel.density)].border,
+                  }}
+                >
                   {getColor(sel.density).toUpperCase()}
-                </strong>
+                </span>
               </div>
-              <div className="density-bar-wrap mt-12">
-                <div className="density-bar" style={{ width: `${sel.density}%`, background: COLOR_MAP[getColor(sel.density)].border }} />
+
+              <div className="detail-metrics">
+                <div className="detail-metric-item">
+                  <span className="metric-label">Density Ratio</span>
+                  <strong className="metric-val" style={{ color: COLOR_MAP[getColor(sel.density)].text }}>
+                    {Math.round(sel.density)}%
+                  </strong>
+                </div>
+                <div className="detail-metric-item">
+                  <span className="metric-label">Estimated Occupancy</span>
+                  <strong className="metric-val">
+                    {Math.round((sel.density / 100) * sel.capacity)} / {sel.capacity}
+                  </strong>
+                </div>
               </div>
-            </div>
+
+              <div className="detail-bar-wrap">
+                <div
+                  className="detail-bar-fill"
+                  style={{
+                    width: `${sel.density}%`,
+                    background: COLOR_MAP[getColor(sel.density)].border,
+                    boxShadow: `0 0 10px ${COLOR_MAP[getColor(sel.density)].border}`,
+                  }}
+                />
+              </div>
+            </SpotlightCard>
           ) : (
-            <div className="card zone-detail placeholder-card">
-              <span style={{ fontSize: 36 }}>👆</span>
-              <span>Click a zone to see details</span>
-            </div>
+            <SpotlightCard className="zone-detail-placeholder" spotlightColor="rgba(180, 169, 239, 0.1)">
+              <div className="placeholder-icon">🎯</div>
+              <div className="placeholder-text">Click any zone to inspect telemetry</div>
+              <span className="placeholder-sub">Real-time attendee density, capacity thresholds, and flow rate</span>
+            </SpotlightCard>
           )}
 
-          {/* Alerts */}
-          <div className="card alerts-card">
-            <h3 className="card-title">Live Alerts</h3>
+          {/* Alerts card */}
+          <SpotlightCard className="alerts-card" spotlightColor="rgba(255, 59, 92, 0.12)">
+            <div className="alerts-header">
+              <h3 className="card-title">Event Dispatch Alerts</h3>
+              <span className="alerts-count-chip">3 Active</span>
+            </div>
+
             <div className="alerts-list">
               {ALERTS.map((a) => (
                 <div key={a.id} className={`alert-item alert-${a.level}`}>
-                  <div className="alert-row">
+                  <div className="alert-meta-row">
                     <span className="alert-time">{a.time}</span>
-                    <span className="alert-zone">{a.zone}</span>
+                    <span className="alert-zone-badge">{a.zone}</span>
                   </div>
-                  <div className="alert-msg">{a.msg}</div>
+                  <div className="alert-msg">
+                    <DecryptedText text={a.msg} animateOn="mount" speed={20} />
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
+          </SpotlightCard>
         </div>
       </div>
     </div>

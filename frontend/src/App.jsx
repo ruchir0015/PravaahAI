@@ -6,9 +6,13 @@ import LiveFeed from './components/LiveFeed.jsx';
 import ZoneMap from './components/ZoneMap.jsx';
 import QRPortal from './components/QRPortal.jsx';
 import AttendeeView from './components/AttendeeView.jsx';
+import Map from './components/Map.jsx';
+import DotGridBackground from './components/react-bits/DotGridBackground.jsx';
+import ClickSpark from './components/react-bits/ClickSpark.jsx';
 
 const VIEWS = {
   setup: VenueSetup,
+  map: Map,
   live: LiveFeed,
   zones: ZoneMap,
   qr: QRPortal,
@@ -20,12 +24,14 @@ function App() {
   const [venueData, setVenueData] = useState(null);
   const [zoneData, setZoneData] = useState(null);
 
-  const ActiveComponent = VIEWS[activeView];
+  const ActiveComponent = VIEWS[activeView] || VenueSetup;
 
   return (
-    <div style={{ display: 'flex', height: '100svh', overflow: 'hidden', background: 'var(--bg-base)' }}>
+    <div className="app-shell">
+      <DotGridBackground />
+      <ClickSpark />
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
-      <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <main className="main-content">
         <ActiveComponent
           venueData={venueData}
           setVenueData={setVenueData}

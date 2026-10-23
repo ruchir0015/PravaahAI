@@ -1,0 +1,81 @@
+.star-border-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.star-border-container:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-glow);
+  box-shadow: 0 4px 20px -2px rgba(104, 84, 222, 0.35);
+}
+
+.star-border-container:active {
+  transform: translateY(0);
+}
+
+.star-border-glow-top,
+.star-border-glow-bottom {
+  position: absolute;
+  width: 250%;
+  height: 50%;
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.star-border-glow-top {
+  top: -25%;
+  left: -75%;
+  animation: star-border-rotate-top 4s linear infinite;
+}
+
+.star-border-glow-bottom {
+  bottom: -25%;
+  right: -75%;
+  animation: star-border-rotate-bottom 4s linear infinite;
+}
+
+@keyframes star-border-rotate-top {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(60%);
+  }
+}
+
+@keyframes star-border-rotate-bottom {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-60%);
+  }
+}
+
+.star-border-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 8px 16px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--color-indigo-ink-900), var(--color-indigo-ink-800));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-indigo-ink-50);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.2px;
+}
