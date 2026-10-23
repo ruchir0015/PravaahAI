@@ -22,30 +22,29 @@
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: rgba(18, 18, 24, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  padding: 6px 4px 10px 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .vs-main-title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   line-height: 1.2;
   margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
 }
 
 .vs-page-subtitle {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
-  color: #a1a1aa;
-  margin-top: 4px;
+  color: #d4d4d8;
+  margin-top: 5px;
   line-height: 1.4;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
 /* ── Header Actions ── */
@@ -124,9 +123,9 @@
   gap: 12px;
   padding: 16px 20px;
   border-radius: 12px;
-  background: rgba(18, 18, 24, 0.78);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(13, 14, 20, 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
@@ -221,9 +220,9 @@
 .setup-card {
   padding: 16px 18px;
   border-radius: 12px;
-  background: rgba(18, 18, 24, 0.78);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(13, 14, 20, 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   display: flex;
@@ -482,9 +481,9 @@
 .map-canvas-card {
   padding: 18px 20px;
   border-radius: 12px;
-  background: rgba(18, 18, 24, 0.78);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(13, 14, 20, 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   display: flex;
