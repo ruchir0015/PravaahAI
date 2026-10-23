@@ -2,22 +2,40 @@ import {
   Compass,
   MapPin,
   Sparkles,
-  Radio,
-  Waves
 } from 'lucide-react';
 import FoldText from './FoldText';
+import PillNav from './PillNav';
 import './TopBar.css';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Command Center', icon: <Compass size={15} strokeWidth={2.2} /> },
-  { id: 'setup',     label: 'Fairgrounds & Cameras', icon: <MapPin size={15} strokeWidth={2.2} /> },
-  { id: 'attendee',  label: 'Visitor Pass & Guide', icon: <Sparkles size={15} strokeWidth={2.2} /> },
+  { id: 'dashboard', label: 'Command Center', href: '#dashboard', icon: <Compass size={15} strokeWidth={2.2} /> },
+  { id: 'setup',     label: 'Fairgrounds & Cameras', href: '#setup', icon: <MapPin size={15} strokeWidth={2.2} /> },
+  { id: 'attendee',  label: 'Visitor Pass & Guide', href: '#attendee', icon: <Sparkles size={15} strokeWidth={2.2} /> },
 ];
 
 export default function TopBar({ activeView = 'dashboard', setActiveView }) {
+  const currentHref =
+    activeView === 'live' || activeView === 'zones'
+      ? '#dashboard'
+      : `#${activeView}`;
+
+  const handleItemClick = (item, index, event) => {
+    event?.preventDefault();
+    if (item?.id && setActiveView) {
+      setActiveView(item.id);
+    }
+  };
+
+  const handleLogoClick = (event) => {
+    event?.preventDefault();
+    if (setActiveView) {
+      setActiveView('dashboard');
+    }
+  };
+
   return (
     <header className="fixed-topbar" id="main-topbar">
-      {/* Left: Brand with Pravaah and Festival Subtitle */}
+      {/* Left: Pravaah Brand Mark */}
       <div className="topbar-left">
         <button
           type="button"
@@ -25,10 +43,6 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
           onClick={() => setActiveView && setActiveView('dashboard')}
           title="Pravaah · Unified Event Crowd Command"
         >
-          <div className="topbar-logo-wrap">
-            <img src="/logoo.png" alt="Pravaah Logo" className="topbar-logo" />
-            <div className="topbar-logo-glow" />
-          </div>
           <div className="topbar-brand-info">
             <div className="topbar-brand-title-wrap">
               <FoldText
@@ -47,7 +61,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
                 refoldAngle={45}
                 perspective={800}
                 creaseShading={0.45}
-                fontSize="2.05rem"
+                fontSize="1.95rem"
                 fontWeight={800}
                 color="#0d082b"
                 className="topbar-foldtext"
@@ -57,26 +71,26 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
         </button>
       </div>
 
-      {/* Center: Clean 3-Item Navigation */}
+      {/* Center: React Bits PillNav with Logo first and 3 Navigation Items */}
       <nav className="topbar-center-nav">
-        <div className="topbar-nav-pill-group">
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeView === item.id || (item.id === 'dashboard' && (activeView === 'live' || activeView === 'zones'));
-            return (
-              <button
-                key={item.id}
-                id={`nav-${item.id}`}
-                type="button"
-                className={`topbar-nav-btn ${isActive ? 'active' : ''}`}
-                onClick={() => setActiveView && setActiveView(item.id)}
-              >
-                <span className="topbar-nav-icon">{item.icon}</span>
-                <span className="topbar-nav-label">{item.label}</span>
-                {isActive && <span className="topbar-active-glow" />}
-              </button>
-            );
-          })}
-        </div>
+        <PillNav
+          logo="/logoo.png"
+          logoAlt="Pravaah Logo"
+          logoHref="#dashboard"
+          onLogoClick={handleLogoClick}
+          items={NAV_ITEMS}
+          activeHref={currentHref}
+          onItemClick={handleItemClick}
+          theme="light"
+          layout="joined"
+          itemStyle="pill"
+          hoverEffect="fill"
+          indicator="dot"
+          size="md"
+          surface="glass"
+          highlightColor="#4329d6"
+          highlightTextColor="#ffffff"
+        />
       </nav>
 
       {/* Right: Balance spacing for centered navigation */}
@@ -84,3 +98,4 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
     </header>
   );
 }
+
