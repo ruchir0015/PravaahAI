@@ -238,10 +238,6 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
         <div>
           <div className="vs-badge-row">
             <span className="vs-tag-pill">FAIRGROUND &amp; SECTOR CALIBRATION</span>
-            <span className="vs-active-ds-pill">
-              <Cpu size={12} />
-              ACTIVE BENCHMARK: {activeDatasetId.toUpperCase()}
-            </span>
           </div>
           <h1 className="page-title">Fairgrounds &amp; Camera Sector Calibration</h1>
           <div className="techttext-subheading-wrap">

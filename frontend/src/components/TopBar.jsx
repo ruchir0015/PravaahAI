@@ -79,13 +79,8 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
         </div>
       </nav>
 
-      {/* Right: Operational Status Indicator */}
-      <div className="topbar-right">
-        <div className="topbar-live-status">
-          <span className="topbar-status-pulse" />
-          <span className="topbar-status-text">SYSTEM HARMONIZED</span>
-        </div>
-      </div>
+      {/* Right: Balance spacing for centered navigation */}
+      <div className="topbar-right" />
     </header>
   );
 }
