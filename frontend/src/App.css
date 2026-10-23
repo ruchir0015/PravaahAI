@@ -4,7 +4,7 @@
   height: 100svh;
   overflow: hidden;
   position: relative;
-  background-color: transparent;
+  background: radial-gradient(circle at 50% 0%, #171826 0%, #0c0d14 55%, #050508 100%);
 }
 
 .app-grainient-bg {

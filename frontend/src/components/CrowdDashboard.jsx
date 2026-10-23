@@ -418,31 +418,8 @@ export default function CrowdDashboard({ setActiveView }) {
           </div>
         </div>
 
-        {/* Right: Visitor QR, Auto-Telegram Toggle, Broadcast & Privacy */}
+        {/* Right: Broadcast Alert Action */}
         <div className="ticker-actions-group">
-          {/* Universal Visitor QR Pass Button */}
-          <button
-            type="button"
-            id="ticker-qr-btn"
-            className="ticker-qr-btn"
-            onClick={() => setShowUniversalQRModal(true)}
-            title="Display Universal QR Pass for Visitors to Scan"
-          >
-            <QrCode size={13} />
-            <span>Visitor QR</span>
-          </button>
-
-          {/* Automatic Telegram Forwarding Indicator & Toggle */}
-          <button
-            type="button"
-            className={`ticker-autotg-btn ${autoTelegramEnabled ? 'active' : ''}`}
-            onClick={() => setAutoTelegramEnabled(prev => !prev)}
-            title={autoTelegramEnabled ? "Automatic Telegram Forwarding is Active (click to pause)" : "Automatic Telegram Forwarding is Paused (click to resume)"}
-          >
-            <span className={`ticker-autotg-dot ${autoTelegramEnabled ? 'active' : ''}`} />
-            <span>{autoTelegramEnabled ? 'Auto-Telegram: Active' : 'Auto-Telegram: Paused'}</span>
-          </button>
-
           {/* Broadcast Alert Button */}
           <button
             type="button"
@@ -452,17 +429,6 @@ export default function CrowdDashboard({ setActiveView }) {
           >
             <Send size={13} />
             <span>Broadcast</span>
-          </button>
-
-          {/* Driver Details Privacy Toggle */}
-          <button
-            type="button"
-            className={`ticker-privacy-btn ${globalPIIRevealed ? 'active' : ''}`}
-            onClick={() => setGlobalPIIRevealed(prev => !prev)}
-            title={globalPIIRevealed ? 'Mask driver contact details' : 'Reveal driver contact details'}
-          >
-            {globalPIIRevealed ? <Unlock size={13} className="text-amber-400" /> : <Lock size={13} className="text-zinc-400" />}
-            <span>{globalPIIRevealed ? 'Shown' : 'Masked'}</span>
           </button>
         </div>
       </header>
@@ -931,30 +897,9 @@ export default function CrowdDashboard({ setActiveView }) {
         </section>
 
         {/* ====================================================================
-            COLUMN 3: Live Alerts & Quick Actions (Notification Center Style)
+            COLUMN 3: Live Alerts Feed
             ==================================================================== */}
         <section className="telemetry-panel flex flex-col">
-          <div className="panel-header-bar">
-            <div className="panel-title-group">
-              <ShieldAlert size={15} className="text-amber-400" />
-              <h2 className="panel-title">Live Alerts</h2>
-              <span className="panel-badge">{alertsList.length} ACTIVE</span>
-              {autoTelegramEnabled && (
-                <span className="auto-tg-indicator" title="Alerts automatically forward to Telegram">
-                  <Zap size={10} className="text-zinc-400" />
-                  <span>AUTO-FORWARD ON</span>
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => setShowTelegramModal(true)}
-              className="text-[11px] font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition"
-            >
-              <Send size={11} />
-              <span>Broadcast</span>
-            </button>
-          </div>
-
           {/* Alert Feed */}
           <div className="alert-feed-container">
             {alertsList.length === 0 ? (

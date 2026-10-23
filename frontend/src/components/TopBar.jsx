@@ -53,7 +53,6 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
           >
             <div className="topbar-logo-wrap">
               <img src="/logoo.png" alt="Pravaah Logo" className="topbar-logo" />
-              <div className="topbar-logo-glow" />
             </div>
             <div className="topbar-brand-info">
               <div className="topbar-brand-title-wrap">
@@ -72,10 +71,10 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
                   refoldRadius={160}
                   refoldAngle={45}
                   perspective={800}
-                  creaseShading={0.45}
-                  fontSize="1.75rem"
+                  creaseShading={0}
+                  fontSize="2.4rem"
                   fontWeight={800}
-                  color="#ffffff"
+                  color="#09090b"
                   className="topbar-foldtext"
                 />
               </div>
@@ -83,7 +82,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
           </button>
         </div>
 
-        {/* Center: Clean 3-Item Navigation */}
+        {/* Center: Clean 2-Item Navigation */}
         <nav className="topbar-center-nav">
           <div className="topbar-nav-pill-group">
             {NAV_ITEMS.map((item) => {
@@ -105,7 +104,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
           </div>
         </nav>
 
-        {/* Right: Visitor QR & Refined Live Indicator */}
+        {/* Right: Visitor QR Button */}
         <div className="topbar-right">
           <button
             type="button"
@@ -117,11 +116,6 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
             <QrCode size={14} />
             <span>Visitor QR</span>
           </button>
-
-          <div className="topbar-live-status">
-            <span className="topbar-status-pulse" />
-            <span className="topbar-status-text">LIVE</span>
-          </div>
         </div>
       </header>
 
