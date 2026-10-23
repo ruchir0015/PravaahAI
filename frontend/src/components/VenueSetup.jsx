@@ -240,7 +240,6 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       <header className="page-header">
         <div>
           <h1 className="vs-main-title">Fairgrounds &amp; Camera Calibration</h1>
-          <p className="vs-page-subtitle">Venue floorplan blueprint, camera coverage zones, and pedestrian route setup</p>
         </div>
 
         <div className="header-actions">
