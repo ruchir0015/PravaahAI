@@ -1,4 +1,5 @@
 import {
+  Cpu,
   MapPin,
   Globe,
   Video,
@@ -11,6 +12,7 @@ import GooeyNav from './GooeyNav';
 import './TopBar.css';
 
 const NAV_ITEMS = [
+  { id: 'dashboard', label: 'AI Dashboard', icon: <Cpu size={15} /> },
   { id: 'setup',    label: 'Venue Setup',   icon: <MapPin size={15} /> },
   { id: 'map',      label: 'Geo Map',       icon: <Globe size={15} /> },
   { id: 'live',     label: 'Live Feeds',    icon: <Video size={15} /> },
@@ -38,7 +40,7 @@ export default function TopBar({ activeView = 'setup', setActiveView }) {
         <button
           type="button"
           className="topbar-brand-btn"
-          onClick={() => setActiveView && setActiveView('setup')}
+          onClick={() => setActiveView && setActiveView('dashboard')}
           title="Pravaah Crowd Command"
         >
           <div className="topbar-logo-wrap">
