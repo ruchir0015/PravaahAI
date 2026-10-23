@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="100%" height="100%">
+  <defs>
+    <pattern id="campusGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(104, 84, 222, 0.07)" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="walkwayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#1a1442" stopOpacity="0.8"/>
+      <stop offset="100%" stopColor="#0f0b29" stopOpacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="fovCone" x1="10%" y1="90%" x2="70%" y2="20%">
+      <stop offset="0%" stopColor="#00ff88" stopOpacity="0.35"/>
+      <stop offset="100%" stopColor="#00ff88" stopOpacity="0.02"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Campus Baseplate -->
+  <rect width="1000" height="650" fill="#070517" />
+  <rect width="1000" height="650" fill="url(#campusGrid)" />
+
+  <!-- Outer Campus Boundary -->
+  <rect x="30" y="30" width="940" height="590" rx="16" fill="rgba(14, 10, 36, 0.7)" stroke="#2b1f7d" stroke-width="2" />
+
+  <!-- Academic Buildings (Surrounding the central courtyard) -->
+  <!-- North Academic Complex -->
+  <rect x="60" y="50" width="880" height="90" rx="8" fill="#120c30" stroke="#3d2c99" stroke-width="1.5" />
+  <text x="500" y="100" fill="#c3beeb" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="2">NORTH ACADEMIC FACULTY · WHITEKNIGHTS CAMPUS</text>
+
+  <!-- West Science Pavilion -->
+  <rect x="60" y="160" width="160" height="340" rx="8" fill="#120c30" stroke="#3d2c99" stroke-width="1.5" />
+  <text x="140" y="330" fill="#9e97d9" font-family="'Space Grotesk', sans-serif" font-size="12" font-weight="600" text-anchor="middle" transform="rotate(-90 140 330)">SCIENCE &amp; LAB PAVILION</text>
+
+  <!-- East Student Union & Library -->
+  <rect x="780" y="160" width="160" height="340" rx="8" fill="#120c30" stroke="#3d2c99" stroke-width="1.5" />
+  <text x="860" y="330" fill="#9e97d9" font-family="'Space Grotesk', sans-serif" font-size="12" font-weight="600" text-anchor="middle" transform="rotate(90 860 330)">UNIVERSITY LIBRARY &amp; COMMONS</text>
+
+  <!-- South Gateway Terminal -->
+  <rect x="60" y="520" width="880" height="80" rx="8" fill="#120c30" stroke="#3d2c99" stroke-width="1.5" />
+  <text x="500" y="565" fill="#c3beeb" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle" letter-spacing="2">SOUTH GATEWAY &amp; TRANSIT TERMINAL</text>
+
+  <!-- Central Walkway Plaza (Where PETS 2009 crowd flow is recorded) -->
+  <rect x="240" y="160" width="520" height="340" rx="12" fill="url(#walkwayGrad)" stroke="#4a37b3" stroke-width="2" stroke-dasharray="6 4" />
+  <path d="M 240 330 L 760 330 M 500 160 L 500 500" stroke="rgba(104, 84, 222, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
+
+  <!-- Camera CCTV 001 Coverage Frustum (View 001 Oblique Angle) -->
+  <polygon points="100,560 320,180 720,220 220,580" fill="url(#fovCone)" stroke="#00ff88" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+  <!-- Camera Pin Icon -->
+  <circle cx="100" cy="560" r="14" fill="#00ff88" fill-opacity="0.2" stroke="#00ff88" stroke-width="2"/>
+  <circle cx="100" cy="560" r="6" fill="#00ff88"/>
+  <text x="125" y="565" fill="#00ff88" font-family="'Space Grotesk', sans-serif" font-size="12" font-weight="700">CCTV VIEW 001 (PETS 2009)</text>
+
+  <!-- Designated Sectors (P1, P2, P3, P4) -->
+  <!-- Sector P1: North Pathway Entrance -->
+  <g id="sector-P1">
+    <rect x="260" y="180" width="220" height="130" rx="8" fill="rgba(255, 193, 7, 0.08)" stroke="#ffc107" stroke-width="1.5" />
+    <text x="370" y="235" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">SECTOR P1</text>
+    <text x="370" y="258" fill="#ffc107" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" text-anchor="middle">North Pathway Entry</text>
+  </g>
+
+  <!-- Sector P2: Central Concourse -->
+  <g id="sector-P2">
+    <rect x="520" y="180" width="220" height="130" rx="8" fill="rgba(255, 59, 92, 0.08)" stroke="#ff3b5c" stroke-width="1.5" />
+    <text x="630" y="235" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">SECTOR P2</text>
+    <text x="630" y="258" fill="#ff3b5c" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" text-anchor="middle">Central Promenade</text>
+  </g>
+
+  <!-- Sector P3: South Exit Junction -->
+  <g id="sector-P3">
+    <rect x="520" y="350" width="220" height="130" rx="8" fill="rgba(0, 255, 136, 0.08)" stroke="#00ff88" stroke-width="1.5" />
+    <text x="630" y="405" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">SECTOR P3</text>
+    <text x="630" y="428" fill="#00ff88" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" text-anchor="middle">South Campus Junction</text>
+  </g>
+
+  <!-- Sector P4: West Pavilion Quad -->
+  <g id="sector-P4">
+    <rect x="260" y="350" width="220" height="130" rx="8" fill="rgba(104, 84, 222, 0.08)" stroke="#6854de" stroke-width="1.5" />
+    <text x="370" y="405" fill="#ffffff" font-family="'Space Grotesk', sans-serif" font-size="14" font-weight="700" text-anchor="middle">SECTOR P4</text>
+    <text x="370" y="428" fill="#b4a9ef" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" text-anchor="middle">West Pavilion Quad</text>
+  </g>
+
+  <!-- Footer Watermark -->
+  <text x="500" y="625" fill="#6d62a8" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" text-anchor="middle">PETS 2009 Benchmark Spatial Calibration Grid · University of Reading Whiteknights</text>
+</svg>

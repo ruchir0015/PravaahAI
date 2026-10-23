@@ -1,413 +1,90 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Compass,
+  Video,
+  Map as MapIcon,
+  Activity,
+  AlertTriangle,
+  ShieldCheck,
+  Send,
+  CheckCircle2,
+  Cpu,
+  Layers,
+  ArrowRight,
+  TrendingUp,
+  TrendingDown,
+  Car,
+  ParkingSquare
+} from "lucide-react";
 import "./CrowdDashboard.css";
-import SpotlightCard from "./react-bits/SpotlightCard.jsx";
+import ShinyText from "./react-bits/ShinyText.jsx";
 
-const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:5050";
+const API = "http://localhost:5050";
 const POLL_MS = 2000;
 
-// Functional color mapping for graphs and calculated metrics
 const COLOR_MAP = {
-  RED: {
-    fg: "#ff3b5c",
-    bg: "rgba(255,59,92,0.16)",
-    border: "rgba(255,59,92,0.45)",
-    glow: "0 0 14px rgba(255,59,92,0.35)",
-  },
-  YELLOW: {
-    fg: "#ffc107",
-    bg: "rgba(255,193,7,0.15)",
-    border: "rgba(255,193,7,0.45)",
-    glow: "0 0 12px rgba(255,193,7,0.25)",
-  },
-  GREEN: {
-    fg: "#00ff88",
-    bg: "rgba(0,255,136,0.12)",
-    border: "rgba(0,255,136,0.4)",
-    glow: "0 0 12px rgba(0,255,136,0.22)",
-  },
+  RED:    { fg: "#ff3b5c", bg: "rgba(255,59,92,0.14)", border: "#ff3b5c", label: "Critical Bottleneck" },
+  YELLOW: { fg: "#f59e0b", bg: "rgba(245,158,11,0.14)", border: "#f59e0b", label: "Elevated Density" },
+  GREEN:  { fg: "#10b981", bg: "rgba(16,185,129,0.12)", border: "#10b981", label: "Optimal Flow" },
 };
 
-function useSVGSparkline(history, width = 200, height = 48) {
-  if (!history || history.length < 2) return "";
-  const values = history.map((p) => (p.saturation != null ? p.saturation : 0));
-  const min = Math.min(...values);
-  const max = Math.max(...values) || 1;
-  const pts = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * width;
-    const y = height - ((v - min) / (max - min || 1)) * height;
-    return `${x},${y}`;
-  });
-  return pts.join(" ");
-}
-
-function Sparkline({ history, color = "#6881fd" }) {
-  const pts = useSVGSparkline(history);
-  if (!pts) return null;
-  return (
-    <svg viewBox="0 0 200 48" className="sparkline-svg" preserveAspectRatio="none">
-      <polyline
-        points={pts}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      <polygon points={`0,48 ${pts} 200,48`} fill={color} fillOpacity="0.14" />
-    </svg>
-  );
-}
-
-// ── Zone Card (100% Dynamic, Functional Colors on Metrics & Graphs) ─────────
-function ZoneCard({ zone, histData, forecastModel }) {
-  const colKey = zone.color || "GREEN";
-  const c = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
-  const sat = zone.saturation_pct != null ? zone.saturation_pct : 0;
-  const fcSat = zone.forecast_sat;
-  const fcCol = zone.forecast_color || "GREEN";
-  const fcC = COLOR_MAP[fcCol] || COLOR_MAP.GREEN;
-
-  return (
-    <SpotlightCard
-      className="cd-zone-card"
-      spotlightColor="rgba(0,0,0,0.04)"
-      style={{ borderColor: c.border }}
-    >
-      <div className="cd-zone-header">
-        <div>
-          <div className="cd-zone-id" style={{ color: c.fg }}>
-            {zone.id}{zone.type ? ` · ${zone.type}` : ""}
-          </div>
-          <div className="cd-zone-label">{zone.label || zone.id}</div>
-        </div>
-        <div
-          className="cd-level-pill"
-          style={{
-            color: c.fg,
-            background: c.bg,
-            border: `1.5px solid ${c.border}`,
-            boxShadow: c.glow,
-          }}
-        >
-          {zone.level || zone.color}
-        </div>
-      </div>
-
-      <div className="cd-zone-metrics">
-        <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>
-            {sat != null ? `${sat.toFixed(0)}%` : "—"}
-          </span>
-          <span className="cd-metric-lbl">Density Load</span>
-        </div>
-        <div className="cd-metric-col">
-          <span className="cd-metric-val">{zone.status_label || zone.level || "—"}</span>
-          <span className="cd-metric-lbl">Flow State</span>
-        </div>
-        <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>
-            {colKey === "RED" ? "CRITICAL" : colKey === "YELLOW" ? "ELEVATED" : "OPTIMAL"}
-          </span>
-          <span className="cd-metric-lbl">Status</span>
-        </div>
-      </div>
-
-      {/* Saturation Progress Bar (Color-coded) */}
-      <div className="cd-occ-bar-wrap">
-        <div
-          className="cd-occ-bar-fill"
-          style={{
-            width: `${Math.min(100, Math.max(0, sat))}%`,
-            background: c.fg,
-            boxShadow: c.glow,
-          }}
-        />
-      </div>
-
-      {/* Sparkline Graph (Color-coded to zone) */}
-      {histData && histData.length > 1 && (
-        <div className="cd-sparkline-wrap">
-          <Sparkline history={histData} color={c.fg} />
-        </div>
-      )}
-
-      {/* Predictive Density Trend */}
-      {fcSat != null && (
-        <div className="cd-forecast-row" style={{ borderTop: `1px solid ${c.border}` }}>
-          <div className="cd-fc-left">
-            <span className="cd-forecast-badge">PROJECTION</span>
-            <span className="cd-forecast-sub">{zone.forecast_model || forecastModel || "Predictive Model"}</span>
-          </div>
-          <span className="cd-forecast-val" style={{ color: fcC.fg }}>
-            {zone.trend || "═"} {fcSat.toFixed(0)}% ({fcCol})
-          </span>
-        </div>
-      )}
-    </SpotlightCard>
-  );
-}
-
-// ── Corridor Card (Functional Colors on Metrics & Graphs) ───────────────────
-function CorridorCard({ corridor, histData }) {
-  const sat = corridor.saturation_pct != null ? corridor.saturation_pct : 0;
-  const colKey = corridor.color || "GREEN";
-  const c = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
-
-  return (
-    <SpotlightCard
-      className="cd-zone-card cd-corridor-card"
-      spotlightColor="rgba(0,0,0,0.04)"
-      style={{ borderColor: c.border }}
-    >
-      <div className="cd-zone-header">
-        <div>
-          <div className="cd-zone-id" style={{ color: "#6881fd" }}>
-            {corridor.id}{corridor.type ? ` · ${corridor.type}` : ""}
-          </div>
-          <div className="cd-zone-label">{corridor.name || corridor.id}</div>
-        </div>
-        <div
-          className="cd-level-pill"
-          style={{
-            color: c.fg,
-            background: c.bg,
-            border: `1.5px solid ${c.border}`,
-          }}
-        >
-          {corridor.los || corridor.color}
-        </div>
-      </div>
-
-      <div className="cd-zone-metrics">
-        <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>
-            {corridor.vehicles != null ? corridor.vehicles : "—"}
-          </span>
-          <span className="cd-metric-lbl">Active Veh</span>
-        </div>
-        <div className="cd-metric-col">
-          <span className="cd-metric-val">{corridor.speed_kmh != null ? corridor.speed_kmh : "—"}</span>
-          <span className="cd-metric-lbl">Speed (km/h)</span>
-        </div>
-        <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>
-            {sat != null ? `${sat.toFixed(0)}%` : "—"}
-          </span>
-          <span className="cd-metric-lbl">Saturation</span>
-        </div>
-      </div>
-
-      {/* Saturation bar */}
-      <div className="cd-occ-bar-wrap">
-        <div
-          className="cd-occ-bar-fill"
-          style={{ width: `${Math.min(100, Math.max(0, sat))}%`, background: c.fg }}
-        />
-      </div>
-
-      {/* Sparkline Graph */}
-      {histData && histData.length > 1 && (
-        <div className="cd-sparkline-wrap">
-          <Sparkline history={histData} color="#6881fd" />
-        </div>
-      )}
-
-      {/* Corridor Signal Info */}
-      <div className="cd-corridor-footer">
-        <div className="cd-signal-indicator">
-          <span
-            className="cd-signal-dot"
-            style={{
-              background: corridor.signal?.includes("GREEN")
-                ? "#00ff88"
-                : corridor.signal?.includes("AMBER")
-                ? "#ffc107"
-                : "#ff3b5c",
-            }}
-          />
-          <span>{corridor.signal ? `SIGNAL: ${corridor.signal}` : "ACTIVE MONITOR"}</span>
-        </div>
-        {corridor.connects && (
-          <div className="cd-connects-tag">Connects: {corridor.connects}</div>
-        )}
-      </div>
-    </SpotlightCard>
-  );
-}
-
-// ── Parking Deck Card (Functional Colors on Badges & Capacity) ─────────────
-function ParkingCard({ lot }) {
-  const pct = lot.pct != null ? lot.pct : 0;
-  const colKey = lot.color || "GREEN";
-  const c = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
-
-  return (
-    <div className="cd-parking-card" style={{ borderColor: c.border }}>
-      <div className="cd-parking-top">
-        <span className="cd-parking-name">{lot.name || lot.id}</span>
-        <span
-          className="cd-parking-badge"
-          style={{ color: c.fg, background: c.bg }}
-        >
-          {colKey} · {pct.toFixed(0)}%
-        </span>
-      </div>
-      <div className="cd-parking-bar-wrap">
-        <div
-          className="cd-parking-bar-fill"
-          style={{ width: `${Math.min(100, Math.max(0, pct))}%`, background: c.fg }}
-        />
-      </div>
-      <div className="cd-parking-nums">
-        <span>Capacity: {lot.occupied != null ? lot.occupied : "—"} / {lot.capacity != null ? lot.capacity : "—"}</span>
-        <span
-          className="cd-bays-open"
-          style={{ color: lot.available < 40 ? "#ff3b5c" : "#00ff88" }}
-        >
-          {lot.available != null ? `${lot.available} Bays Open` : "—"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ── Suggestion Card (No emojis, functional accent colors) ───────────────────
-function SuggestionItem({ s, onExecute, isExecuted }) {
-  const isCrit = s.level === "critical";
-  const badgeColor = isCrit ? "#ff3b5c" : "#6881fd";
-
-  return (
-    <div
-      className={`cd-suggestion-item ${isCrit ? "cd-sugg-crit" : ""}`}
-      style={{ borderLeft: `3px solid ${badgeColor}` }}
-    >
-      <div className="cd-sugg-top">
-        <div
-          className="cd-sugg-type-badge"
-          style={{
-            background: isCrit ? "rgba(255,59,92,0.18)" : "rgba(104,129,253,0.18)",
-            color: badgeColor,
-            border: `1px solid ${isCrit ? "rgba(255,59,92,0.4)" : "rgba(104,129,253,0.4)"}`,
-          }}
-        >
-          {s.type || "DIVERSION"}
-        </div>
-        <span className="cd-sugg-action-code">{s.action || "DIRECTIVE"}</span>
-        <span className="cd-sugg-zone">{s.zone || ""}</span>
-      </div>
-
-      <div className="cd-sugg-msg">{s.message || ""}</div>
-
-      {s.targets && s.targets.length > 0 && (
-        <div className="cd-sugg-targets">
-          <span className="cd-sugg-targets-label">Target Nodes:</span>
-          {s.targets.map((t, i) => (
-            <span
-              key={i}
-              className="cd-target-chip"
-              style={{
-                color: "#00ff88",
-                borderColor: "rgba(0,255,136,0.4)",
-                background: "rgba(0,255,136,0.12)",
-              }}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {s.impact && (
-        <div className="cd-sugg-impact">
-          <span className="cd-impact-label" style={{ color: "#00ff88" }}>OPERATIONAL IMPACT</span>
-          <span className="cd-impact-text">{s.impact}</span>
-        </div>
-      )}
-
-      <div className="cd-sugg-bottom">
-        <div className="cd-sugg-role">
-          Authority: <strong>{s.authority_role || "Command Control"}</strong>
-        </div>
-
-        <button
-          className={`cd-action-btn ${isExecuted ? "cd-action-done" : ""}`}
-          onClick={() => onExecute(s)}
-          disabled={isExecuted}
-        >
-          {isExecuted
-            ? "EXECUTED LIVE"
-            : isCrit
-            ? "DISPATCH PRIORITY DIVERSION"
-            : "DISPATCH DIRECTIVE"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Dashboard ──────────────────────────────────────────────────────────
 export default function CrowdDashboard() {
   const [status, setStatus] = useState(null);
-  const [crowdHistory, setCrowdHistory] = useState({});
-  const [traffHistory, setTraffHistory] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [backErr, setBackErr] = useState(false);
-  const [lastTs, setLastTs] = useState(null);
-  const [videoOk, setVideoOk] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
+  const [datasets, setDatasets] = useState([]);
+  const [activeTab, setActiveTab] = useState("video"); // "video" | "map"
+  const [selectedZoneId, setSelectedZoneId] = useState(null);
   const [executedActions, setExecutedActions] = useState([]);
   const [actionNotice, setActionNotice] = useState(null);
-  const pollRef = useRef(null);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [backErr, setBackErr] = useState(false);
 
   const fetchStatus = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/api/status`, { signal: AbortSignal.timeout(3000) });
-      if (!r.ok) return;
-      const d = await r.json();
-      if (d.status === "warming_up") return;
-      setStatus(d);
-      setLastTs(new Date());
-      setBackErr(false);
-      setLoading(false);
+      const [stRes, dsRes] = await Promise.all([
+        fetch(`${API}/api/status`, { signal: AbortSignal.timeout(3000) }),
+        fetch(`${API}/api/datasets`, { signal: AbortSignal.timeout(2500) })
+      ]);
 
-      // Fetch dynamic histories
-      const zoneKeys = Object.keys(d.zones || {});
-      const cHistList = await Promise.all(
-        zoneKeys.map((z) =>
-          fetch(`${API}/api/history/${z}`, { signal: AbortSignal.timeout(2500) })
-            .then((res) => res.json())
-            .catch(() => null)
-        )
-      );
-      const cMap = {};
-      zoneKeys.forEach((z, i) => {
-        if (cHistList[i]) cMap[z] = cHistList[i].history || [];
-      });
-      setCrowdHistory(cMap);
-
-      const corrKeys = Object.keys(d.traffic?.corridors || {});
-      const tHistList = await Promise.all(
-        corrKeys.map((c) =>
-          fetch(`${API}/api/traffic_history/${c}`, { signal: AbortSignal.timeout(2500) })
-            .then((res) => res.json())
-            .catch(() => null)
-        )
-      );
-      const tMap = {};
-      corrKeys.forEach((c, i) => {
-        if (tHistList[i]) tMap[c] = tHistList[i].history || [];
-      });
-      setTraffHistory(tMap);
+      if (stRes.ok) {
+        const d = await stRes.json();
+        if (d.status !== "warming_up") {
+          setStatus(d);
+          setBackErr(false);
+          if (!selectedZoneId && d.zones && Object.keys(d.zones).length > 0) {
+            setSelectedZoneId(Object.keys(d.zones)[0]);
+          }
+        }
+      }
+      if (dsRes.ok) {
+        const ds = await dsRes.json();
+        setDatasets(ds.datasets || []);
+      }
     } catch {
       setBackErr(true);
     }
-  }, []);
+  }, [selectedZoneId]);
 
   useEffect(() => {
     fetchStatus();
-    pollRef.current = setInterval(fetchStatus, POLL_MS);
-    return () => clearInterval(pollRef.current);
+    const iv = setInterval(fetchStatus, POLL_MS);
+    return () => clearInterval(iv);
   }, [fetchStatus]);
+
+  const handleSwitchDataset = async (datasetId) => {
+    setIsSwitching(true);
+    try {
+      await fetch(`${API}/api/dataset/switch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataset_id: datasetId }),
+      });
+      await fetchStatus();
+    } catch (e) {
+      console.error("Dataset switch error", e);
+    } finally {
+      setIsSwitching(false);
+    }
+  };
 
   const handleExecute = async (sugg) => {
     try {
@@ -418,396 +95,337 @@ export default function CrowdDashboard() {
           id: sugg.id,
           action: sugg.action,
           target: sugg.targets?.join(", ") || sugg.zone,
-          operator: "Authorized Operator",
+          operator: "Chief Event Flow Marshal",
         }),
       });
       if (res.ok) {
         setExecutedActions((prev) => [...prev, sugg.id]);
         setActionNotice({
-          msg: `Directive '${sugg.action}' successfully deployed across field actuators.`,
-          time: new Date().toLocaleTimeString(),
+          msg: `Directive successfully dispatched: Field marshals & digital signage deployed for ${sugg.zone}.`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         });
         setTimeout(() => setActionNotice(null), 6000);
       }
     } catch (e) {
-      console.error("Action execution failed", e);
+      console.error("Action execution error", e);
     }
   };
 
-  const zones = status?.zones || {};
-  const traffic = status?.traffic || {};
-  const corridors = traffic.corridors || {};
-  const parking = traffic.parking || {};
-  const alerts = status?.alerts || [];
+  const zones       = status?.zones || {};
+  const zonesList   = Object.values(zones);
+  const activeDs    = status?.dataset || {};
   const suggestions = status?.suggestions || [];
-  const summary = status?.summary || {};
-  const modelName = status?.model || "AI Flow Engine";
+  const traffic     = status?.traffic || {};
+  const corridors   = traffic.corridors || {};
+  const parking     = traffic.parking || {};
+  const summary     = status?.summary || {};
 
-  const redZones = summary.red_zones ?? Object.values(zones).filter((z) => z.color === "RED").length;
-  const yellowZones = summary.yellow_zones ?? Object.values(zones).filter((z) => z.color === "YELLOW").length;
-  const greenZones = summary.green_zones ?? Object.values(zones).filter((z) => z.color === "GREEN").length;
+  const redCount    = summary.red_zones || zonesList.filter((z) => z.color === "RED").length;
+  const yellowCount = summary.yellow_zones || zonesList.filter((z) => z.color === "YELLOW").length;
+
+  const isCriticalEvent = redCount > 0;
+  const isModerateEvent = !isCriticalEvent && yellowCount > 0;
+
+  const primarySuggestion = suggestions.find(s => s.status === "ACTION_REQUIRED") || suggestions[0];
+  const isPrimaryExecuted = primarySuggestion && executedActions.includes(primarySuggestion.id);
+
+  const selectedZone = selectedZoneId ? zones[selectedZoneId] : zonesList[0];
 
   return (
-    <div className="cd-page">
-      {/* ── Executive Header ─────────────────────────────────────────────── */}
-      <header className="cd-header">
-        <div>
-          <div className="cd-header-pill-row">
-            <span className="cd-authority-badge">OFFICIAL AUTHORITY COMMAND CONSOLE</span>
-            <span className="cd-model-badge">ENGINE: {modelName}</span>
-          </div>
-          <h1 className="cd-title">
-            Pravaah AI · Spatial Density & Concourse Zones
-          </h1>
-          <p className="cd-subtitle">
-            Continuous Spatial Density Heatmap · Dynamic Zone Categorization · Predictive Trend Forecasting
-          </p>
-        </div>
-
-        <div className="cd-header-right">
-          <div className="cd-view-tabs">
-            <button
-              className={`cd-tab-btn ${activeTab === "all" ? "active" : ""}`}
-              onClick={() => setActiveTab("all")}
-            >
-              Unified Overview
-            </button>
-            <button
-              className={`cd-tab-btn ${activeTab === "crowd" ? "active" : ""}`}
-              onClick={() => setActiveTab("crowd")}
-            >
-              Density & Heatmap
-            </button>
-            <button
-              className={`cd-tab-btn ${activeTab === "traffic" ? "active" : ""}`}
-              onClick={() => setActiveTab("traffic")}
-            >
-              Arterials & Parking
-            </button>
-          </div>
-
-          <div className={`cd-backend-pill ${backErr ? "cd-back-err" : "cd-back-ok"}`}>
-            <span className="cd-back-dot" />
-            {backErr ? "Backend Offline" : `Live Engine · ${lastTs ? lastTs.toLocaleTimeString() : "..."}`}
+    <div className="pravaah-command-page">
+      {/* ── 1. Hero Safety Pulse Banner (Clear Glanceable Status) ── */}
+      <section className={`hero-safety-banner ${isCriticalEvent ? "is-critical" : isModerateEvent ? "is-moderate" : "is-safe"}`}>
+        <div className="safety-banner-left">
+          <div className="safety-pulse-dot" />
+          <div className="safety-banner-text">
+            <span className="safety-eyebrow">
+              {isCriticalEvent ? "ACTION REQUIRED · HIGH DENSITY" : isModerateEvent ? "ELEVATED CROWD FLOW · MONITORING" : "PRAVAAH HARMONIOUS FLOW · OPTIMAL"}
+            </span>
+            <h2 className="safety-headline">
+              {isCriticalEvent
+                ? `${redCount} Sector requiring diversion: High concentration at ${zonesList.find(z => z.color === "RED")?.label || "access gate"}.`
+                : isModerateEvent
+                ? `Steady crowd ingress: ${yellowCount} sector approaching capacity limits. Flow moving smoothly.`
+                : `All ${zonesList.length || 4} fairground sectors operating in safe equilibrium. Zero crush risk.`}
+            </h2>
           </div>
         </div>
-      </header>
 
-      {/* Action Notice Toast */}
+        {/* Top-Right Dataset Switcher */}
+        <div className="dataset-switcher-pill">
+          <span className="ds-pill-title">BENCHMARK:</span>
+          {datasets.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              className={`ds-pill-btn ${d.is_active ? "active" : ""}`}
+              disabled={isSwitching}
+              onClick={() => handleSwitchDataset(d.id)}
+            >
+              {d.id === "pets2009" ? "🎓 PETS 2009" : d.id === "shanghaitech" ? "🏙️ Urban Expo" : "🏟️ Concourse"}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Action Notification Toast */}
       {actionNotice && (
-        <div className="cd-toast-notice">
-          <div className="cd-toast-content">
-            <span className="cd-toast-title">DIRECTIVE DISPATCHED LIVE ({actionNotice.time})</span>
-            <span className="cd-toast-msg">{actionNotice.msg}</span>
+        <div className="action-toast">
+          <CheckCircle2 size={18} color="#10b981" />
+          <div className="toast-text">
+            <strong>DIRECTIVE DISPATCHED LIVE ({actionNotice.time})</strong>
+            <span>{actionNotice.msg}</span>
           </div>
         </div>
       )}
 
-      {/* ── Top Executive Status Bar (Functional Colors on Metric Values) ──── */}
-      <div className="cd-summary-bar">
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(255,59,92,0.12)">
-          <div className="cd-sum-label">Critical Zones (High Density)</div>
-          <div className="cd-sum-val" style={{ color: "#ff3b5c" }}>
-            {loading ? "—" : redZones}
-          </div>
-          <div className="cd-sum-sub">
-            {redZones > 0 ? `${redZones} sectors requiring diversion` : "No critical congestion"}
-          </div>
-        </SpotlightCard>
+      {/* ── 2. Unified Spatial Canvas (CCTV Heatmap + Blueprint Map) ── */}
+      <main className="spatial-command-layout">
+        <div className="spatial-canvas-card">
+          {/* Header Controls for Canvas */}
+          <div className="canvas-header-bar">
+            <div className="canvas-header-title">
+              <span className="venue-title-badge">{activeDs.venue_name || "Fairgrounds"}</span>
+              <span className="venue-name-sub">{activeDs.name || "Live Monitored Site"}</span>
+            </div>
 
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(255,193,7,0.12)">
-          <div className="cd-sum-label">Moderate Zones (Medium Density)</div>
-          <div className="cd-sum-val" style={{ color: "#ffc107" }}>
-            {loading ? "—" : yellowZones}
+            {/* View Toggle: Thermal Vision vs Spatial Blueprint */}
+            <div className="canvas-view-toggle">
+              <button
+                type="button"
+                className={`toggle-btn ${activeTab === "video" ? "active" : ""}`}
+                onClick={() => setActiveTab("video")}
+              >
+                <Video size={14} />
+                <span>Thermal Vision</span>
+              </button>
+              <button
+                type="button"
+                className={`toggle-btn ${activeTab === "map" ? "active" : ""}`}
+                onClick={() => setActiveTab("map")}
+              >
+                <MapIcon size={14} />
+                <span>Fairground Map</span>
+              </button>
+            </div>
           </div>
-          <div className="cd-sum-sub">
-            {yellowZones > 0 ? `${yellowZones} sectors elevated` : "Nominal density"}
-          </div>
-        </SpotlightCard>
 
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(0,255,136,0.12)">
-          <div className="cd-sum-label">Optimal Zones (Low Density)</div>
-          <div className="cd-sum-val" style={{ color: "#00ff88" }}>
-            {loading ? "—" : greenZones}
-          </div>
-          <div className="cd-sum-sub">
-            {greenZones > 0 ? `${greenZones} sectors free flow` : "No capacity"}
-          </div>
-        </SpotlightCard>
-
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(104,129,253,0.12)">
-          <div className="cd-sum-label">Actionable Directives</div>
-          <div
-            className="cd-sum-val"
-            style={{ color: suggestions.length > 0 ? "#ff3b5c" : "#00ff88" }}
-          >
-            {loading ? "—" : suggestions.length}
-          </div>
-          <div className="cd-sum-sub">
-            {suggestions.length > 0 ? `${suggestions.length} active directives` : "System in equilibrium"}
-          </div>
-        </SpotlightCard>
-      </div>
-
-      {loading && (
-        <div className="cd-loading">
-          <div className="cd-spinner" />
-          <span>Connecting to Pravaah AI Spatial Density Engine...</span>
-        </div>
-      )}
-
-      {!loading && (
-        <div className="cd-body">
-          {/* ── Left Column: Video & Zone Grids ───────────────────────────── */}
-          <div className="cd-left">
-            {/* LIVE SURVEILLANCE FEED */}
-            <SpotlightCard className="cd-video-card" spotlightColor="rgba(0,0,0,0.04)">
-              <div className="cd-video-header">
-                <div>
-                  <h3 className="cd-card-title">Live Concourse Heatmap · Zone Boundaries</h3>
-                  <p className="cd-card-subtitle">
-                    Continuous spatial density heatmap overlay with automated high-contrast zone boundaries
-                  </p>
-                </div>
-                <div className="cd-live-badge">
-                  <span className="cd-live-dot" />
-                  LIVE HEATMAP ACTIVE
-                </div>
-              </div>
-              <div className="cd-video-wrap">
+          {/* Main Visual Display */}
+          <div className="canvas-viewport">
+            {activeTab === "video" ? (
+              <div className="video-stream-container">
                 <img
                   src={`${API}/api/video_feed`}
-                  alt="Live Thermal Density Heatmap"
-                  className="cd-video-img"
-                  onLoad={() => setVideoOk(true)}
-                  onError={() => setVideoOk(false)}
+                  alt="Live Surveillance Stream with Heatmap"
+                  className="live-video-element"
                 />
-                {!videoOk && (
-                  <div className="cd-video-placeholder">
-                    <div className="cd-vp-text">FEED STANDBY</div>
-                    <div className="cd-vp-sub">Awaiting stream from backend</div>
+                <div className="video-bottom-hud">
+                  <div className="hud-engine-chip">
+                    <span className="hud-dot-live" />
+                    <span>CSRNet Density Matrix + ShanghaiTech LSTM</span>
                   </div>
-                )}
-                <div className="cd-video-overlay">
-                  <span>{status?.mode || "PRAVAAH_AI_LIVE"}</span>
-                  <span>{status?.status || "SURVEILLANCE_ACTIVE"}</span>
+                  <div className="hud-stats-chip">
+                    <span>Active Ingress: {status?.total_count || 0} Estimated Visitors</span>
+                  </div>
                 </div>
               </div>
-            </SpotlightCard>
-
-            {/* CONCOURSE ZONES (Rendered purely from status.zones) */}
-            {(activeTab === "all" || activeTab === "crowd") && (
-              <div className="cd-section-block">
-                <div className="cd-subheading-row">
-                  <h2 className="cd-subheading">
-                    Concourse Crowd Density Status
-                  </h2>
-                  <span className="cd-subheading-meta">Categorized by Density Mass</span>
-                </div>
-                <div className="cd-zones-grid">
-                  {Object.values(zones).map((zone) => (
-                    <ZoneCard
-                      key={zone.id}
-                      zone={zone}
-                      histData={crowdHistory[zone.id]}
-                      forecastModel={modelName}
-                    />
-                  ))}
-                </div>
+            ) : (
+              <div className="blueprint-map-container">
+                <img
+                  src={activeDs.map_image || "/pets-campus-plan.svg"}
+                  alt="Fairground Blueprint"
+                  className="blueprint-img"
+                />
+                {zonesList.map((z) => {
+                  const bbox = z.bbox || [0.1, 0.1, 0.4, 0.4];
+                  const c = COLOR_MAP[z.color] || COLOR_MAP.GREEN;
+                  const isSel = selectedZone?.id === z.id;
+                  return (
+                    <button
+                      key={z.id}
+                      type="button"
+                      className={`blueprint-sector-overlay ${isSel ? "is-selected" : ""}`}
+                      style={{
+                        left: `${bbox[0] * 100}%`,
+                        top: `${bbox[1] * 100}%`,
+                        width: `${(bbox[2] - bbox[0]) * 100}%`,
+                        height: `${(bbox[3] - bbox[1]) * 100}%`,
+                        backgroundColor: c.bg,
+                        borderColor: c.border,
+                      }}
+                      onClick={() => setSelectedZoneId(z.id)}
+                    >
+                      <div className="sector-ov-header">
+                        <span className="sector-ov-id">{z.id}</span>
+                        <span className="sector-ov-sat" style={{ color: c.fg }}>{z.saturation_pct}%</span>
+                      </div>
+                      <div className="sector-ov-label">{z.label}</div>
+                    </button>
+                  );
+                })}
               </div>
             )}
+          </div>
+        </div>
 
-            {/* ARTERIAL CORRIDORS & PARKING (Rendered purely from status.traffic) */}
-            {(activeTab === "all" || activeTab === "traffic") && (
-              <div className="cd-section-block">
-                <div className="cd-subheading-row">
-                  <h2 className="cd-subheading">
-                    Vehicular Arterial Corridors & Signals
-                  </h2>
-                  <span className="cd-subheading-meta">Dynamic Diversion Control</span>
-                </div>
-                <div className="cd-zones-grid">
-                  {Object.values(corridors).map((c) => (
-                    <CorridorCard key={c.id} corridor={c} histData={traffHistory[c.id]} />
-                  ))}
-                </div>
+        {/* ── 3. Focused Tactical Sidebar (One Highlighted Action + Focused Sector) ── */}
+        <aside className="command-sidebar">
+          {/* A. Smart Rerouting Action Card */}
+          {primarySuggestion && (
+            <div className={`action-highlight-card ${primarySuggestion.level === "critical" ? "is-critical" : ""}`}>
+              <div className="action-card-top">
+                <span className="action-type-badge">
+                  {primarySuggestion.type === "CROWD" ? "👥 CROWD DIVERSION" : "⚡ TRAFFIC & CROWD REROUTE"}
+                </span>
+                <span className="action-status-pill">
+                  {isPrimaryExecuted ? "DISPATCHED" : primarySuggestion.status}
+                </span>
+              </div>
 
-                <div className="cd-parking-section">
-                  <div className="cd-parking-header">
-                    <span className="cd-parking-title">Parking Decks & Dynamic Redistribution</span>
-                    <span className="cd-parking-desc">Automated diversion of incoming arrivals to overflow bays</span>
-                  </div>
-                  <div className="cd-parking-grid">
-                    {Object.values(parking).map((lot) => (
-                      <ParkingCard key={lot.id} lot={lot} />
+              <div className="action-main-msg">
+                {primarySuggestion.message}
+              </div>
+
+              {primarySuggestion.targets && primarySuggestion.targets.length > 0 && (
+                <div className="action-target-row">
+                  <span className="target-label">Recommended Path:</span>
+                  <div className="target-chips">
+                    {primarySuggestion.targets.map((t, idx) => (
+                      <span key={idx} className="target-chip">
+                        🟢 {t}
+                      </span>
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
 
-          {/* ── Right Column: Rerouting Directives & Alerts ───────────────── */}
-          <div className="cd-right">
-            {/* AI REROUTING DIRECTIVES (Rendered purely from status.suggestions) */}
-            <SpotlightCard className="cd-suggestions-card" spotlightColor="rgba(104,129,253,0.12)">
-              <div className="cd-section-header">
-                <div>
-                  <h3 className="cd-card-title">
-                    AI Concourse Rerouting Directives
-                  </h3>
-                  <p className="cd-card-subtitle">
-                    Automated directives to divert flow away from high-density sectors into optimal zones
-                  </p>
+              {primarySuggestion.impact && (
+                <div className="action-impact-text">
+                  ✨ {primarySuggestion.impact}
                 </div>
-                <span className="cd-suggestions-count">{suggestions.length} Directives</span>
-              </div>
+              )}
 
-              <div className="cd-suggestions-list">
-                {suggestions.length === 0 ? (
-                  <div className="cd-no-alerts">
-                    No active rerouting directives required. System in equilibrium.
-                  </div>
+              <button
+                type="button"
+                className={`btn-dispatch-action ${isPrimaryExecuted ? "is-done" : ""}`}
+                disabled={isPrimaryExecuted}
+                onClick={() => handleExecute(primarySuggestion)}
+              >
+                {isPrimaryExecuted ? (
+                  <>
+                    <CheckCircle2 size={16} />
+                    <span>Directive Deployed &amp; Relieving Bottleneck</span>
+                  </>
                 ) : (
-                  suggestions.map((s, i) => (
-                    <SuggestionItem
-                      key={s.id || i}
-                      s={s}
-                      onExecute={handleExecute}
-                      isExecuted={executedActions.includes(s.id)}
-                    />
-                  ))
+                  <>
+                    <Send size={15} />
+                    <span>Deploy Diversion to Field Marshals</span>
+                  </>
                 )}
-              </div>
-            </SpotlightCard>
+              </button>
+            </div>
+          )}
 
-            {/* LIVE SYSTEM ALERTS (Rendered purely from status.alerts) */}
-            <SpotlightCard className="cd-alerts-card" spotlightColor="rgba(255,59,92,0.12)">
-              <div className="cd-section-header">
+          {/* B. Focused Sector Telemetry */}
+          {selectedZone && (
+            <div className="sector-focused-card">
+              <div className="sector-focused-header">
                 <div>
-                  <h3 className="cd-card-title">Density Threshold & Surge Alerts</h3>
-                  <p className="cd-card-subtitle">Immediate notifications on zone state transitions</p>
+                  <span className="sector-sub-tag">SECTOR INSPECTION</span>
+                  <h3 className="sector-name-title">{selectedZone.label}</h3>
                 </div>
-                {alerts.length > 0 && (
-                  <span
-                    className="cd-alert-count"
-                    style={{ background: "rgba(255,59,92,0.2)", color: "#ff3b5c" }}
-                  >
-                    {alerts.length} ALERTS
+                <span
+                  className="sector-color-badge"
+                  style={{
+                    color: COLOR_MAP[selectedZone.color]?.fg,
+                    backgroundColor: COLOR_MAP[selectedZone.color]?.bg,
+                    borderColor: COLOR_MAP[selectedZone.color]?.border,
+                  }}
+                >
+                  {selectedZone.color} ({selectedZone.level})
+                </span>
+              </div>
+
+              {/* Minimal Saturation Bar */}
+              <div className="sat-bar-wrap">
+                <div className="sat-bar-info">
+                  <span>Crowd Density</span>
+                  <strong style={{ color: COLOR_MAP[selectedZone.color]?.fg }}>
+                    {selectedZone.saturation_pct.toFixed(0)}%
+                  </strong>
+                </div>
+                <div className="sat-track">
+                  <div
+                    className="sat-fill"
+                    style={{
+                      width: `${Math.min(100, selectedZone.saturation_pct)}%`,
+                      backgroundColor: COLOR_MAP[selectedZone.color]?.fg,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 3 Glanceable Metric Boxes */}
+              <div className="focused-metrics-grid">
+                <div className="f-metric-box">
+                  <span className="f-metric-lbl">Headcount</span>
+                  <span className="f-metric-val">{selectedZone.count || 0}</span>
+                </div>
+                <div className="f-metric-box">
+                  <span className="f-metric-lbl">Safe Capacity</span>
+                  <span className="f-metric-val">{selectedZone.capacity || 20}</span>
+                </div>
+                <div className="f-metric-box">
+                  <span className="f-metric-lbl">LSTM 10m Forecast</span>
+                  <span className="f-metric-val" style={{ color: COLOR_MAP[selectedZone.forecast_color]?.fg }}>
+                    {selectedZone.forecast_sat ? `${selectedZone.forecast_sat}%` : "—"} {selectedZone.trend}
                   </span>
-                )}
+                </div>
               </div>
-              <div className="cd-alerts-list">
-                {alerts.length === 0 ? (
-                  <div className="cd-no-alerts" style={{ color: "#00ff88" }}>
-                    All concourse zones are currently operating within optimal parameters.
-                  </div>
-                ) : (
-                  alerts.map((a, i) => (
-                    <div key={i} className={`cd-alert-item cd-alert-${a.level || "info"}`}>
-                      <div className="cd-alert-badge">
-                        <span className="cd-alert-tag-type">{a.type || "ALERT"}</span>
-                        <span className="cd-alert-zone">{a.zone || ""}</span>
-                      </div>
-                      <div className="cd-alert-msg">{a.msg}</div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </SpotlightCard>
+            </div>
+          )}
 
-            {/* COMPARATIVE MATRIX TABLE (Rendered purely from status.zones and corridors) */}
-            <SpotlightCard className="cd-table-card" spotlightColor="rgba(0,0,0,0.04)">
-              <div className="cd-section-header">
-                <h3 className="cd-card-title">Concourse & Arterial Status Matrix</h3>
-              </div>
-              <table className="cd-table">
-                <thead>
-                  <tr>
-                    <th>Sector / Node</th>
-                    <th>Type</th>
-                    <th>Density Saturation</th>
-                    <th>State</th>
-                    <th>Projection</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.values(zones).map((z) => {
-                    const c = COLOR_MAP[z.color] || COLOR_MAP.GREEN;
-                    return (
-                      <tr key={z.id}>
-                        <td className="cd-tbl-name">{z.label || z.id}</td>
-                        <td className="cd-tbl-type">{z.type || "ZONE"}</td>
-                        <td
-                          className="cd-tbl-sat"
-                          style={{ color: c.fg, fontWeight: 700 }}
-                        >
-                          {z.saturation_pct != null ? `${z.saturation_pct.toFixed(0)}%` : "—"}
-                        </td>
-                        <td>
-                          <span
-                            className="cd-tbl-pill"
-                            style={{
-                              color: c.fg,
-                              background: c.bg,
-                              border: `1.5px solid ${c.border}`,
-                            }}
-                          >
-                            {z.level || z.color}
-                          </span>
-                        </td>
-                        <td
-                          className="cd-tbl-proj"
-                          style={{
-                            color:
-                              z.forecast_color === "RED"
-                                ? "#ff3b5c"
-                                : z.forecast_color === "YELLOW"
-                                ? "#ffc107"
-                                : "#00ff88",
-                          }}
-                        >
-                          {z.trend || "═"} {z.forecast_sat != null ? `${z.forecast_sat.toFixed(0)}% (${z.forecast_color || "OPT"})` : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {Object.values(corridors).map((cr) => {
-                    const c = COLOR_MAP[cr.color] || COLOR_MAP.GREEN;
-                    return (
-                      <tr key={cr.id}>
-                        <td className="cd-tbl-name">{cr.name || cr.id}</td>
-                        <td className="cd-tbl-type" style={{ color: "#6881fd" }}>
-                          {cr.type || "CORRIDOR"}
-                        </td>
-                        <td
-                          className="cd-tbl-sat"
-                          style={{ color: c.fg, fontWeight: 700 }}
-                        >
-                          {cr.saturation_pct != null ? `${cr.saturation_pct.toFixed(0)}%` : "—"}
-                        </td>
-                        <td>
-                          <span
-                            className="cd-tbl-pill"
-                            style={{
-                              color: c.fg,
-                              background: c.bg,
-                              border: `1.5px solid ${c.border}`,
-                            }}
-                          >
-                            {cr.los || cr.color}
-                          </span>
-                        </td>
-                        <td>{cr.speed_kmh != null ? `${cr.speed_kmh} km/h` : "—"}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </SpotlightCard>
+          {/* C. Outer Ingress & Road Arterials (Compact Calm Strip) */}
+          <div className="corridors-compact-card">
+            <span className="compact-card-title">Access Roads &amp; Ingress Corridors</span>
+            <div className="corridors-pills-row">
+              {Object.values(corridors).slice(0, 3).map((c) => (
+                <div key={c.id} className="corridor-mini-pill">
+                  <span className="corridor-dot" style={{ backgroundColor: c.color === "RED" ? "#ff3b5c" : c.color === "YELLOW" ? "#f59e0b" : "#10b981" }} />
+                  <span className="corridor-name">{c.name.split(" ")[0]}</span>
+                  <span className="corridor-speed">{c.speed_kmh} km/h</span>
+                </div>
+              ))}
+            </div>
           </div>
+        </aside>
+      </main>
+
+      {/* ── 4. Sector Status Strip (Glanceable, click to focus) ── */}
+      <footer className="sectors-glance-strip">
+        <span className="strip-title">FAIRGROUND SECTORS:</span>
+        <div className="strip-scroll-row">
+          {zonesList.map((z) => {
+            const c = COLOR_MAP[z.color] || COLOR_MAP.GREEN;
+            const isSel = selectedZone?.id === z.id;
+            return (
+              <button
+                key={z.id}
+                type="button"
+                className={`sector-strip-pill ${isSel ? "is-active" : ""}`}
+                style={{
+                  borderColor: isSel ? "#ffffff" : c.border,
+                }}
+                onClick={() => setSelectedZoneId(z.id)}
+              >
+                <span className="strip-pill-dot" style={{ backgroundColor: c.fg }} />
+                <span className="strip-pill-name">{z.label}</span>
+                <span className="strip-pill-sat" style={{ color: c.fg }}>{z.saturation_pct.toFixed(0)}%</span>
+              </button>
+            );
+          })}
         </div>
-      )}
+      </footer>
     </div>
   );
 }

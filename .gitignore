@@ -64,6 +64,8 @@ datasets/
 data/raw/
 shanghaitech/
 backend/shanghaitech/
+backend/datasets/
+backend/uploads/
 *.mat
 *.npy
 

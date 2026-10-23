@@ -1,63 +1,154 @@
 /* ==========================================================================
-   Live CCTV Feeds with MagicBento Component Integration
-   Uses Pravaah color tokens: Indigo-Ink, Cornflower-Blue, Periwinkle, Onyx
+   Live Surveillance Feeds with Real MJPEG Thermal Stream & Dynamic Sectors
    ========================================================================== */
 
 .live-feed-page {
-  padding: 24px 32px 48px;
-  max-width: 1540px;
-  margin: 0 auto;
-  width: 100%;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   box-sizing: border-box;
+  background: var(--bg-primary);
+  min-height: 100%;
 }
 
-/* ── Live Page Header ── */
-.live-page-header {
+/* ── Top Header Tags & Switcher ── */
+.lf-tag-row {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(180, 169, 239, 0.1);
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
-.live-title-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.lf-tag-pill {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--color-indigo-ink-500);
+  background: var(--color-indigo-ink-50);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--color-indigo-ink-200);
 }
 
-.live-badge-glow {
+.lf-status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: rgba(67, 41, 214, 0.08);
-  border: 1px solid rgba(67, 41, 214, 0.2);
-  color: var(--color-indigo-ink-600, #3521ab);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  width: fit-content;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
 }
 
-.live-pulse-icon {
-  color: #ef4444;
-  animation: pulse-red 1.4s ease-in-out infinite;
+.spin-icon-subtle {
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 4px #00ff88); }
+}
+
+.lf-dataset-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-card);
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+}
+
+.lf-ds-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.lf-ds-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.lf-ds-btn:hover {
+  background: var(--color-indigo-ink-50);
+  color: var(--text-primary);
+  border-color: var(--color-indigo-ink-300);
+}
+
+.lf-ds-btn.active {
+  background: #4329d6;
+  color: #ffffff;
+  border-color: #4329d6;
+  box-shadow: 0 2px 8px rgba(67, 41, 214, 0.35);
+}
+
+/* ── Main Surveillance Layout Grid ── */
+.lf-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Left: Primary MJPEG Stream Card ── */
+.lf-main-stream-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+}
+
+.lf-stream-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lf-stream-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lf-stream-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ff3b5c;
+  background: rgba(255, 59, 92, 0.15);
+  border: 1px solid rgba(255, 59, 92, 0.4);
+  padding: 3px 9px;
+  border-radius: 6px;
+  animation: pulse-red 1.2s infinite;
 }
 
 @keyframes pulse-red {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(1.15); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-.live-heading {
-  font-size: 26px;
+.lf-stream-title {
+  font-size: 14px;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.03em;
@@ -73,301 +164,309 @@
   line-height: 1.5;
 }
 
-/* Header Live Stats Bar */
-.live-stats-bar {
+.lf-stream-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.lf-stream-badges {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.live-stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  background: var(--color-indigo-ink-950, #09061e);
-  border: 1px solid rgba(180, 169, 239, 0.18);
-  box-shadow: 0 4px 12px rgba(9, 6, 30, 0.15);
+.lf-stream-chip {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid;
 }
 
-.live-stat-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--color-indigo-ink-200, #b4a9ef);
+.lf-stream-chip.red {
+  background: rgba(255, 59, 92, 0.12);
+  border-color: rgba(255, 59, 92, 0.4);
+  color: #ff3b5c;
 }
 
-.live-stat-val {
-  font-size: 13.5px;
-  font-weight: 700;
-  font-family: var(--font-body, system-ui);
-  color: #ffffff;
+.lf-stream-chip.yellow {
+  background: rgba(255, 193, 7, 0.12);
+  border-color: rgba(255, 193, 7, 0.4);
+  color: #ffc107;
 }
 
-.live-stat-val.highlight {
+.lf-stream-chip.green {
+  background: rgba(0, 255, 136, 0.12);
+  border-color: rgba(0, 255, 136, 0.4);
   color: #00ff88;
 }
 
-/* ── Magic Bento Section ── */
-.magic-bento-section {
-  width: 100%;
+.lf-stream-viewport {
   position: relative;
+  width: 100%;
+  height: 520px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #080614;
+  border: 1.5px solid rgba(104, 84, 222, 0.25);
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ── Bento Custom Camera Card ── */
+.lf-mjpeg-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lf-stream-overlay-hud {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(12, 10, 24, 0.85);
+  border: 1px solid rgba(104, 84, 222, 0.3);
+}
+
+.lf-hud-model {
+  font-size: 10px;
+  font-weight: 800;
+  color: #00ff88;
+  letter-spacing: 0.5px;
+}
+
+.lf-hud-fps {
+  font-size: 10px;
+  font-weight: 700;
+  color: #c5bdf5;
+}
+
+/* ── Right: Sectors Matrix Column ── */
+.lf-sectors-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.lf-sectors-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lf-sectors-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lf-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+/* ── Sector Card Styling ── */
 .bento-cam-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 100%;
-  padding: 16px;
-  box-sizing: border-box;
-  gap: 10px;
-  background: transparent;
-  position: relative;
-  z-index: 2;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-default);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.bento-cam-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.bento-cam-card.is-critical {
+  border-color: #ff3b5c;
+  box-shadow: 0 0 16px rgba(255, 59, 92, 0.25);
 }
 
 .bento-cam-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  align-items: center;
 }
 
 .bento-cam-tag-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .bento-cam-live-indicator {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #ff6b6b;
-  font-size: 9.5px;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.06em;
 }
 
 .bento-rec-dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 6px #ef4444;
-  animation: pulse-red 1.2s infinite;
+  background: #00ff88;
 }
 
 .bento-cam-id {
-  font-family: var(--mono, monospace);
   font-size: 11px;
-  font-weight: 700;
-  color: var(--color-indigo-ink-100, #d9d4f7);
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(104, 84, 222, 0.15);
+  color: #4329d6;
 }
 
 .bento-cam-fps {
   font-size: 10px;
-  color: rgba(244, 244, 245, 0.5);
-  font-family: var(--mono, monospace);
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .bento-cam-density-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   padding: 2px 8px;
-  border-radius: 12px;
-  background: rgba(9, 6, 30, 0.6);
-  border: 1px solid;
-  font-size: 11px;
+  border-radius: 6px;
+  font-size: 10.5px;
   font-weight: 800;
-  font-family: var(--mono, monospace);
+  border: 1px solid;
 }
 
-/* ── Surveillance Viewport ── */
+/* Mini Viewport */
 .bento-cam-viewport {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 90px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #161420 0%, #0d0c13 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+  height: 75px;
+  border-radius: 8px;
+  background: #0b0918;
+  border: 1px solid rgba(104, 84, 222, 0.2);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 6px 8px;
+  overflow: hidden;
 }
 
-/* Surveillance Grid Lines */
 .bento-cam-grid-overlay {
   position: absolute;
   inset: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image:
+    linear-gradient(rgba(104, 84, 222, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(104, 84, 222, 0.06) 1px, transparent 1px);
+  background-size: 16px 16px;
   pointer-events: none;
 }
 
-/* Crosshairs in corners */
-.bento-crosshair {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  pointer-events: none;
-  border-color: rgba(180, 169, 239, 0.45);
-}
-
-.bento-crosshair-tl {
-  top: 6px;
-  left: 6px;
-  border-top: 1.5px solid;
-  border-left: 1.5px solid;
-}
-
-.bento-crosshair-tr {
-  top: 6px;
-  right: 6px;
-  border-top: 1.5px solid;
-  border-right: 1.5px solid;
-}
-
-.bento-crosshair-bl {
-  bottom: 6px;
-  left: 6px;
-  border-bottom: 1.5px solid;
-  border-left: 1.5px solid;
-}
-
-.bento-crosshair-br {
-  bottom: 6px;
-  right: 6px;
-  border-bottom: 1.5px solid;
-  border-right: 1.5px solid;
-}
-
-/* Dynamic crowd dots */
-.bento-crowd-particles {
+.bento-cam-center-metric {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.bento-crowd-dot {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  opacity: 0.85;
-  transition: transform 0.6s ease;
-  animation: bento-dot-float 3s ease-in-out infinite alternate;
+.bento-cam-large-sat {
+  font-size: 26px;
+  font-weight: 900;
+  font-family: var(--heading);
+  letter-spacing: -0.04em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
-@keyframes bento-dot-float {
-  0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-4px) scale(1.15); }
-  100% { transform: translateY(2px) scale(0.95); }
+.bento-cam-large-status {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #c5bdf5;
+  text-transform: uppercase;
 }
 
-/* AI Detection Banner */
 .bento-cam-ai-overlay {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   margin-top: auto;
-  pointer-events: none;
 }
 
 .bento-cam-ai-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 7px;
-  border-radius: 5px;
-  background: rgba(0, 0, 0, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #00ff88;
-  font-family: var(--mono, monospace);
-  font-size: 9px;
+  gap: 4px;
+  font-size: 8.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  color: #00ff88;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
 .bento-cam-time {
-  font-family: var(--mono, monospace);
-  font-size: 9px;
-  color: rgba(244, 244, 245, 0.55);
-  font-weight: 600;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #a59be8;
 }
 
-/* ── Footer ── */
+/* Footer */
 .bento-cam-footer {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 2px;
+  align-items: center;
 }
 
 .bento-cam-info {
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .bento-cam-name {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
-  color: #f4f4f5 !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .bento-cam-zone {
-  font-size: 11px;
-  color: #b4a9ef !important;
-  font-weight: 600;
+  font-size: 10.5px;
+  color: var(--text-muted);
 }
 
 .bento-cam-status-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
+  font-weight: 800;
 }
 
 .bento-status-ring {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  box-shadow: 0 0 6px currentColor;
-}
-
-/* Critical Glow Highlight */
-.bento-cam-card.is-critical .bento-cam-viewport {
-  border-color: rgba(239, 68, 68, 0.35);
-  box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.12);
-}
-
-@media (max-width: 1024px) {
-  .live-feed-page {
-    padding: 18px 20px 40px;
-  }
 }
