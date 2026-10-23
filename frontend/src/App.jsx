@@ -5,15 +5,21 @@ import CrowdDashboard from './components/CrowdDashboard.jsx';
 import VenueSetup from './components/VenueSetup.jsx';
 import AttendeeView from './components/AttendeeView.jsx';
 
+// Authority views (shown with authority topbar)
 const VIEWS = {
   dashboard: CrowdDashboard,
   setup: VenueSetup,
+};
+
+// Visitor view (separate standalone view opened via QR scan)
+const VISITOR_VIEWS = {
   attendee: AttendeeView,
 };
 
 function normalizeView(v) {
   const clean = (v || '').toLowerCase().replace('#', '').trim();
   if (VIEWS[clean]) return clean;
+  if (VISITOR_VIEWS[clean]) return clean;
   if (clean === 'venue' || clean === 'camera' || clean === 'cameras') return 'setup';
   if (clean === 'qr' || clean === 'pass' || clean === 'visitor') return 'attendee';
   if (clean === 'live' || clean === 'zones' || clean === 'map') return 'dashboard';
@@ -49,12 +55,17 @@ function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  const ActiveComponent = VIEWS[activeView] || CrowdDashboard;
+  // Visitor view is a completely separate experience opened via QR scan
+  const isVisitorView = activeView === 'attendee';
+  const ActiveComponent = isVisitorView ? AttendeeView : (VIEWS[activeView] || CrowdDashboard);
 
   return (
     <div className="app-root">
-      <TopBar activeView={activeView} setActiveView={setActiveView} />
-      <div className="app-shell">
+      {/* Hide navbar on visitor view — it is a separate thing opened by QR */}
+      {!isVisitorView && (
+        <TopBar activeView={activeView} setActiveView={setActiveView} />
+      )}
+      <div className={`app-shell ${isVisitorView ? 'visitor-mode' : ''}`}>
         <main className="main-content">
           <ActiveComponent
             venueData={venueData}

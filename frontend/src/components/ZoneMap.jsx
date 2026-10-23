@@ -119,11 +119,11 @@ export default function ZoneMap({ venueData, setActiveView }) {
           <div className="canvas-header-row">
             <div>
               <h2 className="section-title">Venue Sensor Grid &amp; Color-Coded Sectors</h2>
-              <span className="hint-text">Live telemetry synchronized with CSRNet &amp; ShanghaiTech LSTM</span>
+              <span className="hint-text">Live crowd flow across fairground sectors</span>
             </div>
             <div className="telemetry-badge">
               <Radio size={14} className="telemetry-icon" />
-              <span>{backErr ? 'OFFLINE' : 'LIVE TELEMETRY'}</span>
+              <span>{backErr ? 'OFFLINE' : 'LIVE'}</span>
             </div>
           </div>
 
@@ -226,7 +226,7 @@ export default function ZoneMap({ venueData, setActiveView }) {
                   <span className="stat-box-val">{selZone.capacity || 20}</span>
                 </div>
                 <div className="detail-stat-box">
-                  <span className="stat-box-lbl">LSTM Forecast</span>
+                  <span className="stat-box-lbl">Flow Forecast</span>
                   <span className="stat-box-val" style={{ color: COLOR_MAP[selZone.forecast_color]?.text }}>
                     {selZone.forecast_sat ? `${selZone.forecast_sat}%` : '—'}
                   </span>

@@ -14,7 +14,8 @@ import {
   Plus,
   Trash2,
   Cpu,
-  RefreshCw
+  RefreshCw,
+  MapPin
 } from 'lucide-react';
 import TechText from './TechText';
 import './VenueSetup.css';
@@ -237,16 +238,16 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       <header className="page-header">
         <div>
           <div className="vs-badge-row">
-            <span className="vs-tag-pill">FAIRGROUND &amp; SECTOR CALIBRATION</span>
+            <span className="vs-tag-pill">VENUE &amp; CAMERA CONFIGURATION</span>
             <span className="vs-active-ds-pill">
-              <Cpu size={12} />
-              ACTIVE BENCHMARK: {activeDatasetId.toUpperCase()}
+              <MapPin size={12} />
+              ACTIVE VENUE: {activeDatasetId.toUpperCase()}
             </span>
           </div>
-          <h1 className="page-title">Fairgrounds &amp; Camera Sector Calibration</h1>
+          <h1 className="page-title">Fairgrounds &amp; Camera Calibration</h1>
           <div className="techttext-subheading-wrap">
             <TechText
-              text="Mela & fairground blueprint upload, camera frustum mapping & multi-dataset benchmark testing"
+              text="Venue floorplan blueprint, camera coverage zones, and pedestrian route setup"
               fontWeight={600}
               fontSize={14}
               align="left"
@@ -300,11 +301,11 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
         </div>
       )}
 
-      {/* ── Dataset Presets Bar ── */}
+      {/* ── Preset Venues Bar ── */}
       <div className="vs-preset-bar">
         <div className="vs-preset-title">
           <Layers size={14} />
-          <span>DATASET BENCHMARKS &amp; PRESETS:</span>
+          <span>PRESET VENUES &amp; LAYOUTS:</span>
         </div>
         <div className="vs-preset-chips">
           <button
@@ -314,8 +315,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">🎓</span>
             <div>
-              <div className="preset-name">PETS 2009 Benchmark (Campus Fair View)</div>
-              <div className="preset-sub">University Campus · 698 Frames</div>
+              <div className="preset-name">Campus Grounds</div>
+              <div className="preset-sub">University Quad &amp; Fairgrounds</div>
             </div>
           </button>
 
@@ -326,8 +327,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">🏙️</span>
             <div>
-              <div className="preset-name">ShanghaiTech Part B (Concourse Stream)</div>
-              <div className="preset-sub">Urban Concourse · 150 Frames</div>
+              <div className="preset-name">Urban Concourse</div>
+              <div className="preset-sub">Pedestrian Corridor &amp; Entry Gates</div>
             </div>
           </button>
 
@@ -338,8 +339,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">🎪</span>
             <div>
-              <div className="preset-name">Arena Mela Concourse (Default)</div>
-              <div className="preset-sub">Concourse Entry Ghats &amp; Gates</div>
+              <div className="preset-name">Festival Concourse</div>
+              <div className="preset-sub">Main Exhibition Arena</div>
             </div>
           </button>
 
@@ -353,8 +354,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">📁</span>
             <div>
-              <div className="preset-name">Custom CCTV &amp; Fairground Map</div>
-              <div className="preset-sub">Upload your own footage &amp; blueprint</div>
+              <div className="preset-name">Custom Venue &amp; Map</div>
+              <div className="preset-sub">Upload your own camera footage &amp; layout</div>
             </div>
           </button>
         </div>
@@ -366,7 +367,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
         <div className="setup-left">
           {/* Venue & Source Details */}
           <div className="app-card setup-card">
-            <h2 className="section-title">Venue Metadata</h2>
+            <h2 className="section-title">Venue Details</h2>
             <label className="field-label" htmlFor="venue-name-input">Venue / Campus Name</label>
             <input
               id="venue-name-input"
@@ -383,8 +384,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           {/* Upload CCTV Footage */}
           <div className="app-card setup-card">
             <div className="card-header-flex">
-              <h2 className="section-title">CCTV Video Footage</h2>
-              <span className="chip-badge">AI Source</span>
+              <h2 className="section-title">Camera Feed Source</h2>
+              <span className="chip-badge">Live Source</span>
             </div>
             <div
               {...getVideoRootProps()}
@@ -398,25 +399,25 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
                   </div>
                   <div>
                     <div className="drop-preview-title">{videoFile.name}</div>
-                    <div className="drop-preview-sub">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB · Ready for AI processing</div>
+                    <div className="drop-preview-sub">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB · Ready for processing</div>
                   </div>
                 </div>
               ) : activeDatasetId === 'pets2009' ? (
                 <div className="drop-placeholder">
                   <Video size={22} className="ds-source-icon" />
-                  <span className="drop-text">Active: PETS 2009 (PETS2009.avi)</span>
-                  <span className="drop-hint">698 frames benchmark @ 25 FPS</span>
+                  <span className="drop-text">Campus CCTV Feed Active</span>
+                  <span className="drop-hint">Real-time camera sequence</span>
                 </div>
               ) : activeDatasetId === 'shanghaitech' ? (
                 <div className="drop-placeholder">
                   <Video size={22} className="ds-source-icon" />
-                  <span className="drop-text">Active: ShanghaiTech Part B Test</span>
-                  <span className="drop-hint">150 street frames sequence</span>
+                  <span className="drop-text">Concourse CCTV Feed Active</span>
+                  <span className="drop-hint">Real-time street sequence</span>
                 </div>
               ) : (
                 <div className="drop-placeholder">
                   <UploadCloud size={24} strokeWidth={1.75} />
-                  <span className="drop-text">Drop custom CCTV video here</span>
+                  <span className="drop-text">Drop video file here</span>
                   <span className="drop-hint">MP4, AVI, MKV supported</span>
                 </div>
               )}

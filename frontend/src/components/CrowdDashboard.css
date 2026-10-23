@@ -13,7 +13,352 @@
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-family: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Financial-Grade Executive Ticker Bar (Groww / Zerodha Style) ── */
+.kpi-ticker-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px;
+  background-color: #0f1015;
+  border-bottom: 1px solid #1f2129;
+  flex-shrink: 0;
+  min-height: 48px;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.ticker-venue-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ticker-venue-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #71717a;
+  letter-spacing: 0.08em;
+}
+
+.ticker-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+
+.ticker-venue-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #15171e;
+  border: 1px solid #222530;
+  border-radius: 6px;
+  padding: 2.5px;
+}
+
+.ticker-venue-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 140ms ease;
+  white-space: nowrap;
+}
+
+.ticker-venue-btn:hover {
+  color: #ffffff;
+  background: #1c1f29;
+}
+
+.ticker-venue-btn.active {
+  background: #272b38;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.ticker-metrics-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ticker-kpi-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ticker-kpi-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #71717a;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ticker-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ticker-kpi-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ticker-kpi-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.ticker-kpi-tag.success {
+  color: #10b981;
+}
+
+.ticker-kpi-tag.warning {
+  color: #f59e0b;
+}
+
+.ticker-kpi-tag.neutral {
+  color: #a1a1aa;
+}
+
+.ticker-divider {
+  width: 1px;
+  height: 22px;
+  background: #222530;
+}
+
+.ticker-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Auto-Telegram Status Toggle Pill */
+.ticker-autotg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #c7d2fe;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.ticker-autotg-btn:hover {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #ffffff;
+}
+
+.ticker-autotg-btn:not(.active) {
+  background: rgba(113, 113, 122, 0.1);
+  border-color: rgba(113, 113, 122, 0.3);
+  color: #a1a1aa;
+}
+
+.ticker-autotg-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #818cf8;
+  box-shadow: 0 0 6px rgba(129, 140, 248, 0.6);
+  animation: pulse-dot 1.8s infinite;
+}
+
+.ticker-autotg-dot:not(.active) {
+  background: #71717a;
+  box-shadow: none;
+  animation: none;
+}
+
+/* Visitor QR Button */
+.ticker-qr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e4e4e7;
+  background: #181b24;
+  border: 1px solid #2e3342;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.ticker-qr-btn:hover {
+  background: #252a38;
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+  transform: translateY(-1px);
+}
+
+.ticker-broadcast-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #4f46e5;
+  border: 1px solid #6366f1;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.25);
+}
+
+.ticker-broadcast-btn:hover {
+  background: #4338ca;
+  border-color: #818cf8;
+  transform: translateY(-1px);
+}
+
+.ticker-privacy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #d4d4d8;
+  background: #161820;
+  border: 1px solid #272a36;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.ticker-privacy-btn:hover {
+  background: #20232e;
+  color: #ffffff;
+}
+
+.ticker-privacy-btn.active {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+/* Alert Column Auto-Forward Indicator */
+.auto-tg-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+/* Universal QR Modal */
+.universal-qr-modal-card {
+  width: 440px;
+  max-width: 95vw;
+  background: #0e1017;
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(16, 185, 129, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalFadeIn 200ms ease;
+}
+
+.universal-qr-modal-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.universal-qr-box {
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.universal-qr-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.universal-qr-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.universal-qr-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.universal-qr-desc {
+  font-size: 11.5px;
+  color: #a1a1aa;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 360px;
+}
+
+.universal-qr-url-pill {
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #161822;
+  border: 1px solid #272a38;
+  font-family: monospace;
+  font-size: 11px;
+  color: #38bdf8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Fixed Spatial 3-Column Command Grid ── */
@@ -762,4 +1107,53 @@
     grid-template-columns: 340px 1fr;
     grid-template-rows: 1fr 340px;
   }
+}
+
+/* ── Modal Dialogs (Tech Stack & Telegram Alert) ── */
+.tech-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 220ms ease;
+}
+
+.tech-modal-card {
+  width: 640px;
+  max-width: 95vw;
+  background: #0d0c18;
+  border: 1.5px solid rgba(104, 84, 222, 0.4);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(99, 102, 241, 0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tech-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  background: #141226;
+  border-bottom: 1px solid rgba(104, 84, 222, 0.25);
+}
+
+.tech-modal-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }

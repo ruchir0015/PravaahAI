@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Compass,
   Video,
@@ -11,219 +12,42 @@ import {
   EyeOff,
   X,
   Radio,
-  Sliders,
-  RefreshCw,
-  Cpu,
-  Layers,
   ArrowUpRight,
   TrendingUp,
-  TrendingDown,
   Car,
-  Navigation,
   Lock,
   Unlock,
-  Activity,
   PhoneCall,
-  CheckCircle2
+  CheckCircle2,
+  Share2,
+  Users,
+  BellRing,
+  Info,
+  Zap,
+  QrCode,
+  Download,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import './CrowdDashboard.css';
 
 const API = 'http://localhost:5050';
 const POLL_MS = 2000;
 
-// Base Fleet Assets along Venue Corridors (Synchronized with backend corridors C1-C4)
-const INITIAL_FLEET = [
-  {
-    id: 'FLT-101',
-    label: 'North Shuttle Alpha',
-    corridor: 'C1',
-    route: 'C1 · North Axis',
-    speed: 42.0,
-    eta: '+02:14',
-    passengers: 48,
-    capacity: 60,
-    geofence: 'in-bounds',
-    driver: {
-      name: 'Suresh K. Patel',
-      phone: '+91 98201 44921',
-      cdl: 'CDL-MH-042021-9941',
-      shift: '06:00 - 14:00 (6.2h)',
-      heartRate: 74,
-      cabinTemp: 22.4,
-    },
-    x: 28,
-    y: 35,
-    vx: 0.12,
-    vy: 0.08,
-  },
-  {
-    id: 'FLT-102',
-    label: 'Express Concourse Bus',
-    corridor: 'C2',
-    route: 'C2 · South Arterial',
-    speed: 36.5,
-    eta: '+04:40',
-    passengers: 58,
-    capacity: 60, // 96.6% -> Over-capacity warning
-    geofence: 'warning',
-    driver: {
-      name: 'Rameshwar Yadav',
-      phone: '+91 94150 88204',
-      cdl: 'CDL-UP-201900-5120',
-      shift: '08:00 - 16:00 (4.1h)',
-      heartRate: 82,
-      cabinTemp: 23.1,
-    },
-    x: 62,
-    y: 42,
-    vx: -0.15,
-    vy: 0.05,
-  },
-  {
-    id: 'FLT-103',
-    label: 'Metro Transit Feeder',
-    corridor: 'C1',
-    route: 'C1 · Metro Plaza',
-    speed: 40.0,
-    eta: '+01:10',
-    passengers: 32,
-    capacity: 50,
-    geofence: 'in-bounds',
-    driver: {
-      name: 'Devendra Verma',
-      phone: '+91 91200 33819',
-      cdl: 'CDL-DL-202208-1104',
-      shift: '05:30 - 13:30 (7.0h)',
-      heartRate: 71,
-      cabinTemp: 21.8,
-    },
-    x: 45,
-    y: 25,
-    vx: 0.09,
-    vy: -0.06,
-  },
-  {
-    id: 'FLT-104',
-    label: 'Ring Perimeter Bus 04',
-    corridor: 'C3',
-    route: 'C3 · Outer Ring',
-    speed: 56.0,
-    eta: '+07:30',
-    passengers: 42,
-    capacity: 50,
-    geofence: 'breach', // Breach warning
-    driver: {
-      name: 'Gurpreet Singh',
-      phone: '+91 98114 77209',
-      cdl: 'CDL-PB-201804-3329',
-      shift: '07:00 - 15:00 (5.4h)',
-      heartRate: 88,
-      cabinTemp: 24.2,
-    },
-    x: 82,
-    y: 68,
-    vx: -0.18,
-    vy: -0.12,
-  },
-  {
-    id: 'FLT-105',
-    label: 'Emergency Response Unit',
-    corridor: 'C4',
-    route: 'C4 · Service Gate',
-    speed: 28.0,
-    eta: '+00:45',
-    passengers: 4,
-    capacity: 8,
-    geofence: 'in-bounds',
-    driver: {
-      name: 'Capt. Arvind Rao',
-      phone: '+91 99880 12345',
-      cdl: 'CDL-EMG-201701-0012',
-      shift: 'Standby Ready',
-      heartRate: 68,
-      cabinTemp: 20.5,
-    },
-    x: 18,
-    y: 72,
-    vx: 0.05,
-    vy: -0.04,
-  },
-  {
-    id: 'FLT-106',
-    label: 'Autonomous Evacuation Pod',
-    corridor: 'C2',
-    route: 'C2 · Central Quad',
-    speed: 22.0,
-    eta: '+03:00',
-    passengers: 12,
-    capacity: 16,
-    geofence: 'in-bounds',
-    driver: {
-      name: 'AI Remote Dispatch Unit 2',
-      phone: 'ENC-VOIP-CH-09',
-      cdl: 'AUTONOMOUS-LVL-4',
-      shift: 'Continuous Battery 84%',
-      heartRate: 0,
-      cabinTemp: 21.0,
-    },
-    x: 52,
-    y: 56,
-    vx: 0.08,
-    vy: 0.10,
-  },
-  {
-    id: 'FLT-107',
-    label: 'East Lot Feeder Shuttle',
-    corridor: 'C3',
-    route: 'C3 · Overflow Lot',
-    speed: 48.0,
-    eta: '+05:15',
-    passengers: 39,
-    capacity: 50,
-    geofence: 'in-bounds',
-    driver: {
-      name: 'Manoj Kumar Tiwari',
-      phone: '+91 97210 55198',
-      cdl: 'CDL-BR-202009-4412',
-      shift: '09:00 - 17:00 (3.2h)',
-      heartRate: 76,
-      cabinTemp: 22.8,
-    },
-    x: 74,
-    y: 84,
-    vx: -0.11,
-    vy: 0.07,
-  },
-  {
-    id: 'FLT-108',
-    label: 'Marshal Patrol Vehicle',
-    corridor: 'C1',
-    route: 'C1 · North Perimeter',
-    speed: 34.0,
-    eta: '+01:50',
-    passengers: 2,
-    capacity: 5,
-    geofence: 'in-bounds',
-    driver: {
-      name: 'Inspector Vikram Sen',
-      phone: '+91 98390 66210',
-      cdl: 'CDL-POL-201602-8819',
-      shift: '04:00 - 12:00 (7.8h)',
-      heartRate: 79,
-      cabinTemp: 22.0,
-    },
-    x: 36,
-    y: 18,
-    vx: 0.14,
-    vy: 0.05,
-  },
-];
+const VENUE_NAMES = {
+  pets2009: 'Campus Grounds',
+  shanghaitech: 'Urban Concourse',
+  techtrix: 'Grand Arena',
+  crowd_default: 'Festival Concourse',
+  custom: 'Custom Venue'
+};
 
-export default function CrowdDashboard() {
+export default function CrowdDashboard({ setActiveView }) {
   const [status, setStatus] = useState(null);
   const [datasets, setDatasets] = useState([]);
+  const [fleetEnclave, setFleetEnclave] = useState(null);
+  const [fleetList, setFleetList] = useState([]);
   const [activeTab, setActiveTab] = useState('gis'); // 'gis' | 'video'
-  const [fleetList, setFleetList] = useState(INITIAL_FLEET);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [fleetFilter, setFleetFilter] = useState('ALL'); // 'ALL' | 'ACTIVE' | 'WARN' | 'CRIT'
   const [globalPIIRevealed, setGlobalPIIRevealed] = useState(false);
@@ -231,18 +55,56 @@ export default function CrowdDashboard() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [actionNotice, setActionNotice] = useState(null);
   const [isSwitching, setIsSwitching] = useState(false);
+
+  // Universal Visitor QR State
+  const [showUniversalQRModal, setShowUniversalQRModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const universalQrUrl = useMemo(() => {
+    if (typeof window === 'undefined') return 'http://localhost:5174/?visitor=1#attendee';
+    const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? '11.20.17.207'
+      : window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    return `http://${host}${port}/?visitor=1#attendee`;
+  }, []);
+
+  const handleCopyUniversalLink = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(universalQrUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
+
+  // Automatic Telegram Forwarding State
+  const [autoTelegramEnabled, setAutoTelegramEnabled] = useState(true);
+  const forwardedAlertsRef = useRef(new Map());
+
+  // Telegram Role-Based Dispatcher State
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState(['marshals', 'drivers', 'command']);
+  const [alertUrgency, setAlertUrgency] = useState('WARNING');
+  const [alertMessage, setAlertMessage] = useState(
+    'Notice: Heavy foot traffic near Gate B. Field marshals please guide pedestrians toward North Pathway.'
+  );
+  const [telegramReceipt, setTelegramReceipt] = useState(null);
+  const [isDispatching, setIsDispatching] = useState(false);
+
+  // Dispatcher Session Notes
   const [dispatcherNotes, setDispatcherNotes] = useState([
-    { time: '01:42:10', note: 'Morning corridor sweep confirmed: C1 and C3 clear.' },
-    { time: '01:45:30', note: 'FLT-104 alerted regarding outer perimeter boundary advisory.' },
+    { time: '12:00:15', note: 'Campus venue synchronized. All corridors open.' },
+    { time: '12:15:30', note: 'Shuttle routes verified. Headway tracking active.' },
   ]);
   const [noteInput, setNoteInput] = useState('');
 
-  // ── Poll Live Backend AI Pipeline ──────────────────────────────────────────
+  // ── Poll Live Backend Status & Fleet ──────────────────────────────────────
   const fetchStatus = useCallback(async () => {
     try {
-      const [stRes, dsRes] = await Promise.all([
+      const [stRes, dsRes, fltRes] = await Promise.all([
         fetch(`${API}/api/status`, { signal: AbortSignal.timeout(3000) }),
-        fetch(`${API}/api/datasets`, { signal: AbortSignal.timeout(2500) })
+        fetch(`${API}/api/datasets`, { signal: AbortSignal.timeout(2500) }),
+        fetch(`${API}/api/fleet`, { signal: AbortSignal.timeout(2500) })
       ]);
 
       if (stRes.ok) {
@@ -255,6 +117,13 @@ export default function CrowdDashboard() {
         const ds = await dsRes.json();
         setDatasets(ds.datasets || []);
       }
+      if (fltRes.ok) {
+        const flt = await fltRes.json();
+        if (flt.fleet && flt.fleet.length > 0) {
+          setFleetList(flt.fleet);
+          setFleetEnclave(flt);
+        }
+      }
     } catch {
       // Backend handles fallback
     }
@@ -266,40 +135,7 @@ export default function CrowdDashboard() {
     return () => clearInterval(iv);
   }, [fetchStatus]);
 
-  // ── Smooth Asset Coordinate Simulation (Synchronized with Corridor Speeds) ─
-  useEffect(() => {
-    const moveTimer = setInterval(() => {
-      setFleetList(prev => prev.map(v => {
-        let newX = v.x + v.vx;
-        let newY = v.y + v.vy;
-        let newVx = v.vx;
-        let newVy = v.vy;
-
-        // Bounce within vector boundaries (12 to 88 percent)
-        if (newX < 12 || newX > 88) newVx = -newVx;
-        if (newY < 15 || newY > 88) newVy = -newVy;
-
-        // Read real corridor speed if available from backend status
-        let liveSpeed = v.speed;
-        if (status?.corridors?.[v.corridor]?.speed_kmh) {
-          liveSpeed = status.corridors[v.corridor].speed_kmh;
-        }
-
-        return {
-          ...v,
-          x: Math.max(10, Math.min(90, newX)),
-          y: Math.max(12, Math.min(90, newY)),
-          vx: newVx,
-          vy: newVy,
-          speed: liveSpeed
-        };
-      }));
-    }, 400);
-
-    return () => clearInterval(moveTimer);
-  }, [status]);
-
-  // ── Dataset Switcher ───────────────────────────────────────────────────────
+  // ── Venue / Dataset Switcher ──────────────────────────────────────────────
   const handleSwitchDataset = async (datasetId) => {
     setIsSwitching(true);
     try {
@@ -310,13 +146,13 @@ export default function CrowdDashboard() {
       });
       await fetchStatus();
     } catch (e) {
-      console.error('Dataset switch error', e);
+      console.error('Venue switch error', e);
     } finally {
       setIsSwitching(false);
     }
   };
 
-  // ── Action Execution (Field Marshal Diversion Dispatch) ───────────────────
+  // ── Action Execution ───────────────────────────────────────────────────────
   const handleExecuteAction = async (sugg) => {
     try {
       const res = await fetch(`${API}/api/action/execute`, {
@@ -326,12 +162,12 @@ export default function CrowdDashboard() {
           id: sugg.id,
           action: sugg.action || 'DIVERSION_DISPATCH',
           target: sugg.targets?.join(', ') || sugg.zone || 'All Units',
-          operator: 'Chief Control Room Watch Officer',
+          operator: 'Control Room Officer',
         }),
       });
       if (res.ok) {
-        setActionNotice(`Directive Dispatched: ${sugg.action || 'Reroute'} to Field Marshals`);
-        setTimeout(() => setActionNotice(null), 5000);
+        setActionNotice(`Action Dispatched: ${sugg.action || 'Reroute directive sent'}`);
+        setTimeout(() => setActionNotice(null), 4500);
         await fetchStatus();
       }
     } catch (e) {
@@ -339,19 +175,45 @@ export default function CrowdDashboard() {
     }
   };
 
-  // ── Open Drawer for Selected Vehicle ───────────────────────────────────────
+  // ── Manual Telegram Broadcast ──────────────────────────────────────────────
+  const handleDispatchTelegram = async () => {
+    if (!alertMessage.trim() || selectedRoles.length === 0) return;
+    setIsDispatching(true);
+    try {
+      const res = await fetch(`${API}/api/telegram/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roles: selectedRoles,
+          message: alertMessage.trim(),
+          urgency: alertUrgency,
+          channel: 'Control Dispatch Mesh',
+          operator: 'Duty Officer'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTelegramReceipt(data.receipt);
+        setActionNotice(`Alert broadcast to ${data.receipt.recipients_count} team members`);
+        setTimeout(() => setActionNotice(null), 5000);
+      }
+    } catch (e) {
+      console.error('Broadcast error', e);
+    } finally {
+      setIsDispatching(false);
+    }
+  };
+
   const handleSelectVehicle = (vehicle) => {
     setSelectedVehicle(vehicle);
     setIsDrawerOpen(true);
   };
 
-  // ── Toggle Single Driver Inline PII ────────────────────────────────────────
   const handleToggleInlinePII = (e, id) => {
     e.stopPropagation();
     setInlineRevealedIds(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // ── Add Dispatcher Note ────────────────────────────────────────────────────
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
     const now = new Date();
@@ -371,32 +233,34 @@ export default function CrowdDashboard() {
     return fleetList;
   }, [fleetList, fleetFilter]);
 
-  // ── Streaming Incident & Crowd Alerts (Chroma-Keyed) ───────────────────────
+  // ── Alerts List (Focused, Human, Non-Technical) ────────────────────────────
   const alertsList = useMemo(() => {
     const list = [];
     const zonesObj = status?.zones || {};
 
-    // 1. Crowd Density Alerts from backend CSRNet / LSTM
+    // 1. Crowd Density Alerts
     Object.values(zonesObj).forEach(z => {
       if (z.color === 'RED') {
         list.push({
           id: `crw-${z.id}`,
           type: 'CROWD',
-          level: 'critical', // Module 2: alert-critical
-          title: `CRITICAL CROWD SURGE · ${z.label || z.id}`,
-          desc: `Zone occupancy at ${z.saturation_pct}% (${z.count}/${z.capacity}). LSTM indicates sustained bottleneck.`,
-          time: 'LIVE INFRA',
-          action: `Deploy Field Marshals to ${z.id}`,
+          level: 'critical',
+          title: `CROWD SURGE · ${z.label || z.id}`,
+          desc: `Zone occupancy at ${z.saturation_pct}%. Divert incoming visitors to auxiliary pathways.`,
+          time: 'Active',
+          action: `Deploy Stewards to ${z.id}`,
+          canTelegram: true
         });
       } else if (z.color === 'YELLOW') {
         list.push({
           id: `crw-${z.id}`,
           type: 'CROWD',
-          level: 'warning', // Module 2: alert-warning
-          title: `ELEVATED DENSITY · ${z.label || z.id}`,
-          desc: `Zone density at ${z.saturation_pct}%. Pre-emptive ingress diversion advised.`,
-          time: 'TRENDING',
-          action: `Pre-route Turnstiles at ${z.id}`,
+          level: 'warning',
+          title: `ELEVATED FLOW · ${z.label || z.id}`,
+          desc: `Zone load at ${z.saturation_pct}%. Pre-emptive entry routing advised.`,
+          time: 'Notice',
+          action: `Reroute Turnstiles at ${z.id}`,
+          canTelegram: true
         });
       }
     });
@@ -408,145 +272,236 @@ export default function CrowdDashboard() {
         list.push({
           id: `flt-${v.id}-breach`,
           type: 'FLEET',
-          level: 'critical', // Module 2: alert-critical
-          title: `GEOFENCE PERIMETER BREACH · ${v.id}`,
-          desc: `${v.label} crossed boundary limit on ${v.route}. Speed: ${v.speed} km/h. Coordinates require immediate re-anchoring.`,
-          time: 'JUST NOW',
-          action: `Transmit Halt Waypoint to ${v.id}`,
+          level: 'critical',
+          title: `ROUTE DEVIATION · ${v.id}`,
+          desc: `${v.label} moved outside planned corridor on ${v.corridor}. Reroute required.`,
+          time: 'Active',
+          action: `Redirect ${v.id}`,
+          canTelegram: true
         });
       } else if (sat >= 0.90) {
         list.push({
           id: `flt-${v.id}-cap`,
           type: 'FLEET',
-          level: 'warning', // Module 2: alert-warning
-          title: `OVER-CAPACITY VEHICLE · ${v.id}`,
-          desc: `${v.label} carrying ${v.passengers}/${v.capacity} passengers (${Math.round(sat * 100)}%). Recommend bypass next pickup point.`,
-          time: '01:48:22',
+          level: 'warning',
+          title: `NEAR CAPACITY · ${v.id}`,
+          desc: `${v.label} carrying ${v.passengers}/${v.capacity} passengers (${Math.round(sat * 100)}%). Auxiliary shuttle recommended.`,
+          time: 'Active',
           action: `Dispatch Auxiliary Feeder`,
+          canTelegram: true
         });
       }
-    });
-
-    // 3. Nominal System Heartbeats
-    list.push({
-      id: 'nom-corridor',
-      type: 'TELEMETRY',
-      level: 'neutral', // Module 2: alert-neutral
-      title: 'ARTERY CORRIDORS NOMINAL',
-      desc: 'Corridors C1, C2, C3, and C4 operating within nominal Level of Service parameters.',
-      time: '01:46:00',
-      action: null,
-    });
-    list.push({
-      id: 'nom-mesh',
-      type: 'INFRA',
-      level: 'neutral',
-      title: 'SURVEILLANCE INGRESS SECURED',
-      desc: 'Optical CSRNet density mesh synchronized with 4 sector bounding frustums.',
-      time: '01:44:12',
-      action: null,
     });
 
     return list;
   }, [status, fleetList]);
 
+  // ── Automatic Telegram Alert Forwarding Engine ─────────────────────────────
+  useEffect(() => {
+    if (!autoTelegramEnabled || alertsList.length === 0) return;
+
+    const now = Date.now();
+    const actionable = alertsList.filter(a => a.level === 'critical' || a.level === 'warning');
+
+    actionable.forEach(alert => {
+      const lastSent = forwardedAlertsRef.current.get(alert.id) || 0;
+      // 60-second cooldown per distinct incident to prevent spamming
+      if (now - lastSent > 60000) {
+        forwardedAlertsRef.current.set(alert.id, now);
+
+        const roles = alert.type === 'CROWD' ? ['marshals', 'command', 'public'] : ['drivers', 'command'];
+        fetch(`${API}/api/telegram/dispatch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roles,
+            message: `[AUTO-FORWARD] ${alert.title}: ${alert.desc}`,
+            urgency: alert.level === 'critical' ? 'CRITICAL' : 'WARNING',
+            channel: 'Automated Telegram Forwarder',
+            operator: 'Pravaah Autonomous Dispatch'
+          })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data?.receipt) {
+            setTelegramReceipt(data.receipt);
+            setActionNotice(`⚡ Auto-Forwarded to Telegram: ${alert.title}`);
+            setTimeout(() => setActionNotice(null), 4500);
+          }
+        })
+        .catch(() => {});
+      }
+    });
+  }, [alertsList, autoTelegramEnabled]);
+
+  // ── Executive Summary Metrics (Zerodha / Groww Ticker Style) ───────────────
+  const zoneList = useMemo(() => Object.values(status?.zones || {}), [status]);
+  const { maxZoneLoad, maxZoneName } = useMemo(() => {
+    if (zoneList.length === 0) return { maxZoneLoad: 42, maxZoneName: 'Normal' };
+    const sorted = [...zoneList].sort((a, b) => (b.saturation_pct || 0) - (a.saturation_pct || 0));
+    const highest = sorted[0];
+    return {
+      maxZoneLoad: highest.saturation_pct || 0,
+      maxZoneName: highest.label ? highest.label.split('–')[0].trim() : highest.id
+    };
+  }, [zoneList]);
+
   const activeDataset = status?.dataset || {};
-  const venueTitle = activeDataset.venue_name || 'ShanghaiTech Urban Pedestrian Concourse';
+  const currentVenueName = VENUE_NAMES[activeDataset.id] || activeDataset.venue_name || 'Campus Grounds';
+  const hasCriticalAlerts = alertsList.some(a => a.level === 'critical');
+
+  const venueOptions = useMemo(() => {
+    if (datasets && datasets.length > 0) return datasets;
+    return [
+      { id: 'pets2009', label: 'Campus Grounds' },
+      { id: 'shanghaitech', label: 'Urban Concourse' },
+      { id: 'crowd_default', label: 'Festival Concourse' },
+    ];
+  }, [datasets]);
 
   return (
     <div className="telemetry-dashboard font-sans">
-      {/* ── Top Bar: Control Room Telemetry Header ── */}
-      <header className="flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800 flex-shrink-0 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse" />
-            <h1 className="text-sm font-extrabold tracking-tight text-white uppercase font-mono">
-              PRAVAAH COMMAND // {venueTitle}
-            </h1>
+      {/* ── Top Bar: Executive Operational Summary Ribbon (Groww / Zerodha Style) ── */}
+      <header className="kpi-ticker-bar">
+        {/* Left: Clean Venue Selector */}
+        <div className="ticker-venue-group">
+          <div className="ticker-venue-label">
+            <span>VENUE</span>
           </div>
-
-          {/* Dataset Switcher Chips */}
-          <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded px-2 py-1">
-            <span className="text-[10px] font-mono text-zinc-400 font-bold tracking-wider">BENCHMARK:</span>
-            {datasets.map(ds => (
-              <button
-                key={ds.id}
-                type="button"
-                className={`text-[10.5px] font-mono font-bold px-2 py-0.5 rounded transition-all duration-150 ${
-                  activeDataset.id === ds.id
-                    ? 'bg-indigo-600 text-white shadow'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-                }`}
-                disabled={isSwitching}
-                onClick={() => handleSwitchDataset(ds.id)}
-              >
-                {ds.id.toUpperCase()}
-              </button>
-            ))}
+          <div className="ticker-venue-pills">
+            {venueOptions.map(ds => {
+              const friendlyName = VENUE_NAMES[ds.id] || ds.label || ds.id;
+              const isActive = (activeDataset.id || 'pets2009') === ds.id;
+              return (
+                <button
+                  key={ds.id}
+                  type="button"
+                  className={`ticker-venue-btn ${isActive ? 'active' : ''}`}
+                  disabled={isSwitching}
+                  onClick={() => handleSwitchDataset(ds.id)}
+                >
+                  {friendlyName}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Global Telemetry Vitals & PII Toggle */}
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono bg-zinc-900/90 border border-zinc-800 px-3 py-1 rounded">
-            <span className="text-zinc-400">LATENCY: <strong className="text-white tabular-nums">14ms</strong></span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-400">FPS: <strong className="text-white tabular-nums">25.0</strong></span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-400">GEOFENCE: <strong className="text-amber-400">1 CAUTION</strong></span>
+        {/* Center: High-Level Finance-Grade Performance Tickers */}
+        <div className="ticker-metrics-group">
+          <div className="ticker-kpi-item">
+            <span className="ticker-kpi-label">INGRESS</span>
+            <span className="ticker-kpi-val text-white tabular-nums">{status?.total_count || 18}</span>
           </div>
 
-          {/* Master PII Masking Toggle */}
+          <div className="ticker-divider" />
+
+          <div className="ticker-kpi-item">
+            <span className="ticker-kpi-label">PEAK ZONE</span>
+            <span className="ticker-kpi-val text-white tabular-nums">{maxZoneLoad}% · {maxZoneName}</span>
+          </div>
+
+          <div className="ticker-divider" />
+
+          <div className="ticker-kpi-item">
+            <span className="ticker-kpi-label">SHUTTLES</span>
+            <span className="ticker-kpi-val text-white tabular-nums">{fleetList.length} Units</span>
+          </div>
+
+          <div className="ticker-divider" />
+
+          <div className="ticker-kpi-item">
+            <span className="ticker-kpi-label">STATUS</span>
+            <span className={`ticker-kpi-val ${hasCriticalAlerts ? 'text-amber-400' : 'text-white'}`}>
+              {hasCriticalAlerts ? `${alertsList.length} Alert${alertsList.length > 1 ? 's' : ''}` : 'All Clear'}
+            </span>
+          </div>
+        </div>
+
+        {/* Right: Visitor QR, Auto-Telegram Toggle, Broadcast & Privacy */}
+        <div className="ticker-actions-group">
+          {/* Universal Visitor QR Pass Button */}
           <button
             type="button"
-            className={`flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1 rounded border transition-all duration-150 ${
-              globalPIIRevealed
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white'
-            }`}
-            onClick={() => setGlobalPIIRevealed(prev => !prev)}
-            title="Toggle Operator PII Masking Protocol"
+            id="ticker-qr-btn"
+            className="ticker-qr-btn"
+            onClick={() => setShowUniversalQRModal(true)}
+            title="Display Universal QR Pass for Visitors to Scan"
           >
-            {globalPIIRevealed ? <Unlock size={13} /> : <Lock size={13} />}
-            <span>{globalPIIRevealed ? 'PII UNMASKED' : 'PII PROTECTED'}</span>
+            <QrCode size={13} />
+            <span>Visitor QR</span>
+          </button>
+
+          {/* Automatic Telegram Forwarding Indicator & Toggle */}
+          <button
+            type="button"
+            className={`ticker-autotg-btn ${autoTelegramEnabled ? 'active' : ''}`}
+            onClick={() => setAutoTelegramEnabled(prev => !prev)}
+            title={autoTelegramEnabled ? "Automatic Telegram Forwarding is Active (click to pause)" : "Automatic Telegram Forwarding is Paused (click to resume)"}
+          >
+            <span className={`ticker-autotg-dot ${autoTelegramEnabled ? 'active' : ''}`} />
+            <span>{autoTelegramEnabled ? 'Auto-Telegram: Active' : 'Auto-Telegram: Paused'}</span>
+          </button>
+
+          {/* Broadcast Alert Button */}
+          <button
+            type="button"
+            className="ticker-broadcast-btn"
+            onClick={() => setShowTelegramModal(true)}
+            title="Broadcast Alert to Field Staff"
+          >
+            <Send size={13} />
+            <span>Broadcast</span>
+          </button>
+
+          {/* Driver Details Privacy Toggle */}
+          <button
+            type="button"
+            className={`ticker-privacy-btn ${globalPIIRevealed ? 'active' : ''}`}
+            onClick={() => setGlobalPIIRevealed(prev => !prev)}
+            title={globalPIIRevealed ? 'Mask driver contact details' : 'Reveal driver contact details'}
+          >
+            {globalPIIRevealed ? <Unlock size={13} className="text-amber-400" /> : <Lock size={13} className="text-zinc-400" />}
+            <span>{globalPIIRevealed ? 'Shown' : 'Masked'}</span>
           </button>
         </div>
       </header>
 
       {/* Action Dispatch Toast */}
       {actionNotice && (
-        <div className="mx-4 mt-2 p-2.5 rounded bg-emerald-950/80 border border-emerald-500/60 text-emerald-200 text-xs font-mono flex items-center justify-between shadow-lg">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-emerald-400" />
+        <div className="mx-4 mt-2 p-2.5 rounded-lg bg-zinc-900/90 border border-zinc-700 text-zinc-200 text-xs flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2 font-semibold">
+            <CheckCircle2 size={16} className="text-zinc-300" />
             <span>{actionNotice}</span>
           </div>
-          <button onClick={() => setActionNotice(null)} className="text-emerald-400 hover:text-white">
+          <button onClick={() => setActionNotice(null)} className="text-zinc-400 hover:text-white">
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* ── FIXED SPATIAL LAYOUT: 3-Column Command View ── */}
+      {/* ── 3-COLUMN OPERATIONAL COCKPIT ── */}
       <main className="command-grid-layout">
         {/* ====================================================================
-            COLUMN 1: Live Fleet Vehicle Status List (Compact Tabular Metrics)
+            COLUMN 1: Fleet & Transit Vehicles (Zerodha Watchlist Style)
             ==================================================================== */}
         <section className="telemetry-panel flex flex-col">
           <div className="panel-header-bar">
             <div className="panel-title-group">
-              <Car size={14} className="text-indigo-400" />
-              <h2 className="panel-title">Fleet Asset Telematics</h2>
-              <span className="panel-badge">{filteredFleet.length} UNITS</span>
+              <Car size={15} className="text-zinc-400" />
+              <h2 className="panel-title">Fleet &amp; Transit</h2>
+              <span className="panel-badge">{filteredFleet.length} ACTIVE</span>
             </div>
             <button
+              type="button"
               onClick={() => {
-                setSelectedVehicle(fleetList[0]);
+                if (fleetList.length > 0) setSelectedVehicle(fleetList[0]);
                 setIsDrawerOpen(true);
               }}
-              className="text-[10px] font-mono text-zinc-400 hover:text-white flex items-center gap-1"
+              className="text-[11px] font-semibold text-zinc-400 hover:text-white flex items-center gap-1 transition"
             >
-              <span>LOGS</span>
-              <ArrowUpRight size={11} />
+              <span>Details</span>
+              <ArrowUpRight size={12} />
             </button>
           </div>
 
@@ -557,43 +512,43 @@ export default function CrowdDashboard() {
               className={`fleet-filter-btn ${fleetFilter === 'ALL' ? 'active' : ''}`}
               onClick={() => setFleetFilter('ALL')}
             >
-              ALL ({fleetList.length})
+              All ({fleetList.length})
             </button>
             <button
               type="button"
               className={`fleet-filter-btn ${fleetFilter === 'ACTIVE' ? 'active' : ''}`}
               onClick={() => setFleetFilter('ACTIVE')}
             >
-              ACTIVE (6)
+              On Route
             </button>
             <button
               type="button"
               className={`fleet-filter-btn ${fleetFilter === 'WARN' ? 'active' : ''}`}
               onClick={() => setFleetFilter('WARN')}
             >
-              WARN (1)
+              High Load
             </button>
             <button
               type="button"
               className={`fleet-filter-btn ${fleetFilter === 'CRIT' ? 'active' : ''}`}
               onClick={() => setFleetFilter('CRIT')}
             >
-              CRIT (1)
+              Attention
             </button>
           </div>
 
-          {/* Tabular Data Grid (Strict Zero Shift) */}
+          {/* Tabular Data Grid */}
           <div className="fleet-table-container">
             <table className="fleet-table">
               <thead>
                 <tr>
-                  <th style={{ width: '70px' }}>VEHICLE</th>
-                  <th style={{ width: '90px' }}>ROUTE</th>
+                  <th style={{ width: '68px' }}>UNIT</th>
+                  <th style={{ width: '92px' }}>ROUTE</th>
                   <th style={{ width: '56px' }}>SPD</th>
-                  <th style={{ width: '54px' }}>ETA</th>
-                  <th style={{ width: '80px' }}>CAPACITY</th>
-                  <th style={{ width: '74px' }}>GEOFENCE</th>
-                  <th>DRIVER PII</th>
+                  <th style={{ width: '50px' }}>ETA</th>
+                  <th style={{ width: '78px' }}>LOAD</th>
+                  <th style={{ width: '74px' }}>STATUS</th>
+                  <th>DRIVER</th>
                 </tr>
               </thead>
               <tbody>
@@ -615,17 +570,17 @@ export default function CrowdDashboard() {
                       </td>
 
                       {/* Route */}
-                      <td className="text-[11px] text-zinc-300 truncate" title={v.route}>
-                        {v.route}
+                      <td className="text-[11.5px] text-zinc-300 truncate" title={v.route}>
+                        {v.corridor} · {v.label.split(' ')[0]}
                       </td>
 
                       {/* Speed */}
                       <td className="tabular-stat text-zinc-200">
-                        {v.speed.toFixed(0)} <span className="text-[9px] text-zinc-500">k</span>
+                        {v.speed.toFixed(0)} <span className="text-[9.5px] text-zinc-500">km/h</span>
                       </td>
 
                       {/* ETA */}
-                      <td className="tabular-stat text-emerald-400 font-semibold">
+                      <td className="tabular-stat text-zinc-200 font-medium">
                         {v.eta}
                       </td>
 
@@ -640,7 +595,7 @@ export default function CrowdDashboard() {
                               style={{ width: `${Math.min(100, satPct)}%` }}
                             />
                           </div>
-                          <span className="tabular-stat text-[10px] text-zinc-300">
+                          <span className="tabular-stat text-[10.5px] text-zinc-300">
                             {satPct}%
                           </span>
                         </div>
@@ -658,14 +613,14 @@ export default function CrowdDashboard() {
                           }`}
                         >
                           {v.geofence === 'breach'
-                            ? 'BREACH'
+                            ? 'DEVIA.'
                             : v.geofence === 'warning'
-                            ? 'WARN'
-                            : 'ARMED'}
+                            ? 'CAUTION'
+                            : 'NORMAL'}
                         </span>
                       </td>
 
-                      {/* Driver PII (Dynamic Progressive Disclosure) */}
+                      {/* Driver Privacy */}
                       <td>
                         <div className="flex items-center justify-between">
                           <span className={isPIIRevealed ? 'pii-revealed text-[11px]' : 'pii-masked text-[10.5px]'}>
@@ -675,7 +630,7 @@ export default function CrowdDashboard() {
                             type="button"
                             className="pii-toggle-btn"
                             onClick={(e) => handleToggleInlinePII(e, v.id)}
-                            title={isPIIRevealed ? 'Mask Driver PII' : 'Reveal Driver PII'}
+                            title={isPIIRevealed ? 'Hide driver name' : 'Show driver name'}
                           >
                             {isPIIRevealed ? <EyeOff size={11} /> : <Eye size={11} />}
                           </button>
@@ -690,16 +645,16 @@ export default function CrowdDashboard() {
         </section>
 
         {/* ====================================================================
-            COLUMN 2: Interactive Spatial Map Canvas (60% Split / Center)
+            COLUMN 2: Interactive Venue Map & Camera Feed (Visual Canvas)
             ==================================================================== */}
         <section className="telemetry-panel flex flex-col relative">
           <div className="panel-header-bar">
             <div className="panel-title-group">
-              <Navigation size={14} className="text-emerald-400" />
-              <h2 className="panel-title">Spatial Vector GIS &amp; Thermal Mesh</h2>
+              <Compass size={15} className="text-zinc-400" />
+              <h2 className="panel-title">Venue Overview</h2>
             </div>
 
-            {/* Map Mode Toggle: Vector GIS vs Optical Video Feed */}
+            {/* Map Mode Toggle: Interactive Map vs Live Video */}
             <div className="map-mode-toggle">
               <button
                 type="button"
@@ -707,7 +662,7 @@ export default function CrowdDashboard() {
                 onClick={() => setActiveTab('gis')}
               >
                 <MapIcon size={12} />
-                <span>Vector GIS</span>
+                <span>Interactive Map</span>
               </button>
               <button
                 type="button"
@@ -715,7 +670,7 @@ export default function CrowdDashboard() {
                 onClick={() => setActiveTab('video')}
               >
                 <Video size={12} />
-                <span>Thermal Vision</span>
+                <span>Live Camera</span>
               </button>
             </div>
           </div>
@@ -724,7 +679,7 @@ export default function CrowdDashboard() {
           <div className="map-canvas-container">
             {activeTab === 'gis' ? (
               <>
-                {/* Vector Geographical & Corridor SVG Canvas */}
+                {/* Vector Map Canvas */}
                 <svg
                   className="vector-map-svg"
                   viewBox="0 0 100 100"
@@ -732,23 +687,23 @@ export default function CrowdDashboard() {
                 >
                   <defs>
                     <radialGradient id="corridorGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.15" />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.12" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
                     </radialGradient>
                     <pattern id="gridPattern" width="10" height="10" patternUnits="userSpaceOnUse">
-                      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#1f1f23" strokeWidth="0.3" />
+                      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#1c1c22" strokeWidth="0.3" />
                     </pattern>
                   </defs>
 
                   {/* Dark Grid Canvas Backdrop */}
-                  <rect width="100" height="100" fill="#09090b" />
+                  <rect width="100" height="100" fill="#0c0d12" />
                   <rect width="100" height="100" fill="url(#gridPattern)" />
 
-                  {/* Calibrated Artery Corridors (C1 to C4) */}
+                  {/* Corridors (C1 to C4) */}
                   <path
                     d="M 15 35 L 85 35"
-                    stroke="#27272a"
-                    strokeWidth="3.5"
+                    stroke="#22232a"
+                    strokeWidth="3.2"
                     strokeLinecap="round"
                   />
                   <path
@@ -760,8 +715,8 @@ export default function CrowdDashboard() {
 
                   <path
                     d="M 50 15 L 50 85"
-                    stroke="#27272a"
-                    strokeWidth="3.5"
+                    stroke="#22232a"
+                    strokeWidth="3.2"
                     strokeLinecap="round"
                   />
                   <path
@@ -777,8 +732,8 @@ export default function CrowdDashboard() {
                     cy="50"
                     r="30"
                     fill="none"
-                    stroke="#27272a"
-                    strokeWidth="2.5"
+                    stroke="#22232a"
+                    strokeWidth="2.2"
                   />
                   <circle
                     cx="50"
@@ -790,7 +745,7 @@ export default function CrowdDashboard() {
                     strokeDasharray="1 3"
                   />
 
-                  {/* Geofence Perimeter Bounds (Dashed Crimson Limit) */}
+                  {/* Perimeter Boundary Box */}
                   <rect
                     x="8"
                     y="10"
@@ -798,23 +753,12 @@ export default function CrowdDashboard() {
                     height="80"
                     rx="4"
                     fill="none"
-                    stroke="rgba(239, 68, 68, 0.4)"
-                    strokeWidth="0.6"
+                    stroke="rgba(255, 255, 255, 0.15)"
+                    strokeWidth="0.5"
                     strokeDasharray="3 3"
                   />
-                  <text
-                    x="12"
-                    y="14"
-                    fill="#ef4444"
-                    fontSize="2.2"
-                    fontFamily="JetBrains Mono"
-                    fontWeight="700"
-                    letterSpacing="0.08em"
-                  >
-                    GEOFENCE PERIMETER BOUNDARY [AUTHORIZED ENCLAVE]
-                  </text>
 
-                  {/* Live Crowd Density Sectors (From Backend Status) */}
+                  {/* Live Crowd Density Sectors */}
                   {status?.zones &&
                     Object.values(status.zones).map((z) => {
                       const bbox = z.bbox || [0.1, 0.1, 0.4, 0.4];
@@ -854,8 +798,8 @@ export default function CrowdDashboard() {
                             y={by + 5.5}
                             fill="#f4f4f5"
                             fontSize="2.4"
-                            fontFamily="JetBrains Mono"
-                            fontWeight="800"
+                            fontFamily="sans-serif"
+                            fontWeight="700"
                           >
                             {z.id} · {z.saturation_pct}%
                           </text>
@@ -872,7 +816,7 @@ export default function CrowdDashboard() {
                       );
                     })}
 
-                  {/* Live Fleet Vehicle Asset Dots */}
+                  {/* Live Fleet Vehicle Markers */}
                   {fleetList.map((v) => {
                     const isSelected = selectedVehicle?.id === v.id;
                     const isBreach = v.geofence === 'breach';
@@ -884,43 +828,39 @@ export default function CrowdDashboard() {
                         className="cursor-pointer"
                         onClick={() => handleSelectVehicle(v)}
                       >
-                        {/* Pulse Ring for Selected or Breach Vehicle */}
                         {(isSelected || isBreach) && (
                           <circle
                             r="4.2"
                             fill="none"
-                            stroke={isBreach ? '#ef4444' : '#6366f1'}
+                            stroke={isBreach ? '#ef4444' : '#10b981'}
                             strokeWidth="0.6"
                             className="animate-ping"
                           />
                         )}
 
-                        {/* Dot Core */}
                         <circle
                           r="2.2"
                           fill={isBreach ? '#ef4444' : isSelected ? '#ffffff' : '#38bdf8'}
-                          stroke="#09090b"
+                          stroke="#0c0d12"
                           strokeWidth="0.6"
                         />
 
-                        {/* Heading Vector Arrow */}
                         <line
                           x1="0"
                           y1="0"
-                          x2={v.vx * 15}
-                          y2={v.vy * 15}
+                          x2={v.vx * 8}
+                          y2={v.vy * 8}
                           stroke={isBreach ? '#ef4444' : '#38bdf8'}
                           strokeWidth="0.6"
                         />
 
-                        {/* Asset Tag */}
                         <rect
                           x="3.2"
                           y="-2.5"
                           width="12"
                           height="4.2"
                           rx="1"
-                          fill="rgba(9, 9, 11, 0.9)"
+                          fill="rgba(12, 13, 18, 0.9)"
                           stroke={isSelected ? '#ffffff' : '#27272a'}
                           strokeWidth="0.4"
                         />
@@ -929,7 +869,7 @@ export default function CrowdDashboard() {
                           y="0.4"
                           fill="#f4f4f5"
                           fontSize="2.1"
-                          fontFamily="JetBrains Mono"
+                          fontFamily="sans-serif"
                           fontWeight="700"
                           textAnchor="middle"
                         >
@@ -940,38 +880,23 @@ export default function CrowdDashboard() {
                   })}
                 </svg>
 
-                {/* Overlaid Live Coordinate Counters HUD */}
-                <div className="map-hud-overlay map-hud-top-left">
-                  <div className="text-[10px] text-zinc-400 font-bold tracking-wider">
-                    TELEMETRY GPS HUD
-                  </div>
-                  <div className="text-[11px] text-white">
-                    LAT: <span className="tabular-stat font-bold">28.6139° N</span> · LON:{' '}
-                    <span className="tabular-stat font-bold">77.2090° E</span>
-                  </div>
-                  <div className="text-[9.5px] text-zinc-500">
-                    ALT: <span className="tabular-stat text-zinc-300">216.4m</span> · GRID REF:{' '}
-                    <span className="text-zinc-300">IND-ND-44</span> · SAT: 14 FIX
-                  </div>
-                </div>
-
                 {/* Bottom Corridor Speeds & Headcount Ribbon */}
                 <div className="map-hud-overlay map-hud-bottom-bar">
                   <div className="flex items-center gap-4">
                     <div className="hud-metric-pill">
-                      <span className="hud-metric-label">C1 (NORTH):</span>
+                      <span className="hud-metric-label">North Pathway:</span>
                       <span className="hud-metric-val">
                         {status?.corridors?.C1?.speed_kmh || 44} km/h
                       </span>
                     </div>
                     <div className="hud-metric-pill">
-                      <span className="hud-metric-label">C2 (SOUTH):</span>
+                      <span className="hud-metric-label">Central Concourse:</span>
                       <span className="hud-metric-val">
                         {status?.corridors?.C2?.speed_kmh || 38} km/h
                       </span>
                     </div>
                     <div className="hud-metric-pill">
-                      <span className="hud-metric-label">C3 (OUTER):</span>
+                      <span className="hud-metric-label">South Junction:</span>
                       <span className="hud-metric-val">
                         {status?.corridors?.C3?.speed_kmh || 58} km/h
                       </span>
@@ -979,25 +904,26 @@ export default function CrowdDashboard() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="text-[10.5px] text-zinc-400">
-                      TOTAL VENUE INGRESS:{' '}
-                      <strong className="text-emerald-400 font-bold tabular-nums">
-                        {status?.total_count || 18} VISITORS
+                    <span className="text-[11px] text-zinc-300 font-semibold">
+                      Venue Total:{' '}
+                      <strong className="text-white font-medium tabular-nums">
+                        {status?.total_count || 18} visitors
                       </strong>
                     </span>
                   </div>
                 </div>
               </>
             ) : (
-              /* Live Optical Stream View with Continuous Spatial Density Heatmaps */
+              /* Live Camera Feed */
               <div className="video-canvas-wrap">
                 <img
                   src={`${API}/api/video_feed`}
-                  alt="Live AI Surveillance Feed with Continuous CSRNet Heatmaps"
+                  alt="Live Camera Feed"
                   className="video-stream-img"
                 />
-                <div className="absolute top-3 left-3 bg-zinc-950/85 border border-zinc-800 px-3 py-1.5 rounded font-mono text-[10.5px] text-white backdrop-blur">
-                  <span className="text-emerald-400 font-bold">● LIVE STREAM</span> · 1080p @ 25 FPS · CSRNet + YOLOv8n
+                <div className="absolute top-3 left-3 bg-zinc-950/85 border border-zinc-800 px-3 py-1.5 rounded-full font-sans text-xs text-white backdrop-blur flex items-center gap-2 shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span className="text-zinc-200 font-semibold">CCTV FEED</span>
                 </div>
               </div>
             )}
@@ -1005,63 +931,352 @@ export default function CrowdDashboard() {
         </section>
 
         {/* ====================================================================
-            COLUMN 3: Streaming Incident / Crowd Alert Feed
+            COLUMN 3: Live Alerts & Quick Actions (Notification Center Style)
             ==================================================================== */}
         <section className="telemetry-panel flex flex-col">
           <div className="panel-header-bar">
             <div className="panel-title-group">
-              <ShieldAlert size={14} className="text-amber-400" />
-              <h2 className="panel-title">Streaming Incidents</h2>
-              <span className="panel-badge">{alertsList.length} LOGS</span>
+              <ShieldAlert size={15} className="text-amber-400" />
+              <h2 className="panel-title">Live Alerts</h2>
+              <span className="panel-badge">{alertsList.length} ACTIVE</span>
+              {autoTelegramEnabled && (
+                <span className="auto-tg-indicator" title="Alerts automatically forward to Telegram">
+                  <Zap size={10} className="text-zinc-400" />
+                  <span>AUTO-FORWARD ON</span>
+                </span>
+              )}
             </div>
-            <span className="text-[10px] font-mono text-zinc-500">REAL-TIME</span>
+            <button
+              onClick={() => setShowTelegramModal(true)}
+              className="text-[11px] font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition"
+            >
+              <Send size={11} />
+              <span>Broadcast</span>
+            </button>
           </div>
 
-          {/* MODULE 2: Alert Feed with Strict Chroma-Keying (400ms Smooth Zero Shift) */}
+          {/* Alert Feed */}
           <div className="alert-feed-container">
-            {alertsList.map((a) => (
-              <div
-                key={a.id}
-                className={`alert-card ${
-                  a.level === 'critical'
-                    ? 'alert-critical'
-                    : a.level === 'warning'
-                    ? 'alert-warning'
-                    : 'alert-neutral'
-                }`}
-              >
-                <div className="alert-card-header">
-                  <span className="alert-badge">{a.type}</span>
-                  <span className="alert-time">{a.time}</span>
-                </div>
-                <div className="alert-title">{a.title}</div>
-                <div className="alert-desc">{a.desc}</div>
-
-                {/* Direct Action Dispatch Button */}
-                {a.action && (
-                  <button
-                    type="button"
-                    className="alert-action-btn"
-                    onClick={() =>
-                      handleExecuteAction({
-                        id: a.id,
-                        action: a.action,
-                        targets: [a.id],
-                      })
-                    }
-                  >
-                    <Send size={11} />
-                    <span>{a.action}</span>
-                  </button>
-                )}
+            {alertsList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-zinc-500 gap-2">
+                <ShieldCheck size={28} className="text-zinc-600" />
+                <span className="text-xs font-medium text-zinc-400">All zones &amp; corridors operating smoothly</span>
+                <span className="text-[11px] text-zinc-600">No active surges or vehicle deviations</span>
               </div>
-            ))}
+            ) : (
+              alertsList.map((a) => (
+                <div
+                  key={a.id}
+                  className={`alert-card ${
+                    a.level === 'critical'
+                      ? 'alert-critical'
+                      : a.level === 'warning'
+                      ? 'alert-warning'
+                      : 'alert-neutral'
+                  }`}
+                >
+                  <div className="alert-card-header">
+                    <span className="alert-badge">{a.type}</span>
+                    <span className="alert-time">{a.time}</span>
+                  </div>
+                  <div className="alert-title">{a.title}</div>
+                  <div className="alert-desc">{a.desc}</div>
+
+                  <div className="flex items-center gap-2 mt-1">
+                    {/* Direct Action Dispatch Button */}
+                    {a.action && (
+                      <button
+                        type="button"
+                        className="alert-action-btn"
+                        onClick={() =>
+                          handleExecuteAction({
+                            id: a.id,
+                            action: a.action,
+                            targets: [a.id],
+                          })
+                        }
+                      >
+                        <Send size={11} />
+                        <span>{a.action}</span>
+                      </button>
+                    )}
+
+                    {/* Send as Telegram Dispatch */}
+                    {a.canTelegram && (
+                      <button
+                        type="button"
+                        className="p-1 px-2.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10.5px] flex items-center gap-1 font-semibold transition"
+                        onClick={() => {
+                          setAlertMessage(`Notice [${a.title}]: ${a.desc}`);
+                          setAlertUrgency(a.level === 'critical' ? 'CRITICAL' : 'WARNING');
+                          setShowTelegramModal(true);
+                        }}
+                        title="Broadcast alert to team"
+                      >
+                        <Share2 size={11} />
+                        <span>Broadcast</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </main>
 
+
       {/* ======================================================================
-          MODULE 3: Dynamic Progressive Disclosure (Slide-out Dispatcher Drawer)
+          BROADCAST TEAM ALERT MODAL (Clean, Groww/Slack-Grade UI)
+          ====================================================================== */}
+      {showTelegramModal && (
+        <div className="tech-modal-backdrop" onClick={() => setShowTelegramModal(false)}>
+          <div className="tech-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="tech-modal-header">
+              <div className="flex items-center gap-2">
+                <BellRing size={18} className="text-amber-400" />
+                <h3 className="text-sm font-bold text-white tracking-wide">
+                  Broadcast Alert to Operations Team
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="text-zinc-400 hover:text-white p-1 rounded-md hover:bg-zinc-800 transition"
+                onClick={() => setShowTelegramModal(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="tech-modal-body">
+              {/* Select Recipient Roles */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold text-zinc-300">
+                  Select Recipients:
+                </label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {[
+                    { id: 'marshals', label: '👮 Field Marshals', count: '14 active' },
+                    { id: 'drivers', label: '🚌 Shuttle Drivers', count: '8 units' },
+                    { id: 'medical', label: '🚑 Medical & First Aid', count: '6 teams' },
+                    { id: 'command', label: '🏛️ Command & Security', count: '5 staff' },
+                    { id: 'public', label: '📱 Public Channel', count: '1,840 attendees' },
+                  ].map(role => {
+                    const isChecked = selectedRoles.includes(role.id);
+                    return (
+                      <button
+                        key={role.id}
+                        type="button"
+                        className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition ${
+                          isChecked
+                            ? 'bg-emerald-950/50 border-emerald-500 text-white shadow'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                        }`}
+                        onClick={() => {
+                          setSelectedRoles(prev =>
+                            prev.includes(role.id)
+                              ? prev.filter(r => r !== role.id)
+                              : [...prev, role.id]
+                          );
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input type="checkbox" checked={isChecked} readOnly className="pointer-events-none accent-emerald-500" />
+                          <span className="font-medium">{role.label}</span>
+                        </div>
+                        <span className="text-[10px] text-zinc-500">{role.count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Priority Selector */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold text-zinc-300">
+                  Priority Level:
+                </label>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'CRITICAL', label: 'Urgent' },
+                    { id: 'WARNING', label: 'Warning' },
+                    { id: 'ADVISORY', label: 'Informational' },
+                  ].map(u => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition border ${
+                        alertUrgency === u.id
+                          ? u.id === 'CRITICAL'
+                            ? 'bg-red-950 border-red-500 text-red-200'
+                            : u.id === 'WARNING'
+                            ? 'bg-amber-950 border-amber-500 text-amber-200'
+                            : 'bg-emerald-950 border-emerald-500 text-emerald-200'
+                          : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                      }`}
+                      onClick={() => setAlertUrgency(u.id)}
+                    >
+                      {u.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message Payload Editor */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold text-zinc-300">
+                  Broadcast Message:
+                </label>
+                <textarea
+                  className="w-full h-24 bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-200 outline-none focus:border-emerald-500 transition"
+                  value={alertMessage}
+                  onChange={e => setAlertMessage(e.target.value)}
+                />
+              </div>
+
+              {/* Quick Preset Templates */}
+              <div className="flex gap-1.5 flex-wrap items-center">
+                <span className="text-[10.5px] text-zinc-500 font-semibold">Quick Templates:</span>
+                <button
+                  type="button"
+                  className="text-[10.5px] bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-2.5 py-1 rounded-md border border-zinc-800 transition"
+                  onClick={() =>
+                    setAlertMessage('Notice: Gate B is experiencing elevated queue times. Stewards please guide visitors toward Gate A.')
+                  }
+                >
+                  Crowd Divert
+                </button>
+                <button
+                  type="button"
+                  className="text-[10.5px] bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-2.5 py-1 rounded-md border border-zinc-800 transition"
+                  onClick={() =>
+                    setAlertMessage('Notice: Shuttle FLT-104 route update. Proceed directly to Main Entrance.')
+                  }
+                >
+                  Shuttle Reroute
+                </button>
+                <button
+                  type="button"
+                  className="text-[10.5px] bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-2.5 py-1 rounded-md border border-zinc-800 transition"
+                  onClick={() =>
+                    setAlertMessage('Operational Notice: Turnstiles and pathways flowing smoothly. Regular rotation at 14:00.')
+                  }
+                >
+                  Routine Notice
+                </button>
+              </div>
+
+              {/* Dispatch Action */}
+              <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
+                <div>
+                  {telegramReceipt ? (
+                    <div className="text-xs text-zinc-300 flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 size={14} className="text-emerald-400" />
+                      <span>Delivered to {telegramReceipt.recipients_count} recipients</span>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-zinc-500">
+                      Recipients receive push alerts on Telegram and control radios
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="py-2 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-2 transition shadow-lg disabled:opacity-50"
+                  disabled={isDispatching || selectedRoles.length === 0}
+                  onClick={handleDispatchTelegram}
+                >
+                  <Send size={13} />
+                  <span>{isDispatching ? 'Sending...' : 'Send Alert'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================
+          UNIVERSAL VISITOR QR PASS MODAL (For Visitors to Scan at Gates/Kiosks)
+          ====================================================================== */}
+      {showUniversalQRModal && (
+        <div className="tech-modal-backdrop" onClick={() => setShowUniversalQRModal(false)}>
+          <div className="tech-modal-card max-w-[420px]" onClick={e => e.stopPropagation()}>
+            <div className="tech-modal-header">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+                  <QrCode size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white tracking-wide">
+                    Universal Visitor Pass &amp; Guide
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">
+                    Single QR for all guests &amp; attendees to scan
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="text-zinc-400 hover:text-white p-1 rounded-md hover:bg-zinc-800 transition"
+                onClick={() => setShowUniversalQRModal(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-4 flex flex-col items-center gap-3 bg-zinc-950/60 rounded-xl border border-zinc-800/80 my-1">
+              <div className="p-3 bg-white rounded-xl shadow-2xl">
+                <QRCodeSVG
+                  value={universalQrUrl}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+              <p className="text-[11.5px] text-zinc-400 text-center leading-relaxed max-w-[320px]">
+                Visitors scan this QR code with their mobile camera to view real-time gate queue times, walking route, and live festival map.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between p-2.5 bg-black/40 border border-zinc-800 rounded-lg gap-2">
+              <span className="text-[11px] font-mono text-indigo-300 truncate">
+                {universalQrUrl}
+              </span>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold shrink-0 transition"
+                onClick={handleCopyUniversalLink}
+              >
+                {copiedLink ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                <span>{copiedLink ? 'Copied' : 'Copy'}</span>
+              </button>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                className="flex-1 py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 transition shadow-lg"
+                onClick={() => window.open(universalQrUrl, '_blank')}
+              >
+                <ExternalLink size={14} />
+                <span>Open in New Tab (Preview)</span>
+              </button>
+              <button
+                type="button"
+                className="py-2.5 px-4 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold flex items-center justify-center gap-2 transition"
+                onClick={() => window.print()}
+              >
+                <Download size={14} />
+                <span>Print Poster</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================
+          SLIDE-OUT VEHICLE DETAILS DRAWER (Groww Style Asset Sheet)
           ====================================================================== */}
       {isDrawerOpen && (
         <div
@@ -1073,9 +1288,9 @@ export default function CrowdDashboard() {
       <aside className={`dispatcher-drawer ${isDrawerOpen ? 'is-open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-title-wrap">
-            <span className="drawer-eyebrow">DISPATCHER AUDIT &amp; DRIVER PII</span>
+            <span className="drawer-eyebrow">VEHICLE DETAILS</span>
             <h3 className="drawer-title">
-              {selectedVehicle ? selectedVehicle.id : 'FLEET LOGS'} · {selectedVehicle?.label}
+              {selectedVehicle ? selectedVehicle.id : 'VEHICLE'} · {selectedVehicle?.label}
             </h3>
           </div>
           <button
@@ -1089,117 +1304,117 @@ export default function CrowdDashboard() {
 
         {selectedVehicle && (
           <div className="drawer-content">
-            {/* Sensitive Driver PII Card */}
+            {/* Driver Profile Card */}
             <div className="drawer-section-card">
               <div className="flex items-center justify-between">
-                <h4 className="drawer-sec-title">Driver Identity &amp; Credentials</h4>
-                <span className="text-[9.5px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">
-                  CLEARANCE LVL 3
+                <h4 className="drawer-sec-title">Driver Information</h4>
+                <span className="text-[10px] text-zinc-300 bg-zinc-800 border border-zinc-700 px-2 py-0.5 rounded font-medium">
+                  ACTIVE SHIFT
                 </span>
               </div>
 
               <div className="drawer-grid-2col">
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Driver Legal Name:</span>
+                  <span className="drawer-metric-label">Driver Name:</span>
                   <span className="drawer-metric-val font-sans">
-                    {globalPIIRevealed ? selectedVehicle.driver.name : '•••• •••• ••••'}
+                    {globalPIIRevealed ? selectedVehicle.driver.name : '•••• ••••'}
                   </span>
                 </div>
 
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Contact / Cellular:</span>
+                  <span className="drawer-metric-label">Phone:</span>
                   <span className="drawer-metric-val">
                     {globalPIIRevealed ? selectedVehicle.driver.phone : '•••• ••••'}
                   </span>
                 </div>
 
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">CDL License #:</span>
-                  <span className="drawer-metric-val">
-                    {globalPIIRevealed ? selectedVehicle.driver.cdl : '••••••••••••'}
-                  </span>
+                  <span className="drawer-metric-label">Current Shift:</span>
+                  <span className="drawer-metric-val">{selectedVehicle.driver.shift}</span>
                 </div>
 
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Active Shift Duration:</span>
-                  <span className="drawer-metric-val">{selectedVehicle.driver.shift}</span>
+                  <span className="drawer-metric-label">Assigned Route:</span>
+                  <span className="drawer-metric-val text-zinc-300">{selectedVehicle.corridor}</span>
                 </div>
               </div>
             </div>
 
             {/* Live Vehicle Telemetrics */}
             <div className="drawer-section-card">
-              <h4 className="drawer-sec-title">Real-Time Vehicle Telemetry</h4>
+              <h4 className="drawer-sec-title">Vehicle Status</h4>
               <div className="drawer-grid-2col">
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Corridor Speed:</span>
-                  <span className="drawer-metric-val text-white">
+                  <span className="drawer-metric-label">Current Speed:</span>
+                  <span className="drawer-metric-val text-white tabular-nums">
                     {selectedVehicle.speed.toFixed(1)} km/h
                   </span>
                 </div>
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Geofence Status:</span>
+                  <span className="drawer-metric-label">Route Status:</span>
                   <span
-                    className={`drawer-metric-val ${
+                    className={`drawer-metric-val font-semibold ${
                       selectedVehicle.geofence === 'breach'
                         ? 'text-red-400'
                         : selectedVehicle.geofence === 'warning'
                         ? 'text-amber-400'
-                        : 'text-emerald-400'
+                        : 'text-zinc-300'
                     }`}
                   >
-                    {selectedVehicle.geofence.toUpperCase()}
+                    {selectedVehicle.geofence === 'breach'
+                      ? 'Route Deviation'
+                      : selectedVehicle.geofence === 'warning'
+                      ? 'Approaching Limit'
+                      : 'On Planned Route'}
                   </span>
                 </div>
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Passenger Onboard:</span>
-                  <span className="drawer-metric-val">
-                    {selectedVehicle.passengers} / {selectedVehicle.capacity}
+                  <span className="drawer-metric-label">Passenger Load:</span>
+                  <span className="drawer-metric-val tabular-nums">
+                    {selectedVehicle.passengers} / {selectedVehicle.capacity} seats ({Math.round((selectedVehicle.passengers / selectedVehicle.capacity) * 100)}%)
                   </span>
                 </div>
                 <div className="drawer-metric-item">
-                  <span className="drawer-metric-label">Driver Vitals:</span>
-                  <span className="drawer-metric-val text-emerald-400">
-                    {selectedVehicle.driver.heartRate > 0
-                      ? `${selectedVehicle.driver.heartRate} BPM (Normal)`
-                      : 'AI Pod (Autonomous)'}
+                  <span className="drawer-metric-label">Estimated Arrival:</span>
+                  <span className="drawer-metric-val text-zinc-200 font-semibold tabular-nums">
+                    {selectedVehicle.eta}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Operator Radio & Emergency Directives */}
+            {/* Directives & Direct Contact */}
             <div className="drawer-section-card">
-              <h4 className="drawer-sec-title">Dispatcher Emergency Directives</h4>
+              <h4 className="drawer-sec-title">Direct Driver Contact</h4>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className="flex-1 py-2 px-3 rounded bg-zinc-800 hover:bg-zinc-700 text-xs font-mono font-bold text-white flex items-center justify-center gap-2 transition"
-                  onClick={() => alert(`Transmitting VoIP PTT signal to ${selectedVehicle.id}...`)}
+                  className="flex-1 py-2 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white flex items-center justify-center gap-2 transition"
+                  onClick={() => alert(`Connecting voice call to driver of ${selectedVehicle.id}...`)}
                 >
-                  <PhoneCall size={13} className="text-emerald-400" />
-                  <span>VOIP RADIO PTT</span>
+                  <PhoneCall size={13} className="text-zinc-300" />
+                  <span>Call Driver</span>
                 </button>
                 <button
                   type="button"
-                  className="py-2 px-3 rounded bg-red-950/80 hover:bg-red-900 border border-red-700/60 text-xs font-mono font-bold text-red-200 flex items-center gap-1.5 transition"
+                  className="py-2 px-3 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-700/60 text-xs font-semibold text-red-200 flex items-center gap-1.5 transition"
                   onClick={() =>
                     handleExecuteAction({
                       id: `halt-${selectedVehicle.id}`,
-                      action: `EMERGENCY GEOFENCE HALT: ${selectedVehicle.id}`,
+                      action: `HOLD SHUTTLE: ${selectedVehicle.id}`,
                       targets: [selectedVehicle.id],
                     })
                   }
                 >
                   <AlertTriangle size={13} className="text-red-400" />
-                  <span>HALT FLEET</span>
+                  <span>Hold Shuttle</span>
                 </button>
               </div>
             </div>
 
             {/* Dispatcher Incident Log */}
             <div className="drawer-section-card">
-              <h4 className="drawer-sec-title">Dispatcher Incident Notes</h4>
+              <h4 className="drawer-sec-title">Operations Notes</h4>
               <div className="drawer-log-list">
                 {dispatcherNotes.map((entry, idx) => (
                   <div key={idx} className="drawer-log-item">
@@ -1213,7 +1428,7 @@ export default function CrowdDashboard() {
                 <input
                   type="text"
                   className="drawer-input"
-                  placeholder="Append dispatch note..."
+                  placeholder="Add note for this vehicle..."
                   value={noteInput}
                   onChange={(e) => setNoteInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
@@ -1223,7 +1438,7 @@ export default function CrowdDashboard() {
                   className="drawer-post-btn"
                   onClick={handleAddNote}
                 >
-                  LOG
+                  Post
                 </button>
               </div>
             </div>

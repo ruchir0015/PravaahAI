@@ -16,6 +16,13 @@
   background-color: var(--surface-page);
 }
 
+/* Visitor-facing view (no navbar, full screen) */
+.app-shell.visitor-mode {
+  margin-top: 0;
+  height: 100svh;
+}
+
+
 .main-content {
   flex: 1;
   overflow-y: auto;

@@ -40,7 +40,7 @@ function SectorCameraCard({ zone }) {
             LIVE
           </span>
           <span className="bento-cam-id">{zone.id}</span>
-          <span className="bento-cam-fps">CSRNet + LSTM</span>
+          <span className="bento-cam-fps">LIVE SENSING</span>
         </div>
         <div className="bento-cam-density-pill" style={{ borderColor: c.border, color: c.fg, backgroundColor: c.bg }}>
           <Users size={12} />
@@ -65,7 +65,7 @@ function SectorCameraCard({ zone }) {
         <div className="bento-cam-ai-overlay">
           <div className="bento-cam-ai-badge">
             <Activity size={11} />
-            <span>YOLOv8 + CSRNET · {zone.count || 0} PERSONS</span>
+            <span>ACTIVE · {zone.count || 0} PERSONS</span>
           </div>
           <span className="bento-cam-time">TREND: {zone.trend} ({zone.forecast_sat ? `${zone.forecast_sat}%` : 'STABLE'})</span>
         </div>
@@ -222,8 +222,8 @@ export default function LiveFeed() {
               }}
             />
             <div className="lf-stream-overlay-hud">
-              <span className="lf-hud-model">YOLOv8 + CSRNET DENSITY ENGINE</span>
-              <span className="lf-hud-fps">25.0 FPS · REAL-TIME</span>
+              <span className="lf-hud-model">OPTICAL CAMERA FEED</span>
+              <span className="lf-hud-fps">LIVE STREAM</span>
             </div>
           </div>
         </div>
