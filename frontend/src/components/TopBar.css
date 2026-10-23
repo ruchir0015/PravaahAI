@@ -86,7 +86,7 @@
   line-height: 1;
 }
 
-/* ── Center: GooeyNav Container ── */
+/* ── Center: Top Navigation Bar ── */
 .topbar-center-nav {
   display: flex;
   align-items: center;
@@ -94,9 +94,59 @@
   flex: 1 1 auto;
 }
 
+.topbar-nav-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: rgba(14, 11, 36, 0.85);
+  border: 1px solid rgba(104, 84, 222, 0.25);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.topbar-nav-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #a49ad4;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.topbar-nav-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.topbar-nav-btn.active {
+  background: linear-gradient(135deg, #4329d6, #354cfd);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 10px rgba(67, 41, 214, 0.45);
+}
+
+.topbar-nav-icon {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-nav-label {
+  font-size: 12.5px;
+  letter-spacing: -0.01em;
+}
+
 /* ── Right: Balance spacer ── */
 .topbar-spacer {
-  flex: 0 0 170px;
+  flex: 0 0 140px;
   pointer-events: none;
 }
 

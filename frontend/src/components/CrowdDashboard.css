@@ -39,6 +39,17 @@
   color: #ff3b5c;
   font-family: var(--mono);
 }
+.cd-dataset-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 255, 136, 0.12);
+  border: 1px solid rgba(0, 255, 136, 0.35);
+  color: #00ff88;
+  font-family: var(--mono);
+}
 .cd-title {
   font-size: clamp(22px, 2.6vw, 32px);
   font-family: var(--heading);
@@ -55,6 +66,45 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+.cd-header-controls-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.cd-ds-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.cd-ds-title {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+.cd-ds-chip {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+.cd-ds-chip:hover {
+  background: rgba(104, 84, 222, 0.2);
+  color: #fff;
+  border-color: rgba(104, 84, 222, 0.4);
+}
+.cd-ds-chip.active {
+  background: #4329d6;
+  color: #fff;
+  border-color: #4329d6;
+  box-shadow: 0 0 8px rgba(67, 41, 214, 0.4);
 }
 
 /* View switcher tabs */

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Mic,
   Utensils,
@@ -11,46 +11,88 @@ import {
   AlertTriangle,
   MapPin,
   Navigation,
+  ShieldCheck,
+  Cpu
 } from 'lucide-react';
 import TechText from './TechText';
 import './AttendeeView.css';
 
-const DESTINATIONS = [
-  { id: 'main-stage',  label: 'Main Stage',      Icon: Mic,         status: 'danger',  eta: '12 min', alt: 'Via Gate B side path' },
-  { id: 'food-court',  label: 'Food Court',       Icon: Utensils,    status: 'warning', eta: '5 min',  alt: 'Follow corridor B markers' },
-  { id: 'merch-zone',  label: 'Merch & Exhibits', Icon: ShoppingBag, status: 'success', eta: '3 min',  alt: 'Direct route clear' },
-  { id: 'vip-lounge',  label: 'VIP Lounge',       Icon: Sparkles,    status: 'success', eta: '4 min',  alt: 'Left from main entrance' },
-  { id: 'restrooms',   label: 'Restrooms',         Icon: DoorOpen,    status: 'success', eta: '2 min',  alt: 'Near Gate A signage' },
-  { id: 'first-aid',   label: 'First Aid',         Icon: HeartPulse,  status: 'success', eta: '1 min',  alt: 'Emergency access lane' },
-  { id: 'exit',        label: 'Exit / Gate B',     Icon: LogOut,      status: 'success', eta: '6 min',  alt: 'Clear route to Gate B' },
-];
+const API = "http://localhost:5050";
+const POLL_MS = 2500;
 
 const STATUS_MAP = {
-  danger:  { label: 'HIGH CROWD', text: 'var(--danger-text)',  bg: 'var(--danger-bg)',  border: 'var(--danger-solid)',  fill: 'var(--danger-bg)',  stroke: 'var(--danger-solid)' },
-  warning: { label: 'MODERATE',   text: 'var(--warning-text)', bg: 'var(--warning-bg)', border: 'var(--warning-solid)', fill: 'var(--warning-bg)', stroke: 'var(--warning-solid)' },
-  success: { label: 'OPTIMAL',    text: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-solid)', fill: 'var(--success-bg)', stroke: 'var(--success-solid)' },
+  RED:    { label: 'HIGH CROWD · AVOID', text: '#ff3b5c',  bg: 'rgba(255,59,92,0.18)', border: '#ff3b5c',  fill: 'rgba(255,59,92,0.22)', stroke: '#ff3b5c' },
+  YELLOW: { label: 'MODERATE FLOW',      text: '#ffc107', bg: 'rgba(255,193,7,0.16)', border: '#ffc107', fill: 'rgba(255,193,7,0.20)', stroke: '#ffc107' },
+  GREEN:  { label: 'OPTIMAL · SAFE',     text: '#00ff88', bg: 'rgba(0,255,136,0.14)', border: '#00ff88', fill: 'rgba(0,255,136,0.18)', stroke: '#00ff88' },
 };
 
-const ZONES = [
-  { id: 'main-stage',   label: 'Main Stage',      x: 38, y: 10, w: 24, h: 20, status: 'danger'  },
-  { id: 'merch-zone',   label: 'Merch & Exhibits', x: 68, y: 10, w: 24, h: 20, status: 'success' },
-  { id: 'food-court',   label: 'Food Court',       x: 8,  y: 36, w: 24, h: 22, status: 'warning' },
-  { id: 'vip-lounge',   label: 'VIP Lounge',       x: 38, y: 36, w: 24, h: 20, status: 'success' },
-  { id: 'entry-gate-a', label: 'Gate A',            x: 8,  y: 68, w: 20, h: 16, status: 'success' },
-  { id: 'entry-gate-b', label: 'Gate B',            x: 72, y: 68, w: 20, h: 16, status: 'success' },
-];
-
 const YOU_X = 50;
-const YOU_Y = 90;
+const YOU_Y = 88;
 
 export default function AttendeeView({ venueData }) {
-  const [chosen, setChosen] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [chosenId, setChosenId] = useState(null);
 
-  const dest = chosen ? DESTINATIONS.find((d) => d.id === chosen) : null;
-  const destZone = chosen ? ZONES.find((z) => z.id === chosen) : null;
+  useEffect(() => {
+    let unmounted = false;
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch(`${API}/api/status`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!unmounted && data.zones) {
+            setStatus(data);
+            if (!chosenId && Object.keys(data.zones).length > 0) {
+              setChosenId(Object.keys(data.zones)[0]);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Backend not accessible for attendee portal');
+      }
+    };
 
-  const destCx = destZone ? destZone.x + destZone.w / 2 : null;
-  const destCy = destZone ? destZone.y + destZone.h / 2 : null;
+    fetchStatus();
+    const iv = setInterval(fetchStatus, POLL_MS);
+    return () => {
+      unmounted = true;
+      clearInterval(iv);
+    };
+  }, [chosenId]);
+
+  const zonesObj = status?.zones || {};
+  const activeDataset = status?.dataset || {};
+  const venueTitle = venueData?.name || activeDataset.venue_name || 'Active Venue Concourse';
+  const suggestions = status?.suggestions || [];
+
+  // Map backend zones to attendee destinations
+  const destinations = Object.values(zonesObj).map((z) => {
+    const bbox = z.bbox || [0.1, 0.1, 0.4, 0.4];
+    const x = bbox[0] * 100;
+    const y = bbox[1] * 100;
+    const w = (bbox[2] - bbox[0]) * 100;
+    const h = (bbox[3] - bbox[1]) * 100;
+
+    return {
+      id: z.id,
+      label: z.label,
+      color: z.color || 'GREEN',
+      saturation: z.saturation_pct,
+      statusLabel: z.status_label,
+      x,
+      y,
+      w,
+      h,
+      cx: x + w / 2,
+      cy: y + h / 2,
+    };
+  });
+
+  const chosenDest = chosenId ? destinations.find(d => d.id === chosenId) : destinations[0];
+
+  // Find green alternative if chosen is red
+  const greenAlts = destinations.filter(d => d.color === 'GREEN');
+  const recommendedAlt = greenAlts.length > 0 ? greenAlts[0].label : 'External Open Plaza';
 
   return (
     <div className="attendee-page">
@@ -59,18 +101,19 @@ export default function AttendeeView({ venueData }) {
           <div className="att-brand-logo-wrap">
             <img src="/logoo.png" alt="Pravaah" className="att-brand-logo" />
           </div>
-          <span className="att-brand-name">Pravaah</span>
+          <span className="att-brand-name">Pravaah Attendee Portal</span>
         </div>
         <div className="att-venue">
-          {venueData?.name ?? 'TechTrix 2026 — Hall A'}
+          {venueTitle}
         </div>
         <div className="att-ticket-chip">
           <span className="att-chip-dot" />
-          <span>PASS ACTIVE · ATT-001</span>
+          <span>LIVE CROWD TELEMETRY · ATT-001</span>
         </div>
       </header>
 
       <div className="att-body">
+        {/* Dynamic Vector Venue Map with AI Path Guidance */}
         <div className="att-map-wrap">
           <svg
             className="att-map-svg"
@@ -78,84 +121,108 @@ export default function AttendeeView({ venueData }) {
             preserveAspectRatio="xMidYMid meet"
             aria-label="Venue map"
           >
-            {ZONES.map((z) => {
-              const s = STATUS_MAP[z.status];
-              const isSelected = chosen === z.id;
+            {/* Baseplate and flow grid */}
+            <rect width="100" height="100" fill="#09061e" />
+            <path d="M 10 50 L 90 50 M 50 10 L 50 90" stroke="rgba(104, 84, 222, 0.12)" strokeWidth="0.5" strokeDasharray="2 2" />
+
+            {/* Calibrated Sectors */}
+            {destinations.map((d) => {
+              const s = STATUS_MAP[d.color] || STATUS_MAP.GREEN;
+              const isSelected = chosenDest?.id === d.id;
               return (
-                <g key={z.id}>
+                <g key={d.id} onClick={() => setChosenId(d.id)} style={{ cursor: 'pointer' }}>
                   <rect
-                    x={z.x}
-                    y={z.y}
-                    width={z.w}
-                    height={z.h}
-                    rx="1.5"
+                    x={d.x + 1}
+                    y={d.y + 1}
+                    width={d.w - 2}
+                    height={d.h - 2}
+                    rx="2"
                     fill={s.fill}
-                    stroke={s.stroke}
-                    strokeWidth={isSelected ? '0.8' : '0.5'}
+                    stroke={isSelected ? '#ffffff' : s.stroke}
+                    strokeWidth={isSelected ? '1.2' : '0.6'}
                     opacity={isSelected ? 1 : 0.85}
                   />
                   <text
-                    x={z.x + z.w / 2}
-                    y={z.y + z.h - 2.5}
+                    x={d.cx}
+                    y={d.cy - 1}
                     textAnchor="middle"
                     className="map-zone-label"
-                    fill={s.text}
+                    fill="#ffffff"
+                    fontSize="3.2"
+                    fontWeight="800"
                   >
-                    {z.label}
+                    {d.id}
+                  </text>
+                  <text
+                    x={d.cx}
+                    y={d.cy + 3.5}
+                    textAnchor="middle"
+                    fill={s.text}
+                    fontSize="2.4"
+                    fontWeight="700"
+                  >
+                    {d.saturation.toFixed(0)}%
                   </text>
                 </g>
               );
             })}
 
-            {destZone && (
+            {/* Dynamic AI Navigation Vector from You to Destination */}
+            {chosenDest && (
               <line
                 x1={YOU_X}
                 y1={YOU_Y}
-                x2={destCx}
-                y2={destCy}
-                stroke="var(--accent)"
+                x2={chosenDest.cx}
+                y2={chosenDest.cy}
+                stroke={chosenDest.color === 'RED' ? '#ff3b5c' : '#00ff88'}
                 strokeWidth="0.8"
                 strokeDasharray="2 1.5"
                 strokeLinecap="round"
               />
             )}
 
+            {/* "You Are Here" Marker */}
             <circle
               cx={YOU_X}
               cy={YOU_Y}
-              r="2"
-              fill="var(--accent)"
+              r="2.2"
+              fill="#4329d6"
               stroke="white"
               strokeWidth="0.8"
             />
             <circle
               cx={YOU_X}
               cy={YOU_Y}
-              r="4"
-              fill="var(--accent)"
-              opacity="0.15"
+              r="4.5"
+              fill="#4329d6"
+              opacity="0.25"
             />
             <text
               x={YOU_X}
               y={YOU_Y + 6.5}
               textAnchor="middle"
               className="map-you-label"
+              fill="#c5bdf5"
+              fontSize="2.5"
+              fontWeight="700"
             >
               You are here
             </text>
 
-            {destZone && (
+            {/* Target Destination Pin */}
+            {chosenDest && (
               <circle
-                cx={destCx}
-                cy={destCy}
-                r="2.5"
-                fill="var(--danger-solid)"
+                cx={chosenDest.cx}
+                cy={chosenDest.cy}
+                r="2.6"
+                fill={STATUS_MAP[chosenDest.color]?.stroke || '#00ff88'}
                 stroke="white"
                 strokeWidth="0.8"
               />
             )}
           </svg>
 
+          {/* Legend */}
           <div className="att-legend-bar">
             {Object.entries(STATUS_MAP).map(([k, v]) => (
               <div key={k} className="att-legend-item">
@@ -166,14 +233,15 @@ export default function AttendeeView({ venueData }) {
           </div>
         </div>
 
+        {/* Right Destination Guidance Panel */}
         <div className="att-panel">
           <div className="att-panel-header">
             <h2 className="section-title">Where do you want to go?</h2>
             <div className="techttext-subheading-wrap" style={{ maxWidth: '360px', height: '26px' }}>
               <TechText
-                text="Real-time route guidance avoiding congestion"
+                text="AI crowd rerouting and live queue avoidance"
                 fontWeight={600}
-                fontSize={14}
+                fontSize={13.5}
                 align="left"
                 color="#1b1056"
                 accentColor="#4329d6"
@@ -189,74 +257,70 @@ export default function AttendeeView({ venueData }) {
             </div>
           </div>
 
+          {/* Real Calibrated Sectors List */}
           <div className="dest-list">
-            {DESTINATIONS.map((d) => {
-              const s = STATUS_MAP[d.status];
-              const isChosen = chosen === d.id;
-              const DestIcon = d.Icon;
+            {destinations.map((d) => {
+              const s = STATUS_MAP[d.color] || STATUS_MAP.GREEN;
+              const isChosen = chosenDest?.id === d.id;
               return (
                 <button
                   key={d.id}
-                  id={`dest-${d.id}`}
                   type="button"
-                  className={`dest-card ${isChosen ? 'dest-selected' : ''}`}
-                  onClick={() => setChosen(isChosen ? null : d.id)}
+                  id={`dest-${d.id}`}
+                  className={`dest-card ${isChosen ? 'dest-chosen' : ''}`}
+                  onClick={() => setChosenId(d.id)}
                 >
-                  <div className="dest-icon-box">
-                    <DestIcon size={18} strokeWidth={2} />
-                  </div>
-                  <div className="dest-info">
-                    <div className="dest-name">{d.label}</div>
-                    <div className="dest-alt">{d.alt}</div>
-                  </div>
-                  <div className="dest-right">
-                    <div className="dest-eta">
-                      <Clock size={11} strokeWidth={2} />
-                      <span>{d.eta}</span>
+                  <div className="dest-left">
+                    <div className="dest-icon-box" style={{ background: s.bg, borderColor: s.border }}>
+                      <Navigation size={18} color={s.text} />
                     </div>
-                    <div
-                      className="dest-status-pill"
-                      style={{
-                        color: s.text,
-                        backgroundColor: s.bg,
-                        borderColor: s.border,
-                      }}
-                    >
-                      {s.label}
+                    <div className="dest-info">
+                      <div className="dest-name">{d.label}</div>
+                      <div className="dest-eta-row">
+                        <span className="dest-eta">Density: {d.saturation.toFixed(0)}%</span>
+                        <span className="dest-dot">·</span>
+                        <span className="dest-alt" style={{ color: s.text }}>
+                          {d.color === 'RED' ? 'High Crush Risk' : d.color === 'YELLOW' ? 'Moderate Queue' : 'Fast Free Flow'}
+                        </span>
+                      </div>
                     </div>
+                  </div>
+                  <div
+                    className="dest-status-badge"
+                    style={{
+                      color: s.text,
+                      backgroundColor: s.bg,
+                      borderColor: s.border,
+                    }}
+                  >
+                    {d.color}
                   </div>
                 </button>
               );
             })}
           </div>
 
-          {dest && (
-            <div className="route-info-card app-card">
-              <div className="route-info-title">
-                <div className="route-title-left">
-                  <Navigation size={14} strokeWidth={2} className="route-nav-icon" />
-                  <span>Optimized Path: {dest.label}</span>
-                </div>
-                <span className="route-eta-badge">{dest.eta}</span>
+          {/* Active Navigation Directive Banner */}
+          {chosenDest && (
+            <div className="att-route-card">
+              <div className="att-route-header">
+                <span className="att-route-title">AI ROUTE RECOMMENDATION</span>
+                <span className="att-route-dest">{chosenDest.label}</span>
               </div>
-              <div className="route-steps">
-                <div className="route-step">
-                  <span className="step-num">1</span>
-                  <span>Start at your current position (Gate A area)</span>
+              {chosenDest.color === 'RED' ? (
+                <div className="att-route-warn">
+                  <AlertTriangle size={16} color="#ff3b5c" />
+                  <span>
+                    <strong>CONGESTION WARNING:</strong> {chosenDest.label} is currently RED ({chosenDest.saturation.toFixed(0)}% saturation).
+                    Authorities advise rerouting to <strong>{recommendedAlt}</strong> to bypass turnstile queues.
+                  </span>
                 </div>
-                <div className="route-step">
-                  <span className="step-num">2</span>
-                  <span>{dest.alt}</span>
-                </div>
-                <div className="route-step">
-                  <span className="step-num">3</span>
-                  <span>Arrive at {dest.label}</span>
-                </div>
-              </div>
-              {dest.status === 'danger' && (
-                <div className="route-warning">
-                  <AlertTriangle size={14} strokeWidth={2} className="warning-icon" />
-                  <span>This zone is at peak capacity. An alternate path is recommended.</span>
+              ) : (
+                <div className="att-route-ok">
+                  <ShieldCheck size={16} color="#00ff88" />
+                  <span>
+                    <strong>CLEAR ROUTE:</strong> {chosenDest.label} is operating in free-flow state ({chosenDest.saturation.toFixed(0)}% density). Direct route clear.
+                  </span>
                 </div>
               )}
             </div>

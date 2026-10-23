@@ -267,6 +267,8 @@ export default function CrowdDashboard() {
   const [activeTab, setActiveTab]       = useState("all");
   const [executedActions, setExecutedActions] = useState([]);
   const [actionNotice, setActionNotice] = useState(null);
+  const [datasets, setDatasets]         = useState([]);
+  const [isSwitchingDs, setIsSwitchingDs] = useState(false);
   const pollRef                         = useRef(null);
 
   const fetchStatus = useCallback(async () => {
@@ -279,6 +281,15 @@ export default function CrowdDashboard() {
       setLastTs(new Date());
       setBackErr(false);
       setLoading(false);
+
+      // Fetch datasets
+      try {
+        const dsRes = await fetch(`${API}/api/datasets`, { signal: AbortSignal.timeout(2000) });
+        if (dsRes.ok) {
+          const dsData = await dsRes.json();
+          setDatasets(dsData.datasets || []);
+        }
+      } catch {}
 
       // Fetch histories
       const zoneKeys = Object.keys(d.zones || {});
@@ -306,6 +317,22 @@ export default function CrowdDashboard() {
     pollRef.current = setInterval(fetchStatus, POLL_MS);
     return () => clearInterval(pollRef.current);
   }, [fetchStatus]);
+
+  const handleSwitchDataset = async (datasetId) => {
+    setIsSwitchingDs(true);
+    try {
+      await fetch(`${API}/api/dataset/switch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataset_id: datasetId }),
+      });
+      fetchStatus();
+    } catch (e) {
+      console.error("Dataset switch error", e);
+    } finally {
+      setIsSwitchingDs(false);
+    }
+  };
 
   const handleExecute = async (sugg) => {
     try {
@@ -340,6 +367,7 @@ export default function CrowdDashboard() {
   const suggestions = status?.suggestions || [];
   const summary     = status?.summary || {};
   const modelName   = status?.model || "CSRNet Density Maps + ShanghaiTech LSTM";
+  const activeDataset = status?.dataset || {};
 
   const redZones    = summary.red_zones || Object.values(zones).filter((z) => z.color === "RED").length;
   const yellowZones = summary.yellow_zones || Object.values(zones).filter((z) => z.color === "YELLOW").length;
@@ -353,6 +381,9 @@ export default function CrowdDashboard() {
           <div className="cd-header-pill-row">
             <span className="cd-authority-badge">OFFICIAL AUTHORITY COMMAND CONSOLE</span>
             <span className="cd-model-badge">AI CORE: {modelName}</span>
+            <span className="cd-dataset-badge">
+              🎓 SOURCE: {activeDataset.name || "PETS 2009 Benchmark (View 001)"}
+            </span>
           </div>
           <h1 className="cd-title">
             <ShinyText text="Pravaah AI · Spatial Density & Color-Coded Zones" speed={4} />
@@ -363,16 +394,34 @@ export default function CrowdDashboard() {
         </div>
 
         <div className="cd-header-right">
-          <div className="cd-view-tabs">
-            <button className={`cd-tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
-              Unified Overview
-            </button>
-            <button className={`cd-tab-btn ${activeTab === "crowd" ? "active" : ""}`} onClick={() => setActiveTab("crowd")}>
-              👥 Density & Heatmap
-            </button>
-            <button className={`cd-tab-btn ${activeTab === "traffic" ? "active" : ""}`} onClick={() => setActiveTab("traffic")}>
-              🚗 Arterials & Parking
-            </button>
+          <div className="cd-header-controls-col">
+            <div className="cd-view-tabs">
+              <button className={`cd-tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
+                Unified Overview
+              </button>
+              <button className={`cd-tab-btn ${activeTab === "crowd" ? "active" : ""}`} onClick={() => setActiveTab("crowd")}>
+                👥 Density & Heatmap
+              </button>
+              <button className={`cd-tab-btn ${activeTab === "traffic" ? "active" : ""}`} onClick={() => setActiveTab("traffic")}>
+                🚗 Arterials & Parking
+              </button>
+            </div>
+
+            {/* Quick Dataset Switcher */}
+            <div className="cd-ds-bar">
+              <span className="cd-ds-title">DATASET:</span>
+              {datasets.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  className={`cd-ds-chip ${d.is_active ? "active" : ""}`}
+                  disabled={isSwitchingDs}
+                  onClick={() => handleSwitchDataset(d.id)}
+                >
+                  {d.id === "pets2009" ? "🎓 PETS 2009" : d.id === "shanghaitech" ? "🏙️ ShanghaiTech" : "🏟️ Arena"}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className={`cd-backend-pill ${backErr ? "cd-back-err" : "cd-back-ok"}`}>

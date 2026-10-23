@@ -8,7 +8,6 @@ import {
   Users,
 } from 'lucide-react';
 import FoldText from './FoldText';
-import GooeyNav from './GooeyNav';
 import './TopBar.css';
 
 const NAV_ITEMS = [
@@ -21,18 +20,7 @@ const NAV_ITEMS = [
   { id: 'attendee', label: 'Attendee View', icon: <Users size={15} /> },
 ];
 
-export default function TopBar({ activeView = 'setup', setActiveView }) {
-  const activeIndex = Math.max(
-    0,
-    NAV_ITEMS.findIndex((item) => item.id === activeView)
-  );
-
-  const handleNavChange = (index) => {
-    if (setActiveView && NAV_ITEMS[index]) {
-      setActiveView(NAV_ITEMS[index].id);
-    }
-  };
-
+export default function TopBar({ activeView = 'dashboard', setActiveView }) {
   return (
     <header className="fixed-topbar" id="main-topbar">
       {/* Left: Brand with FoldText */}
@@ -72,29 +60,29 @@ export default function TopBar({ activeView = 'setup', setActiveView }) {
         </button>
       </div>
 
-      {/* Center: React Bits GooeyNav */}
-      <div className="topbar-center-nav">
-        <GooeyNav
-          items={NAV_ITEMS}
-          activeIndex={activeIndex}
-          onChange={handleNavChange}
-          theme="dark"
-          size="sm"
-          frame={true}
-          color="#4329d6"
-          activeTextColor="#ffffff"
-          colors={['#6854de', '#354cfd', '#8e7ee7', '#00ff88']}
-          particleCount={14}
-          spread={48}
-          animationTime={500}
-          timeVariance={250}
-          gooeyness={0.55}
-          wobble={0.4}
-          hoverEffect={true}
-        />
-      </div>
+      {/* Center: Modern Interactive Navigation */}
+      <nav className="topbar-center-nav">
+        <div className="topbar-nav-pill-group">
+          {NAV_ITEMS.map((item) => {
+            const isActive = item.id === activeView;
+            return (
+              <button
+                key={item.id}
+                id={`nav-${item.id}`}
+                type="button"
+                className={`topbar-nav-btn ${isActive ? 'active' : ''}`}
+                onClick={() => setActiveView && setActiveView(item.id)}
+              >
+                <span className="topbar-nav-icon">{item.icon}</span>
+                <span className="topbar-nav-label">{item.label}</span>
+                {isActive && <span className="topbar-active-glow" />}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
-      {/* Right: Balanced spacer without online box */}
+      {/* Right: Balanced Spacer */}
       <div className="topbar-spacer" aria-hidden="true" />
     </header>
   );
