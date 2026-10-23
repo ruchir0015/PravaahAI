@@ -7,8 +7,10 @@ import ZoneMap from './components/ZoneMap.jsx';
 import QRPortal from './components/QRPortal.jsx';
 import AttendeeView from './components/AttendeeView.jsx';
 import Map from './components/Map.jsx';
+import CrowdDashboard from './components/CrowdDashboard.jsx';
 
 const VIEWS = {
+  dashboard: CrowdDashboard,
   setup: VenueSetup,
   map: Map,
   live: LiveFeed,
@@ -18,7 +20,7 @@ const VIEWS = {
 };
 
 function App() {
-  const [activeView, setActiveView] = useState('setup');
+  const [activeView, setActiveView] = useState('dashboard');
   const [venueData, setVenueData] = useState(null);
   const [zoneData, setZoneData] = useState(null);
 

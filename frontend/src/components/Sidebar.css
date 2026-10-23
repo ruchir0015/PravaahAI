@@ -162,6 +162,19 @@
   50%       { opacity: 0.5; }
 }
 
+.nav-badge-ai {
+  background: rgba(104, 84, 222, 0.22);
+  color: var(--color-indigo-ink-200);
+  border-color: rgba(142, 126, 231, 0.5);
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  animation: aiGlow 2.5s ease-in-out infinite;
+}
+@keyframes aiGlow {
+  0%, 100% { box-shadow: 0 0 4px rgba(104,84,222,0.3); }
+  50%       { box-shadow: 0 0 10px rgba(104,84,222,0.7); }
+}
+
 /* ── Footer ── */
 .sidebar-footer {
   margin-top: auto;

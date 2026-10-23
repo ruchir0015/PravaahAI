@@ -1,5 +1,6 @@
 import './Sidebar.css';
 import {
+  Cpu,
   MapPin,
   Globe,
   Video,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { id: 'dashboard', Icon: Cpu,      label: 'AI Dashboard',    badge: 'AI' },
   { id: 'setup',    Icon: MapPin,   label: 'Venue Setup',     badge: null },
   { id: 'map',      Icon: Globe,    label: 'Geo Map',         badge: 'GPS' },
   { id: 'live',     Icon: Video,    label: 'Live Feeds',      badge: 'LIVE' },
@@ -47,7 +49,7 @@ export default function Sidebar({ activeView, setActiveView }) {
               <ItemIcon className="nav-icon" size={18} strokeWidth={2} />
               <span className="nav-label">{item.label}</span>
               {item.badge && (
-                <span className={`nav-badge ${item.badge === 'LIVE' ? 'nav-badge-live' : item.badge === 'GPS' ? 'nav-badge-gps' : ''}`}>
+                <span className={`nav-badge ${item.badge === 'LIVE' ? 'nav-badge-live' : item.badge === 'GPS' ? 'nav-badge-gps' : item.badge === 'AI' ? 'nav-badge-ai' : ''}`}>
                   {item.badge}
                 </span>
               )}

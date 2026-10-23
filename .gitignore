@@ -1,7 +1,92 @@
+# ──────────────────────────────────────────────
+#  PravaahAI — Root .gitignore
+# ──────────────────────────────────────────────
+
+# ── Environment & Secrets ─────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Node / Frontend ───────────────────────────
 node_modules/
 frontend/node_modules/
 dist/
 frontend/dist/
-.env
-.env.*
-!.env.example
+frontend/.vite/
+.cache/
+
+# ── Python ────────────────────────────────────
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+venv/
+backend/venv/
+.venv/
+env/
+ENV/
+
+# ── ML / AI Artefacts ─────────────────────────
+# Model weights & checkpoints (can be huge)
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.h5
+*.pkl
+*.joblib
+*.bin
+*.safetensors
+backend/checkpoints/
+checkpoints/
+
+# Training outputs
+runs/
+logs/
+*.log
+
+# Datasets & large media
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.7z
+datasets/
+data/raw/
+shanghaitech/
+backend/shanghaitech/
+*.mat
+*.npy
+
+# Temporary frames / inference outputs
+tmp_frame.jpg
+tmp_frame*.jpg
+*.tmp
+
+# ── OS / Editor cruft ─────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Misc ──────────────────────────────────────
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
