@@ -1,70 +1,68 @@
 import {
-  Cpu,
+  Compass,
   MapPin,
-  Globe,
-  Video,
-  Activity,
-  QrCode,
-  Users,
+  Sparkles,
+  Radio,
+  Waves
 } from 'lucide-react';
 import FoldText from './FoldText';
 import './TopBar.css';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'AI Dashboard', icon: <Cpu size={15} /> },
-  { id: 'setup',    label: 'Venue Setup',   icon: <MapPin size={15} /> },
-  { id: 'map',      label: 'Geo Map',       icon: <Globe size={15} /> },
-  { id: 'live',     label: 'Live Feeds',    icon: <Video size={15} /> },
-  { id: 'zones',    label: 'Zone Monitor',  icon: <Activity size={15} /> },
-  { id: 'qr',      label: 'QR Portal',     icon: <QrCode size={15} /> },
-  { id: 'attendee', label: 'Attendee View', icon: <Users size={15} /> },
+  { id: 'dashboard', label: 'Command Center', icon: <Compass size={15} strokeWidth={2.2} /> },
+  { id: 'setup',     label: 'Fairgrounds & Cameras', icon: <MapPin size={15} strokeWidth={2.2} /> },
+  { id: 'attendee',  label: 'Visitor Pass & Guide', icon: <Sparkles size={15} strokeWidth={2.2} /> },
 ];
 
 export default function TopBar({ activeView = 'dashboard', setActiveView }) {
   return (
     <header className="fixed-topbar" id="main-topbar">
-      {/* Left: Brand with FoldText */}
+      {/* Left: Brand with Pravaah and Festival Subtitle */}
       <div className="topbar-left">
         <button
           type="button"
           className="topbar-brand-btn"
           onClick={() => setActiveView && setActiveView('dashboard')}
-          title="Pravaah Crowd Command"
+          title="Pravaah · Unified Event Crowd Command"
         >
           <div className="topbar-logo-wrap">
             <img src="/logoo.png" alt="Pravaah Logo" className="topbar-logo" />
+            <div className="topbar-logo-glow" />
           </div>
-          <div className="topbar-brand-title-wrap">
-            <FoldText
-              text="Pravaah"
-              foldStyle="paper"
-              splitBy="char"
-              hinge="top"
-              trigger="mount"
-              foldAngle={92}
-              duration={0.7}
-              stagger={0.045}
-              staggerFrom="start"
-              ease="power3.out"
-              hoverRefold={true}
-              refoldRadius={160}
-              refoldAngle={45}
-              perspective={800}
-              creaseShading={0.45}
-              fontSize="1.9rem"
-              fontWeight={800}
-              color="var(--color-indigo-ink-950)"
-              className="topbar-foldtext"
-            />
+          <div className="topbar-brand-info">
+            <div className="topbar-brand-title-wrap">
+              <FoldText
+                text="Pravaah"
+                foldStyle="paper"
+                splitBy="char"
+                hinge="top"
+                trigger="mount"
+                foldAngle={92}
+                duration={0.7}
+                stagger={0.045}
+                staggerFrom="start"
+                ease="power3.out"
+                hoverRefold={true}
+                refoldRadius={160}
+                refoldAngle={45}
+                perspective={800}
+                creaseShading={0.45}
+                fontSize="1.75rem"
+                fontWeight={800}
+                color="#ffffff"
+                className="topbar-foldtext"
+              />
+            </div>
+            <span className="topbar-brand-sub">प्रवाह · Event &amp; Fair Flow Command</span>
           </div>
         </button>
       </div>
 
-      {/* Center: Modern Interactive Navigation */}
+      {/* Center: Clean 3-Item Navigation */}
       <nav className="topbar-center-nav">
         <div className="topbar-nav-pill-group">
           {NAV_ITEMS.map((item) => {
-            const isActive = item.id === activeView;
+            const isActive = activeView === item.id || (item.id === 'dashboard' && (activeView === 'live' || activeView === 'zones'));
             return (
               <button
                 key={item.id}
@@ -82,8 +80,13 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
         </div>
       </nav>
 
-      {/* Right: Balanced Spacer */}
-      <div className="topbar-spacer" aria-hidden="true" />
+      {/* Right: Operational Status Indicator */}
+      <div className="topbar-right">
+        <div className="topbar-live-status">
+          <span className="topbar-status-pulse" />
+          <span className="topbar-status-text">SYSTEM HARMONIZED</span>
+        </div>
+      </div>
     </header>
   );
 }

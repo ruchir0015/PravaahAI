@@ -237,16 +237,16 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       <header className="page-header">
         <div>
           <div className="vs-badge-row">
-            <span className="vs-tag-pill">SPATIAL SECTOR CALIBRATION</span>
+            <span className="vs-tag-pill">FAIRGROUND &amp; SECTOR CALIBRATION</span>
             <span className="vs-active-ds-pill">
               <Cpu size={12} />
-              ACTIVE DATASET: {activeDatasetId.toUpperCase()}
+              ACTIVE BENCHMARK: {activeDatasetId.toUpperCase()}
             </span>
           </div>
-          <h1 className="page-title">Venue Setup &amp; CCTV Coverage Calibration</h1>
+          <h1 className="page-title">Fairgrounds &amp; Camera Sector Calibration</h1>
           <div className="techttext-subheading-wrap">
             <TechText
-              text="Map upload, multi-dataset benchmark testing & camera sector polygon calibration"
+              text="Mela & fairground blueprint upload, camera frustum mapping & multi-dataset benchmark testing"
               fontWeight={600}
               fontSize={14}
               align="left"
@@ -314,7 +314,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">🎓</span>
             <div>
-              <div className="preset-name">PETS 2009 Benchmark (View 001)</div>
+              <div className="preset-name">PETS 2009 Benchmark (Campus Fair View)</div>
               <div className="preset-sub">University Campus · 698 Frames</div>
             </div>
           </button>
@@ -326,8 +326,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">🏙️</span>
             <div>
-              <div className="preset-name">ShanghaiTech Part B Stream</div>
-              <div className="preset-sub">Urban Boulevard · 150 Frames</div>
+              <div className="preset-name">ShanghaiTech Part B (Concourse Stream)</div>
+              <div className="preset-sub">Urban Concourse · 150 Frames</div>
             </div>
           </button>
 
@@ -336,10 +336,10 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'crowd_default' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('crowd_default')}
           >
-            <span className="preset-icon">🏟️</span>
+            <span className="preset-icon">🎪</span>
             <div>
-              <div className="preset-name">Arena Concourse (Default)</div>
-              <div className="preset-sub">Concourse Gates A &amp; B</div>
+              <div className="preset-name">Arena Mela Concourse (Default)</div>
+              <div className="preset-sub">Concourse Entry Ghats &amp; Gates</div>
             </div>
           </button>
 
@@ -353,8 +353,8 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           >
             <span className="preset-icon">📁</span>
             <div>
-              <div className="preset-name">Custom CCTV &amp; Map</div>
-              <div className="preset-sub">Upload your own footage</div>
+              <div className="preset-name">Custom CCTV &amp; Fairground Map</div>
+              <div className="preset-sub">Upload your own footage &amp; blueprint</div>
             </div>
           </button>
         </div>
