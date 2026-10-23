@@ -1,23 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./CrowdDashboard.css";
 import SpotlightCard from "./react-bits/SpotlightCard.jsx";
-import ShinyText from "./react-bits/ShinyText.jsx";
 
-const API = "http://localhost:5050";
+const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:5050";
 const POLL_MS = 2000;
 
+// Functional color mapping for graphs and calculated metrics
 const COLOR_MAP = {
-  RED:    { fg: "#ff3b5c", bg: "rgba(255,59,92,0.16)", border: "rgba(255,59,92,0.45)", glow: "0 0 18px rgba(255,59,92,0.4)" },
-  YELLOW: { fg: "#ffc107", bg: "rgba(255,193,7,0.15)", border: "rgba(255,193,7,0.45)", glow: "0 0 14px rgba(255,193,7,0.3)" },
-  GREEN:  { fg: "#00ff88", bg: "rgba(0,255,136,0.12)", border: "rgba(0,255,136,0.4)",  glow: "0 0 12px rgba(0,255,136,0.25)" },
+  RED: {
+    fg: "#ff3b5c",
+    bg: "rgba(255,59,92,0.16)",
+    border: "rgba(255,59,92,0.45)",
+    glow: "0 0 14px rgba(255,59,92,0.35)",
+  },
+  YELLOW: {
+    fg: "#ffc107",
+    bg: "rgba(255,193,7,0.15)",
+    border: "rgba(255,193,7,0.45)",
+    glow: "0 0 12px rgba(255,193,7,0.25)",
+  },
+  GREEN: {
+    fg: "#00ff88",
+    bg: "rgba(0,255,136,0.12)",
+    border: "rgba(0,255,136,0.4)",
+    glow: "0 0 12px rgba(0,255,136,0.22)",
+  },
 };
 
 function useSVGSparkline(history, width = 200, height = 48) {
   if (!history || history.length < 2) return "";
-  const values = history.map((p) => p.saturation != null ? p.saturation : 0);
-  const min    = Math.min(...values);
-  const max    = Math.max(...values) || 1;
-  const pts    = values.map((v, i) => {
+  const values = history.map((p) => (p.saturation != null ? p.saturation : 0));
+  const min = Math.min(...values);
+  const max = Math.max(...values) || 1;
+  const pts = values.map((v, i) => {
     const x = (i / (values.length - 1)) * width;
     const y = height - ((v - min) / (max - min || 1)) * height;
     return `${x},${y}`;
@@ -25,34 +40,45 @@ function useSVGSparkline(history, width = 200, height = 48) {
   return pts.join(" ");
 }
 
-function Sparkline({ history, color }) {
+function Sparkline({ history, color = "#6881fd" }) {
   const pts = useSVGSparkline(history);
   if (!pts) return null;
   return (
     <svg viewBox="0 0 200 48" className="sparkline-svg" preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      <polygon points={`0,48 ${pts} 200,48`} fill={color} fillOpacity="0.15" />
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <polygon points={`0,48 ${pts} 200,48`} fill={color} fillOpacity="0.14" />
     </svg>
   );
 }
 
-// ── Zone Card (Color-Coded Red / Yellow / Green) ─────────────────────────────
-function ZoneCard({ zone, histData }) {
+// ── Zone Card (100% Dynamic, Functional Colors on Metrics & Graphs) ─────────
+function ZoneCard({ zone, histData, forecastModel }) {
   const colKey = zone.color || "GREEN";
-  const c      = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
-  const sat    = zone.saturation_pct || 0;
-  const fcSat  = zone.forecast_sat;
-  const fcCol  = zone.forecast_color || "GREEN";
-  const fcC    = COLOR_MAP[fcCol] || COLOR_MAP.GREEN;
+  const c = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
+  const sat = zone.saturation_pct != null ? zone.saturation_pct : 0;
+  const fcSat = zone.forecast_sat;
+  const fcCol = zone.forecast_color || "GREEN";
+  const fcC = COLOR_MAP[fcCol] || COLOR_MAP.GREEN;
 
   return (
-    <SpotlightCard className="cd-zone-card" spotlightColor="rgba(104,84,222,0.15)" style={{ borderColor: c.border }}>
+    <SpotlightCard
+      className="cd-zone-card"
+      spotlightColor="rgba(0,0,0,0.04)"
+      style={{ borderColor: c.border }}
+    >
       <div className="cd-zone-header">
         <div>
           <div className="cd-zone-id" style={{ color: c.fg }}>
-            {zone.id} · CONCOURSE
+            {zone.id}{zone.type ? ` · ${zone.type}` : ""}
           </div>
-          <div className="cd-zone-label">{zone.label}</div>
+          <div className="cd-zone-label">{zone.label || zone.id}</div>
         </div>
         <div
           className="cd-level-pill"
@@ -63,55 +89,57 @@ function ZoneCard({ zone, histData }) {
             boxShadow: c.glow,
           }}
         >
-          {zone.color} · {zone.level}
+          {zone.level || zone.color}
         </div>
       </div>
 
       <div className="cd-zone-metrics">
         <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>{sat.toFixed(0)}%</span>
+          <span className="cd-metric-val" style={{ color: c.fg }}>
+            {sat != null ? `${sat.toFixed(0)}%` : "—"}
+          </span>
           <span className="cd-metric-lbl">Density Load</span>
         </div>
         <div className="cd-metric-col">
-          <span className="cd-metric-val">{zone.status_label || "Active"}</span>
+          <span className="cd-metric-val">{zone.status_label || zone.level || "—"}</span>
           <span className="cd-metric-lbl">Flow State</span>
         </div>
         <div className="cd-metric-col">
           <span className="cd-metric-val" style={{ color: c.fg }}>
             {colKey === "RED" ? "CRITICAL" : colKey === "YELLOW" ? "ELEVATED" : "OPTIMAL"}
           </span>
-          <span className="cd-metric-lbl">Zone Status</span>
+          <span className="cd-metric-lbl">Status</span>
         </div>
       </div>
 
-      {/* Saturation Progress Bar */}
+      {/* Saturation Progress Bar (Color-coded) */}
       <div className="cd-occ-bar-wrap">
         <div
           className="cd-occ-bar-fill"
           style={{
-            width: `${Math.min(100, sat)}%`,
+            width: `${Math.min(100, Math.max(0, sat))}%`,
             background: c.fg,
             boxShadow: c.glow,
           }}
         />
       </div>
 
-      {/* Sparkline */}
+      {/* Sparkline Graph (Color-coded to zone) */}
       {histData && histData.length > 1 && (
         <div className="cd-sparkline-wrap">
           <Sparkline history={histData} color={c.fg} />
         </div>
       )}
 
-      {/* ShanghaiTech LSTM Predictive Density Trend */}
+      {/* Predictive Density Trend */}
       {fcSat != null && (
         <div className="cd-forecast-row" style={{ borderTop: `1px solid ${c.border}` }}>
           <div className="cd-fc-left">
-            <span className="cd-forecast-badge">LSTM DENSITY PROJECTION</span>
-            <span className="cd-forecast-sub">ShanghaiTech Flow Model</span>
+            <span className="cd-forecast-badge">PROJECTION</span>
+            <span className="cd-forecast-sub">{zone.forecast_model || forecastModel || "Predictive Model"}</span>
           </div>
           <span className="cd-forecast-val" style={{ color: fcC.fg }}>
-            {zone.trend} {fcSat.toFixed(0)}% ({fcCol})
+            {zone.trend || "═"} {fcSat.toFixed(0)}% ({fcCol})
           </span>
         </div>
       )}
@@ -119,45 +147,65 @@ function ZoneCard({ zone, histData }) {
   );
 }
 
-// ── Corridor Card (Vehicles & Arterials) ─────────────────────────────────────
+// ── Corridor Card (Functional Colors on Metrics & Graphs) ───────────────────
 function CorridorCard({ corridor, histData }) {
-  const sat   = corridor.saturation_pct || 0;
-  const colKey= corridor.color || "GREEN";
-  const c     = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
+  const sat = corridor.saturation_pct != null ? corridor.saturation_pct : 0;
+  const colKey = corridor.color || "GREEN";
+  const c = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
 
   return (
-    <SpotlightCard className="cd-zone-card cd-corridor-card" spotlightColor="rgba(80,120,255,0.15)" style={{ borderColor: c.border }}>
+    <SpotlightCard
+      className="cd-zone-card cd-corridor-card"
+      spotlightColor="rgba(0,0,0,0.04)"
+      style={{ borderColor: c.border }}
+    >
       <div className="cd-zone-header">
         <div>
-          <div className="cd-zone-id" style={{ color: "#6881fd" }}>{corridor.id} · ARTERIAL CORRIDOR</div>
-          <div className="cd-zone-label">{corridor.name}</div>
+          <div className="cd-zone-id" style={{ color: "#6881fd" }}>
+            {corridor.id}{corridor.type ? ` · ${corridor.type}` : ""}
+          </div>
+          <div className="cd-zone-label">{corridor.name || corridor.id}</div>
         </div>
-        <div className="cd-level-pill" style={{ color: c.fg, background: c.bg, border: `1px solid ${c.border}` }}>
-          {corridor.color} · {corridor.los}
+        <div
+          className="cd-level-pill"
+          style={{
+            color: c.fg,
+            background: c.bg,
+            border: `1.5px solid ${c.border}`,
+          }}
+        >
+          {corridor.los || corridor.color}
         </div>
       </div>
 
       <div className="cd-zone-metrics">
         <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>{corridor.vehicles}</span>
+          <span className="cd-metric-val" style={{ color: c.fg }}>
+            {corridor.vehicles != null ? corridor.vehicles : "—"}
+          </span>
           <span className="cd-metric-lbl">Active Veh</span>
         </div>
         <div className="cd-metric-col">
-          <span className="cd-metric-val">{corridor.speed_kmh}</span>
+          <span className="cd-metric-val">{corridor.speed_kmh != null ? corridor.speed_kmh : "—"}</span>
           <span className="cd-metric-lbl">Speed (km/h)</span>
         </div>
         <div className="cd-metric-col">
-          <span className="cd-metric-val" style={{ color: c.fg }}>{sat.toFixed(0)}%</span>
+          <span className="cd-metric-val" style={{ color: c.fg }}>
+            {sat != null ? `${sat.toFixed(0)}%` : "—"}
+          </span>
           <span className="cd-metric-lbl">Saturation</span>
         </div>
       </div>
 
       {/* Saturation bar */}
       <div className="cd-occ-bar-wrap">
-        <div className="cd-occ-bar-fill" style={{ width: `${Math.min(100, sat)}%`, background: c.fg }} />
+        <div
+          className="cd-occ-bar-fill"
+          style={{ width: `${Math.min(100, Math.max(0, sat))}%`, background: c.fg }}
+        />
       </div>
 
-      {/* Sparkline */}
+      {/* Sparkline Graph */}
       {histData && histData.length > 1 && (
         <div className="cd-sparkline-wrap">
           <Sparkline history={histData} color="#6881fd" />
@@ -167,65 +215,103 @@ function CorridorCard({ corridor, histData }) {
       {/* Corridor Signal Info */}
       <div className="cd-corridor-footer">
         <div className="cd-signal-indicator">
-          <span className="cd-signal-dot" style={{ background: corridor.signal?.includes("GREEN") ? "#00ff88" : corridor.signal?.includes("AMBER") ? "#ffc107" : "#ff3b5c" }} />
-          <span>{corridor.signal}</span>
+          <span
+            className="cd-signal-dot"
+            style={{
+              background: corridor.signal?.includes("GREEN")
+                ? "#00ff88"
+                : corridor.signal?.includes("AMBER")
+                ? "#ffc107"
+                : "#ff3b5c",
+            }}
+          />
+          <span>{corridor.signal ? `SIGNAL: ${corridor.signal}` : "ACTIVE MONITOR"}</span>
         </div>
-        <div className="cd-connects-tag">→ {corridor.connects}</div>
+        {corridor.connects && (
+          <div className="cd-connects-tag">Connects: {corridor.connects}</div>
+        )}
       </div>
     </SpotlightCard>
   );
 }
 
-// ── Parking Deck Card ────────────────────────────────────────────────────────
+// ── Parking Deck Card (Functional Colors on Badges & Capacity) ─────────────
 function ParkingCard({ lot }) {
-  const pct = lot.pct || 0;
+  const pct = lot.pct != null ? lot.pct : 0;
   const colKey = lot.color || "GREEN";
-  const c   = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
+  const c = COLOR_MAP[colKey] || COLOR_MAP.GREEN;
 
   return (
     <div className="cd-parking-card" style={{ borderColor: c.border }}>
       <div className="cd-parking-top">
-        <span className="cd-parking-name">{lot.name}</span>
-        <span className="cd-parking-badge" style={{ color: c.fg, background: c.bg }}>
+        <span className="cd-parking-name">{lot.name || lot.id}</span>
+        <span
+          className="cd-parking-badge"
+          style={{ color: c.fg, background: c.bg }}
+        >
           {colKey} · {pct.toFixed(0)}%
         </span>
       </div>
       <div className="cd-parking-bar-wrap">
-        <div className="cd-parking-bar-fill" style={{ width: `${Math.min(100, pct)}%`, background: c.fg }} />
+        <div
+          className="cd-parking-bar-fill"
+          style={{ width: `${Math.min(100, Math.max(0, pct))}%`, background: c.fg }}
+        />
       </div>
       <div className="cd-parking-nums">
-        <span>Capacity: {lot.occupied} / {lot.capacity}</span>
-        <span style={{ color: lot.available < 40 ? "#ff3b5c" : "#00ff88" }}>
-          {lot.available} Bays Open
+        <span>Capacity: {lot.occupied != null ? lot.occupied : "—"} / {lot.capacity != null ? lot.capacity : "—"}</span>
+        <span
+          className="cd-bays-open"
+          style={{ color: lot.available < 40 ? "#ff3b5c" : "#00ff88" }}
+        >
+          {lot.available != null ? `${lot.available} Bays Open` : "—"}
         </span>
       </div>
     </div>
   );
 }
 
-// ── Interactive Suggestion Card ──────────────────────────────────────────────
+// ── Suggestion Card (No emojis, functional accent colors) ───────────────────
 function SuggestionItem({ s, onExecute, isExecuted }) {
   const isCrit = s.level === "critical";
   const badgeColor = isCrit ? "#ff3b5c" : "#6881fd";
 
   return (
-    <div className={`cd-suggestion-item ${isCrit ? "cd-sugg-crit-glow" : ""}`} style={{ borderLeft: `3px solid ${badgeColor}` }}>
+    <div
+      className={`cd-suggestion-item ${isCrit ? "cd-sugg-crit" : ""}`}
+      style={{ borderLeft: `3px solid ${badgeColor}` }}
+    >
       <div className="cd-sugg-top">
-        <div className="cd-sugg-type-badge" style={{ background: isCrit ? "rgba(255,59,92,0.18)" : "rgba(104,129,253,0.18)", color: badgeColor }}>
-          {s.type === "CROWD" ? "👥 CROWD DIVERSION" : s.type === "VEHICLE" ? "🚗 VEHICULAR REROUTE" : "⚡ INTERMODAL DIVERSION"}
+        <div
+          className="cd-sugg-type-badge"
+          style={{
+            background: isCrit ? "rgba(255,59,92,0.18)" : "rgba(104,129,253,0.18)",
+            color: badgeColor,
+            border: `1px solid ${isCrit ? "rgba(255,59,92,0.4)" : "rgba(104,129,253,0.4)"}`,
+          }}
+        >
+          {s.type || "DIVERSION"}
         </div>
-        <span className="cd-sugg-action-code">{s.action}</span>
-        <span className="cd-sugg-zone">{s.zone}</span>
+        <span className="cd-sugg-action-code">{s.action || "DIRECTIVE"}</span>
+        <span className="cd-sugg-zone">{s.zone || ""}</span>
       </div>
 
-      <div className="cd-sugg-msg">{s.message}</div>
+      <div className="cd-sugg-msg">{s.message || ""}</div>
 
       {s.targets && s.targets.length > 0 && (
         <div className="cd-sugg-targets">
-          <span className="cd-sugg-targets-label">Target Safe Zones / Corridors:</span>
+          <span className="cd-sugg-targets-label">Target Nodes:</span>
           {s.targets.map((t, i) => (
-            <span key={i} className="cd-target-chip" style={{ color: "#00ff88", borderColor: "rgba(0,255,136,0.4)", background: "rgba(0,255,136,0.12)" }}>
-              🟢 {t}
+            <span
+              key={i}
+              className="cd-target-chip"
+              style={{
+                color: "#00ff88",
+                borderColor: "rgba(0,255,136,0.4)",
+                background: "rgba(0,255,136,0.12)",
+              }}
+            >
+              {t}
             </span>
           ))}
         </div>
@@ -233,14 +319,14 @@ function SuggestionItem({ s, onExecute, isExecuted }) {
 
       {s.impact && (
         <div className="cd-sugg-impact">
-          <span className="cd-impact-label">Operational Impact:</span>
+          <span className="cd-impact-label" style={{ color: "#00ff88" }}>OPERATIONAL IMPACT</span>
           <span className="cd-impact-text">{s.impact}</span>
         </div>
       )}
 
       <div className="cd-sugg-bottom">
         <div className="cd-sugg-role">
-          <span className="cd-role-icon">🛡️</span> Authority Role: <strong>{s.authority_role || "Command Authority"}</strong>
+          Authority: <strong>{s.authority_role || "Command Control"}</strong>
         </div>
 
         <button
@@ -248,7 +334,11 @@ function SuggestionItem({ s, onExecute, isExecuted }) {
           onClick={() => onExecute(s)}
           disabled={isExecuted}
         >
-          {isExecuted ? "✓ EXECUTED LIVE" : isCrit ? "⚡ DISPATCH RED ZONE DIVERSION" : "DISPATCH DIRECTIVE"}
+          {isExecuted
+            ? "EXECUTED LIVE"
+            : isCrit
+            ? "DISPATCH PRIORITY DIVERSION"
+            : "DISPATCH DIRECTIVE"}
         </button>
       </div>
     </div>
@@ -257,17 +347,17 @@ function SuggestionItem({ s, onExecute, isExecuted }) {
 
 // ── Main Dashboard ──────────────────────────────────────────────────────────
 export default function CrowdDashboard() {
-  const [status, setStatus]             = useState(null);
+  const [status, setStatus] = useState(null);
   const [crowdHistory, setCrowdHistory] = useState({});
   const [traffHistory, setTraffHistory] = useState({});
-  const [loading, setLoading]           = useState(true);
-  const [backErr, setBackErr]           = useState(false);
-  const [lastTs, setLastTs]             = useState(null);
-  const [videoOk, setVideoOk]           = useState(false);
-  const [activeTab, setActiveTab]       = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [backErr, setBackErr] = useState(false);
+  const [lastTs, setLastTs] = useState(null);
+  const [videoOk, setVideoOk] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
   const [executedActions, setExecutedActions] = useState([]);
   const [actionNotice, setActionNotice] = useState(null);
-  const pollRef                         = useRef(null);
+  const pollRef = useRef(null);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -280,21 +370,33 @@ export default function CrowdDashboard() {
       setBackErr(false);
       setLoading(false);
 
-      // Fetch histories
+      // Fetch dynamic histories
       const zoneKeys = Object.keys(d.zones || {});
       const cHistList = await Promise.all(
-        zoneKeys.map((z) => fetch(`${API}/api/history/${z}`, { signal: AbortSignal.timeout(2500) }).then((res) => res.json()).catch(() => null))
+        zoneKeys.map((z) =>
+          fetch(`${API}/api/history/${z}`, { signal: AbortSignal.timeout(2500) })
+            .then((res) => res.json())
+            .catch(() => null)
+        )
       );
       const cMap = {};
-      zoneKeys.forEach((z, i) => { if (cHistList[i]) cMap[z] = cHistList[i].history || []; });
+      zoneKeys.forEach((z, i) => {
+        if (cHistList[i]) cMap[z] = cHistList[i].history || [];
+      });
       setCrowdHistory(cMap);
 
       const corrKeys = Object.keys(d.traffic?.corridors || {});
       const tHistList = await Promise.all(
-        corrKeys.map((c) => fetch(`${API}/api/traffic_history/${c}`, { signal: AbortSignal.timeout(2500) }).then((res) => res.json()).catch(() => null))
+        corrKeys.map((c) =>
+          fetch(`${API}/api/traffic_history/${c}`, { signal: AbortSignal.timeout(2500) })
+            .then((res) => res.json())
+            .catch(() => null)
+        )
       );
       const tMap = {};
-      corrKeys.forEach((c, i) => { if (tHistList[i]) tMap[c] = tHistList[i].history || []; });
+      corrKeys.forEach((c, i) => {
+        if (tHistList[i]) tMap[c] = tHistList[i].history || [];
+      });
       setTraffHistory(tMap);
     } catch {
       setBackErr(true);
@@ -316,13 +418,13 @@ export default function CrowdDashboard() {
           id: sugg.id,
           action: sugg.action,
           target: sugg.targets?.join(", ") || sugg.zone,
-          operator: "Chief Traffic & Crowd Superintendent",
+          operator: "Authorized Operator",
         }),
       });
       if (res.ok) {
         setExecutedActions((prev) => [...prev, sugg.id]);
         setActionNotice({
-          msg: `Rerouting directive '${sugg.action}' successfully deployed across field actuators & VMS signs.`,
+          msg: `Directive '${sugg.action}' successfully deployed across field actuators.`,
           time: new Date().toLocaleTimeString(),
         });
         setTimeout(() => setActionNotice(null), 6000);
@@ -332,18 +434,18 @@ export default function CrowdDashboard() {
     }
   };
 
-  const zones       = status?.zones || {};
-  const traffic     = status?.traffic || {};
-  const corridors   = traffic.corridors || {};
-  const parking     = traffic.parking || {};
-  const alerts      = status?.alerts || [];
+  const zones = status?.zones || {};
+  const traffic = status?.traffic || {};
+  const corridors = traffic.corridors || {};
+  const parking = traffic.parking || {};
+  const alerts = status?.alerts || [];
   const suggestions = status?.suggestions || [];
-  const summary     = status?.summary || {};
-  const modelName   = status?.model || "CSRNet Density Maps + ShanghaiTech LSTM";
+  const summary = status?.summary || {};
+  const modelName = status?.model || "AI Flow Engine";
 
-  const redZones    = summary.red_zones || Object.values(zones).filter((z) => z.color === "RED").length;
-  const yellowZones = summary.yellow_zones || Object.values(zones).filter((z) => z.color === "YELLOW").length;
-  const greenZones  = summary.green_zones || Object.values(zones).filter((z) => z.color === "GREEN").length;
+  const redZones = summary.red_zones ?? Object.values(zones).filter((z) => z.color === "RED").length;
+  const yellowZones = summary.yellow_zones ?? Object.values(zones).filter((z) => z.color === "YELLOW").length;
+  const greenZones = summary.green_zones ?? Object.values(zones).filter((z) => z.color === "GREEN").length;
 
   return (
     <div className="cd-page">
@@ -352,26 +454,35 @@ export default function CrowdDashboard() {
         <div>
           <div className="cd-header-pill-row">
             <span className="cd-authority-badge">OFFICIAL AUTHORITY COMMAND CONSOLE</span>
-            <span className="cd-model-badge">AI CORE: {modelName}</span>
+            <span className="cd-model-badge">ENGINE: {modelName}</span>
           </div>
           <h1 className="cd-title">
-            <ShinyText text="Pravaah AI · Spatial Density & Color-Coded Zones" speed={4} />
+            Pravaah AI · Spatial Density & Concourse Zones
           </h1>
           <p className="cd-subtitle">
-            Continuous Thermal Heatmap Overlay · Dynamic RED / YELLOW / GREEN Zone Status · ShanghaiTech LSTM Trend Prediction
+            Continuous Spatial Density Heatmap · Dynamic Zone Categorization · Predictive Trend Forecasting
           </p>
         </div>
 
         <div className="cd-header-right">
           <div className="cd-view-tabs">
-            <button className={`cd-tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
+            <button
+              className={`cd-tab-btn ${activeTab === "all" ? "active" : ""}`}
+              onClick={() => setActiveTab("all")}
+            >
               Unified Overview
             </button>
-            <button className={`cd-tab-btn ${activeTab === "crowd" ? "active" : ""}`} onClick={() => setActiveTab("crowd")}>
-              👥 Density & Heatmap
+            <button
+              className={`cd-tab-btn ${activeTab === "crowd" ? "active" : ""}`}
+              onClick={() => setActiveTab("crowd")}
+            >
+              Density & Heatmap
             </button>
-            <button className={`cd-tab-btn ${activeTab === "traffic" ? "active" : ""}`} onClick={() => setActiveTab("traffic")}>
-              🚗 Arterials & Parking
+            <button
+              className={`cd-tab-btn ${activeTab === "traffic" ? "active" : ""}`}
+              onClick={() => setActiveTab("traffic")}
+            >
+              Arterials & Parking
             </button>
           </div>
 
@@ -385,7 +496,6 @@ export default function CrowdDashboard() {
       {/* Action Notice Toast */}
       {actionNotice && (
         <div className="cd-toast-notice">
-          <span className="cd-toast-icon">⚡</span>
           <div className="cd-toast-content">
             <span className="cd-toast-title">DIRECTIVE DISPATCHED LIVE ({actionNotice.time})</span>
             <span className="cd-toast-msg">{actionNotice.msg}</span>
@@ -393,40 +503,49 @@ export default function CrowdDashboard() {
         </div>
       )}
 
-      {/* ── Top Color-Coded Executive Status Bar ──────────────────────────── */}
+      {/* ── Top Executive Status Bar (Functional Colors on Metric Values) ──── */}
       <div className="cd-summary-bar">
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(255,59,92,0.18)">
-          <div className="cd-sum-label">🔴 Red Zones (Critical)</div>
+        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(255,59,92,0.12)">
+          <div className="cd-sum-label">Critical Zones (High Density)</div>
           <div className="cd-sum-val" style={{ color: "#ff3b5c" }}>
             {loading ? "—" : redZones}
           </div>
           <div className="cd-sum-sub">
-            {redZones > 0 ? "Immediate diversion required" : "No critical congestion"}
+            {redZones > 0 ? `${redZones} sectors requiring diversion` : "No critical congestion"}
           </div>
         </SpotlightCard>
 
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(255,193,7,0.18)">
-          <div className="cd-sum-label">🟡 Yellow Zones (Moderate)</div>
+        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(255,193,7,0.12)">
+          <div className="cd-sum-label">Moderate Zones (Medium Density)</div>
           <div className="cd-sum-val" style={{ color: "#ffc107" }}>
             {loading ? "—" : yellowZones}
           </div>
-          <div className="cd-sum-sub">Elevated crowd density</div>
+          <div className="cd-sum-sub">
+            {yellowZones > 0 ? `${yellowZones} sectors elevated` : "Nominal density"}
+          </div>
         </SpotlightCard>
 
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(0,255,136,0.18)">
-          <div className="cd-sum-label">🟢 Green Zones (Safe)</div>
+        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(0,255,136,0.12)">
+          <div className="cd-sum-label">Optimal Zones (Low Density)</div>
           <div className="cd-sum-val" style={{ color: "#00ff88" }}>
             {loading ? "—" : greenZones}
           </div>
-          <div className="cd-sum-sub">Free flow / available capacity</div>
+          <div className="cd-sum-sub">
+            {greenZones > 0 ? `${greenZones} sectors free flow` : "No capacity"}
+          </div>
         </SpotlightCard>
 
-        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(104,129,253,0.18)">
-          <div className="cd-sum-label">Actionable Reroutes</div>
-          <div className="cd-sum-val" style={{ color: suggestions.length > 0 ? "#ff3b5c" : "#00ff88" }}>
+        <SpotlightCard className="cd-summary-card" spotlightColor="rgba(104,129,253,0.12)">
+          <div className="cd-sum-label">Actionable Directives</div>
+          <div
+            className="cd-sum-val"
+            style={{ color: suggestions.length > 0 ? "#ff3b5c" : "#00ff88" }}
+          >
             {loading ? "—" : suggestions.length}
           </div>
-          <div className="cd-sum-sub">Directing flow to Green zones</div>
+          <div className="cd-sum-sub">
+            {suggestions.length > 0 ? `${suggestions.length} active directives` : "System in equilibrium"}
+          </div>
         </SpotlightCard>
       </div>
 
@@ -441,13 +560,13 @@ export default function CrowdDashboard() {
         <div className="cd-body">
           {/* ── Left Column: Video & Zone Grids ───────────────────────────── */}
           <div className="cd-left">
-            {/* LIVE SURVEILLANCE FEED WITH DENSITY HEATMAP & RED/YELLOW/GREEN ZONES */}
-            <SpotlightCard className="cd-video-card" spotlightColor="rgba(104,84,222,0.15)">
+            {/* LIVE SURVEILLANCE FEED */}
+            <SpotlightCard className="cd-video-card" spotlightColor="rgba(0,0,0,0.04)">
               <div className="cd-video-header">
                 <div>
-                  <h3 className="cd-card-title">Live Concourse Heatmap · Color-Coded Zones</h3>
+                  <h3 className="cd-card-title">Live Concourse Heatmap · Zone Boundaries</h3>
                   <p className="cd-card-subtitle">
-                    Continuous spatial density heatmap overlay with bold RED, YELLOW, and GREEN zone boundaries
+                    Continuous spatial density heatmap overlay with automated high-contrast zone boundaries
                   </p>
                 </div>
                 <div className="cd-live-badge">
@@ -465,41 +584,45 @@ export default function CrowdDashboard() {
                 />
                 {!videoOk && (
                   <div className="cd-video-placeholder">
-                    <div className="cd-vp-icon">📷</div>
-                    <div>Surveillance stream loading...</div>
-                    <div className="cd-vp-sub">Ensure api.py is running on port 5050</div>
+                    <div className="cd-vp-text">FEED STANDBY</div>
+                    <div className="cd-vp-sub">Awaiting stream from backend</div>
                   </div>
                 )}
                 <div className="cd-video-overlay">
-                  <span>PRAVAAH_AI://THERMAL-DENSITY·ACTIVE</span>
-                  <span>RED / YELLOW / GREEN COLOR CODING ON</span>
+                  <span>{status?.mode || "PRAVAAH_AI_LIVE"}</span>
+                  <span>{status?.status || "SURVEILLANCE_ACTIVE"}</span>
                 </div>
               </div>
             </SpotlightCard>
 
-            {/* CONCOURSE ZONES (Shown if tab is 'all' or 'crowd') */}
+            {/* CONCOURSE ZONES (Rendered purely from status.zones) */}
             {(activeTab === "all" || activeTab === "crowd") && (
               <div className="cd-section-block">
                 <div className="cd-subheading-row">
                   <h2 className="cd-subheading">
-                    <span>👥</span> Concourse Crowd Density Status (Red / Yellow / Green)
+                    Concourse Crowd Density Status
                   </h2>
-                  <span className="cd-subheading-meta">Color-Coded by Density Mass</span>
+                  <span className="cd-subheading-meta">Categorized by Density Mass</span>
                 </div>
                 <div className="cd-zones-grid">
                   {Object.values(zones).map((zone) => (
-                    <ZoneCard key={zone.id} zone={zone} histData={crowdHistory[zone.id]} />
+                    <ZoneCard
+                      key={zone.id}
+                      zone={zone}
+                      histData={crowdHistory[zone.id]}
+                      forecastModel={modelName}
+                    />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* ARTERIAL CORRIDORS & PARKING (Shown if tab is 'all' or 'traffic') */}
+            {/* ARTERIAL CORRIDORS & PARKING (Rendered purely from status.traffic) */}
             {(activeTab === "all" || activeTab === "traffic") && (
               <div className="cd-section-block">
                 <div className="cd-subheading-row">
                   <h2 className="cd-subheading">
-                    <span>🚗</span> Vehicular Arterial Corridors & Signals
+                    Vehicular Arterial Corridors & Signals
                   </h2>
                   <span className="cd-subheading-meta">Dynamic Diversion Control</span>
                 </div>
@@ -511,7 +634,7 @@ export default function CrowdDashboard() {
 
                 <div className="cd-parking-section">
                   <div className="cd-parking-header">
-                    <span className="cd-parking-title">🅿️ Parking Decks & Dynamic Redistribution</span>
+                    <span className="cd-parking-title">Parking Decks & Dynamic Redistribution</span>
                     <span className="cd-parking-desc">Automated diversion of incoming arrivals to overflow bays</span>
                   </div>
                   <div className="cd-parking-grid">
@@ -526,56 +649,65 @@ export default function CrowdDashboard() {
 
           {/* ── Right Column: Rerouting Directives & Alerts ───────────────── */}
           <div className="cd-right">
-            {/* AI REROUTING DIRECTIVES (Directing flow from RED to GREEN) */}
-            <SpotlightCard className="cd-suggestions-card" spotlightColor="rgba(104,129,253,0.16)">
+            {/* AI REROUTING DIRECTIVES (Rendered purely from status.suggestions) */}
+            <SpotlightCard className="cd-suggestions-card" spotlightColor="rgba(104,129,253,0.12)">
               <div className="cd-section-header">
                 <div>
                   <h3 className="cd-card-title">
-                    <ShinyText text="AI Color-Coded Rerouting Directives" speed={4.5} />
+                    AI Concourse Rerouting Directives
                   </h3>
                   <p className="cd-card-subtitle">
-                    Automated directives to divert flow away from RED zones into GREEN zones
+                    Automated directives to divert flow away from high-density sectors into optimal zones
                   </p>
                 </div>
                 <span className="cd-suggestions-count">{suggestions.length} Directives</span>
               </div>
 
               <div className="cd-suggestions-list">
-                {suggestions.map((s, i) => (
-                  <SuggestionItem
-                    key={s.id || i}
-                    s={s}
-                    onExecute={handleExecute}
-                    isExecuted={executedActions.includes(s.id)}
-                  />
-                ))}
+                {suggestions.length === 0 ? (
+                  <div className="cd-no-alerts">
+                    No active rerouting directives required. System in equilibrium.
+                  </div>
+                ) : (
+                  suggestions.map((s, i) => (
+                    <SuggestionItem
+                      key={s.id || i}
+                      s={s}
+                      onExecute={handleExecute}
+                      isExecuted={executedActions.includes(s.id)}
+                    />
+                  ))
+                )}
               </div>
             </SpotlightCard>
 
-            {/* LIVE SYSTEM ALERTS */}
-            <SpotlightCard className="cd-alerts-card" spotlightColor="rgba(255,59,92,0.14)">
+            {/* LIVE SYSTEM ALERTS (Rendered purely from status.alerts) */}
+            <SpotlightCard className="cd-alerts-card" spotlightColor="rgba(255,59,92,0.12)">
               <div className="cd-section-header">
                 <div>
                   <h3 className="cd-card-title">Density Threshold & Surge Alerts</h3>
-                  <p className="cd-card-subtitle">Immediate notifications on zone color transitions</p>
+                  <p className="cd-card-subtitle">Immediate notifications on zone state transitions</p>
                 </div>
                 {alerts.length > 0 && (
-                  <span className="cd-alert-count" style={{ background: "rgba(255,59,92,0.2)", color: "#ff3b5c" }}>
+                  <span
+                    className="cd-alert-count"
+                    style={{ background: "rgba(255,59,92,0.2)", color: "#ff3b5c" }}
+                  >
                     {alerts.length} ALERTS
                   </span>
                 )}
               </div>
               <div className="cd-alerts-list">
                 {alerts.length === 0 ? (
-                  <div className="cd-no-alerts">
-                    <span>✅</span> All zones are currently GREEN (Optimal)
+                  <div className="cd-no-alerts" style={{ color: "#00ff88" }}>
+                    All concourse zones are currently operating within optimal parameters.
                   </div>
                 ) : (
                   alerts.map((a, i) => (
-                    <div key={i} className={`cd-alert-item cd-alert-${a.level}`}>
+                    <div key={i} className={`cd-alert-item cd-alert-${a.level || "info"}`}>
                       <div className="cd-alert-badge">
-                        <span className="cd-alert-tag-type">{a.type}</span>
-                        <span className="cd-alert-zone">{a.zone}</span>
+                        <span className="cd-alert-tag-type">{a.type || "ALERT"}</span>
+                        <span className="cd-alert-zone">{a.zone || ""}</span>
                       </div>
                       <div className="cd-alert-msg">{a.msg}</div>
                     </div>
@@ -584,10 +716,10 @@ export default function CrowdDashboard() {
               </div>
             </SpotlightCard>
 
-            {/* COMPARATIVE MATRIX TABLE */}
-            <SpotlightCard className="cd-table-card" spotlightColor="rgba(104,84,222,0.12)">
+            {/* COMPARATIVE MATRIX TABLE (Rendered purely from status.zones and corridors) */}
+            <SpotlightCard className="cd-table-card" spotlightColor="rgba(0,0,0,0.04)">
               <div className="cd-section-header">
-                <h3 className="cd-card-title">Concourse & Arterial Color Matrix</h3>
+                <h3 className="cd-card-title">Concourse & Arterial Status Matrix</h3>
               </div>
               <table className="cd-table">
                 <thead>
@@ -595,8 +727,8 @@ export default function CrowdDashboard() {
                     <th>Sector / Node</th>
                     <th>Type</th>
                     <th>Density Saturation</th>
-                    <th>Color State</th>
-                    <th>LSTM Projection</th>
+                    <th>State</th>
+                    <th>Projection</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -604,16 +736,38 @@ export default function CrowdDashboard() {
                     const c = COLOR_MAP[z.color] || COLOR_MAP.GREEN;
                     return (
                       <tr key={z.id}>
-                        <td className="cd-tbl-name">{z.label}</td>
-                        <td className="cd-tbl-type">CONCOURSE</td>
-                        <td style={{ color: c.fg, fontWeight: 700 }}>{z.saturation_pct?.toFixed(0)}%</td>
+                        <td className="cd-tbl-name">{z.label || z.id}</td>
+                        <td className="cd-tbl-type">{z.type || "ZONE"}</td>
+                        <td
+                          className="cd-tbl-sat"
+                          style={{ color: c.fg, fontWeight: 700 }}
+                        >
+                          {z.saturation_pct != null ? `${z.saturation_pct.toFixed(0)}%` : "—"}
+                        </td>
                         <td>
-                          <span className="cd-tbl-pill" style={{ color: c.fg, background: c.bg, border: `1.5px solid ${c.border}` }}>
-                            {z.color} · {z.level}
+                          <span
+                            className="cd-tbl-pill"
+                            style={{
+                              color: c.fg,
+                              background: c.bg,
+                              border: `1.5px solid ${c.border}`,
+                            }}
+                          >
+                            {z.level || z.color}
                           </span>
                         </td>
-                        <td style={{ color: z.forecast_color === "RED" ? "#ff3b5c" : z.forecast_color === "YELLOW" ? "#ffc107" : "#00ff88" }}>
-                          {z.trend} {z.forecast_sat ? `${z.forecast_sat.toFixed(0)}% (${z.forecast_color})` : "—"}
+                        <td
+                          className="cd-tbl-proj"
+                          style={{
+                            color:
+                              z.forecast_color === "RED"
+                                ? "#ff3b5c"
+                                : z.forecast_color === "YELLOW"
+                                ? "#ffc107"
+                                : "#00ff88",
+                          }}
+                        >
+                          {z.trend || "═"} {z.forecast_sat != null ? `${z.forecast_sat.toFixed(0)}% (${z.forecast_color || "OPT"})` : "—"}
                         </td>
                       </tr>
                     );
@@ -622,15 +776,29 @@ export default function CrowdDashboard() {
                     const c = COLOR_MAP[cr.color] || COLOR_MAP.GREEN;
                     return (
                       <tr key={cr.id}>
-                        <td className="cd-tbl-name">{cr.name}</td>
-                        <td className="cd-tbl-type" style={{ color: "#6881fd" }}>ARTERIAL</td>
-                        <td style={{ color: c.fg, fontWeight: 700 }}>{cr.saturation_pct?.toFixed(0)}%</td>
+                        <td className="cd-tbl-name">{cr.name || cr.id}</td>
+                        <td className="cd-tbl-type" style={{ color: "#6881fd" }}>
+                          {cr.type || "CORRIDOR"}
+                        </td>
+                        <td
+                          className="cd-tbl-sat"
+                          style={{ color: c.fg, fontWeight: 700 }}
+                        >
+                          {cr.saturation_pct != null ? `${cr.saturation_pct.toFixed(0)}%` : "—"}
+                        </td>
                         <td>
-                          <span className="cd-tbl-pill" style={{ color: c.fg, background: c.bg, border: `1.5px solid ${c.border}` }}>
-                            {cr.color} · {cr.los}
+                          <span
+                            className="cd-tbl-pill"
+                            style={{
+                              color: c.fg,
+                              background: c.bg,
+                              border: `1.5px solid ${c.border}`,
+                            }}
+                          >
+                            {cr.los || cr.color}
                           </span>
                         </td>
-                        <td>{cr.speed_kmh} km/h</td>
+                        <td>{cr.speed_kmh != null ? `${cr.speed_kmh} km/h` : "—"}</td>
                       </tr>
                     );
                   })}

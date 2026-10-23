@@ -59,14 +59,15 @@
 .live-heading {
   font-size: 26px;
   font-weight: 800;
-  color: var(--color-indigo-ink-950, #09061e);
+  color: #ffffff;
   letter-spacing: -0.03em;
   margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .live-subheading {
   font-size: 13.5px;
-  color: var(--color-onyx-300, #666d75);
+  color: #9ca3af;
   margin: 0;
   max-width: 620px;
   line-height: 1.5;

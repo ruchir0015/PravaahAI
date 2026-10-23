@@ -8,6 +8,7 @@ import QRPortal from './components/QRPortal.jsx';
 import AttendeeView from './components/AttendeeView.jsx';
 import Map from './components/Map.jsx';
 import CrowdDashboard from './components/CrowdDashboard.jsx';
+import Grainient from './components/Grainient';
 
 const VIEWS = {
   dashboard: CrowdDashboard,
@@ -28,6 +29,18 @@ function App() {
 
   return (
     <div className="app-root">
+      {/* Animated Liquid Satin Film-Grain Shader Background */}
+      <div className="app-grainient-bg" aria-hidden="true">
+        <Grainient
+          colors={["#000000", "#373737", "#0a0909", "#25292d", "#33312e"]}
+          angle={55}
+          flow={0.8}
+          silk={0.48}
+          grainAmount={0.08}
+          speed={0.05}
+        />
+      </div>
+
       <TopBar activeView={activeView} setActiveView={setActiveView} />
       <div className="app-shell">
         <main className="main-content">
@@ -45,3 +58,4 @@ function App() {
 }
 
 export default App;
+

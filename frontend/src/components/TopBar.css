@@ -50,29 +50,31 @@
 
 .topbar-logo-wrap {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, var(--color-indigo-ink-900), var(--color-indigo-ink-800));
-  border: 1.5px solid rgba(180, 169, 239, 0.25);
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(30, 20, 80, 0.9), rgba(13, 8, 43, 0.95));
+  border: 1.5px solid rgba(180, 169, 239, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(67, 41, 214, 0.25);
+  box-shadow: 0 4px 16px rgba(67, 41, 214, 0.35), 0 0 12px rgba(104, 84, 222, 0.2);
   flex-shrink: 0;
   transition: transform 180ms ease, box-shadow 180ms ease;
+  overflow: hidden;
 }
 
 .topbar-brand-btn:hover .topbar-logo-wrap {
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(67, 41, 214, 0.35);
+  transform: scale(1.06);
+  box-shadow: 0 6px 22px rgba(67, 41, 214, 0.48), 0 0 16px rgba(104, 84, 222, 0.3);
 }
 
 .topbar-logo {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
 }
 
 .topbar-brand-title-wrap {
@@ -119,17 +121,17 @@
   }
 
   .topbar-logo-wrap {
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
   }
 
   .topbar-logo {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
   }
 
   .topbar-brand-title-wrap .topbar-foldtext {
-    font-size: 1.55rem !important;
+    font-size: 1.65rem !important;
   }
 }

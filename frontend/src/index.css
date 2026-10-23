@@ -125,12 +125,12 @@
   --heading: 'Space Grotesk', system-ui, sans-serif;
   --mono:    'JetBrains Mono', monospace;
 
-  color-scheme: light;
+  color-scheme: dark;
   font-family: var(--sans);
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
-  background-color: var(--surface-page);
+  background-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -147,10 +147,19 @@
 body {
   margin: 0;
   overflow-x: hidden;
-  background-color: var(--surface-page);
+  background-color: #09090b;
   color: var(--text-primary);
   font-family: var(--sans);
 }
+
+/* Tailwind utility fallbacks for components */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.inset-0 { inset: 0; }
+.block { display: block; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.overflow-hidden { overflow: hidden; }
 
 #root {
   width: 100%;
@@ -166,6 +175,11 @@ h1, h2, h3, h4 {
   color: var(--text-primary);
   letter-spacing: -0.02em;
   line-height: 1.25;
+}
+
+.page-title {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* ─────────────────────────────────────────

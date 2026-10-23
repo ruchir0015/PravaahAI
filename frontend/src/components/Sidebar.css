@@ -18,22 +18,22 @@
 }
 
 .brand-logo-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .brand-logo {
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
   display: block;
 }
@@ -163,16 +163,11 @@
 }
 
 .nav-badge-ai {
-  background: rgba(104, 84, 222, 0.22);
-  color: var(--color-indigo-ink-200);
-  border-color: rgba(142, 126, 231, 0.5);
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
   font-size: 9px;
   letter-spacing: 0.8px;
-  animation: aiGlow 2.5s ease-in-out infinite;
-}
-@keyframes aiGlow {
-  0%, 100% { box-shadow: 0 0 4px rgba(104,84,222,0.3); }
-  50%       { box-shadow: 0 0 10px rgba(104,84,222,0.7); }
 }
 
 /* ── Footer ── */

@@ -63,9 +63,9 @@ export default function TopBar({ activeView = 'setup', setActiveView }) {
               refoldAngle={45}
               perspective={800}
               creaseShading={0.45}
-              fontSize="1.9rem"
+              fontSize="2.05rem"
               fontWeight={800}
-              color="var(--color-indigo-ink-950)"
+              color="#ffffff"
               className="topbar-foldtext"
             />
           </div>

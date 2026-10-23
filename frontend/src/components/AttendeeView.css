@@ -25,9 +25,9 @@
 }
 
 .att-brand-logo-wrap {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
   border: 1px solid var(--border-default);
   display: flex;
   align-items: center;
@@ -37,8 +37,8 @@
 }
 
 .att-brand-logo {
-  width: 22px;
-  height: 22px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
