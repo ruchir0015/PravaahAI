@@ -1,145 +1,292 @@
 import { useState, useEffect } from 'react';
+import {
+  Video,
+  ShieldAlert,
+  Radio,
+  Eye,
+  Maximize2,
+  Users,
+  Activity,
+  Layers,
+  Sparkles
+} from 'lucide-react';
+import MagicBento from './MagicBento';
+import TechText from './TechText';
 import './LiveFeed.css';
-import SpotlightCard from './react-bits/SpotlightCard.jsx';
-import ShinyText from './react-bits/ShinyText.jsx';
-import DecryptedText from './react-bits/DecryptedText.jsx';
 
-const FEEDS = [
-  { id: 'CAM-01', label: 'Gate A – Main Entry',   density: 78, trend: 'up'   },
-  { id: 'CAM-02', label: 'Main Stage – Front',     density: 95, trend: 'up'   },
-  { id: 'CAM-03', label: 'Food Court – East',      density: 62, trend: 'stable'},
-  { id: 'CAM-04', label: 'Merch Zone',             density: 41, trend: 'down' },
-  { id: 'CAM-05', label: 'Gate B – Exit',          density: 30, trend: 'down' },
-  { id: 'CAM-06', label: 'VIP Lounge',             density: 20, trend: 'stable'},
+const CAMERAS = [
+  {
+    id: 'CAM-02',
+    name: 'Main Stage — Front Bowl',
+    zone: 'Sector Alpha',
+    initialDensity: 94,
+    status: 'CRITICAL',
+    statusColor: '#ef4444',
+    fps: '4K · 60 FPS',
+    dots: 36,
+  },
+  {
+    id: 'CAM-01',
+    name: 'Gate A — Turnstiles',
+    zone: 'Sector North',
+    initialDensity: 78,
+    status: 'MODERATE',
+    statusColor: '#f59e0b',
+    fps: '1080p · 30 FPS',
+    dots: 22,
+  },
+  {
+    id: 'CAM-03',
+    name: 'Food Concourse East',
+    zone: 'Sector Delta',
+    initialDensity: 61,
+    status: 'MODERATE',
+    statusColor: '#f59e0b',
+    fps: '1080p · 30 FPS',
+    dots: 18,
+  },
+  {
+    id: 'CAM-04',
+    name: 'Merchandise & Plaza',
+    zone: 'Sector Gamma',
+    initialDensity: 42,
+    status: 'OPTIMAL',
+    statusColor: '#00ff88',
+    fps: '1080p · 30 FPS',
+    dots: 10,
+  },
 ];
 
-function densityColor(d) {
-  if (d >= 80) return 'red';
-  if (d >= 50) return 'yellow';
-  return 'green';
-}
-
-function FeedCard({ feed }) {
-  const [density, setDensity] = useState(feed.density);
-  const color = densityColor(density);
+/* Custom live camera video simulation card */
+function LiveCameraCard({ cam, colSpan = 1, rowSpan = 1 }) {
+  const [density, setDensity] = useState(cam.initialDensity);
 
   useEffect(() => {
     const iv = setInterval(() => {
-      setDensity((d) => Math.min(100, Math.max(5, d + (Math.random() * 8 - 4))));
-    }, 2400);
+      setDensity((prev) => {
+        const delta = (Math.random() - 0.5) * 5;
+        return Math.min(100, Math.max(10, Math.round(prev + delta)));
+      });
+    }, 2800);
     return () => clearInterval(iv);
   }, []);
 
-  const colorMap = {
-    red: '#ff3b5c',
-    yellow: '#ffc107',
-    green: 'var(--color-onyx-500)',
-  };
-  const bgMap = {
-    red: 'rgba(255, 59, 92, 0.12)',
-    yellow: 'rgba(255, 193, 7, 0.12)',
-    green: 'rgba(0, 255, 136, 0.12)',
-  };
-  const borderMap = {
-    red: 'rgba(255, 59, 92, 0.35)',
-    yellow: 'rgba(255, 193, 7, 0.35)',
-    green: 'rgba(0, 255, 136, 0.35)',
-  };
+  const isCritical = density >= 85;
+  const isModerate = density >= 50 && density < 85;
+  const statusLabel = isCritical ? 'CRITICAL DENSITY' : isModerate ? 'HIGH FLOW' : 'NOMINAL';
+  const statusColor = isCritical ? '#ef4444' : isModerate ? '#f59e0b' : '#00ff88';
 
   return (
-    <SpotlightCard className="feed-card" id={`feed-${feed.id}`} spotlightColor="rgba(104, 84, 222, 0.16)">
-      <div className="feed-header">
-        <div className="feed-cam-icon">📹</div>
-        <div className="feed-meta">
-          <div className="feed-id-tag">
-            <DecryptedText text={feed.id} animateOn="mount" speed={25} />
-          </div>
-          <div className="feed-name">{feed.label}</div>
-        </div>
-        <div
-          className="feed-status-pill"
-          style={{
-            color: colorMap[color],
-            background: bgMap[color],
-            borderColor: borderMap[color],
-          }}
-        >
-          <span className="feed-status-dot" style={{ background: colorMap[color] }} />
-          {color === 'red' ? 'CRITICAL' : color === 'yellow' ? 'MODERATE' : 'NORMAL'}
-        </div>
-      </div>
-
-      {/* Simulated high-tech video frame */}
-      <div className="feed-video">
-        <div className="video-scanlines" />
-        <div className="video-hud">
-          <span className="hud-rec">● REC</span>
-          <span className="hud-fps">30 FPS</span>
-        </div>
-        <div className="video-content">
-          <div className="crowd-sim">
-            {Array.from({ length: Math.round(density / 6) }).map((_, i) => (
-              <div
-                key={i}
-                className="crowd-dot"
-                style={{
-                  left: `${(i * 19) % 85 + 6}%`,
-                  top: `${(i * 27) % 70 + 15}%`,
-                  animationDelay: `${(i * 0.3) % 2}s`,
-                  background: colorMap[color],
-                  boxShadow: `0 0 6px ${colorMap[color]}`,
-                }}
-              />
-            ))}
-          </div>
-          <div className="video-overlay-text">
-            <span>FEED://{feed.id}</span>
-            <span>RTSP_LIVE_STREAM</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="feed-footer">
-        <div className="density-row">
-          <span className="density-metric-title">Occupancy Density</span>
-          <span className="density-percent" style={{ color: colorMap[color] }}>
-            {Math.round(density)}%
+    <div className={`bento-cam-card ${isCritical ? 'is-critical' : ''}`}>
+      {/* Top Header info */}
+      <div className="bento-cam-header">
+        <div className="bento-cam-tag-group">
+          <span className="bento-cam-live-indicator">
+            <span className="bento-rec-dot" />
+            REC
           </span>
+          <span className="bento-cam-id">{cam.id}</span>
+          <span className="bento-cam-fps">{cam.fps}</span>
         </div>
-        <div className="density-bar-wrap">
-          <div
-            className="density-bar"
-            style={{
-              width: `${density}%`,
-              background: `linear-gradient(90deg, var(--color-indigo-ink-500), ${colorMap[color]})`,
-              boxShadow: `0 0 8px ${colorMap[color]}`,
-            }}
-          />
+        <div className="bento-cam-density-pill" style={{ borderColor: `${statusColor}44`, color: statusColor }}>
+          <Users size={12} />
+          <span>{density}%</span>
         </div>
       </div>
-    </SpotlightCard>
+
+      {/* Surveillance Viewport */}
+      <div className="bento-cam-viewport">
+        {/* Reticle & AI Bounding Crosshairs */}
+        <div className="bento-cam-grid-overlay" />
+        <div className="bento-crosshair bento-crosshair-tl" />
+        <div className="bento-crosshair bento-crosshair-tr" />
+        <div className="bento-crosshair bento-crosshair-bl" />
+        <div className="bento-crosshair bento-crosshair-br" />
+
+        {/* Dynamic Edge-detected Crowd Particles */}
+        <div className="bento-crowd-particles">
+          {Array.from({ length: Math.min(32, Math.round(density / 3)) }).map((_, i) => (
+            <span
+              key={i}
+              className="bento-crowd-dot"
+              style={{
+                left: `${((i * 17 + (i % 3) * 7) % 86) + 7}%`,
+                top: `${((i * 23 + (i % 5) * 11) % 72) + 14}%`,
+                backgroundColor: statusColor,
+                boxShadow: `0 0 6px ${statusColor}`,
+                animationDelay: `${(i * 0.15).toFixed(2)}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* AI detection banner */}
+        <div className="bento-cam-ai-overlay">
+          <div className="bento-cam-ai-badge">
+            <Activity size={11} />
+            <span>AI YOLOv11 · {Math.round(density * 1.8)} HEADS</span>
+          </div>
+          <span className="bento-cam-time">UTC+05:30 · LIVE</span>
+        </div>
+      </div>
+
+      {/* Bottom Metadata */}
+      <div className="bento-cam-footer">
+        <div className="bento-cam-info">
+          <span className="bento-cam-name">{cam.name}</span>
+          <span className="bento-cam-zone">{cam.zone}</span>
+        </div>
+        <div className="bento-cam-status-chip" style={{ color: statusColor }}>
+          <span className="bento-status-ring" style={{ backgroundColor: statusColor }} />
+          {statusLabel}
+        </div>
+      </div>
+    </div>
   );
 }
 
 export default function LiveFeed() {
+  const [filter, setFilter] = useState('all');
+
+  // MagicBento items combining CCTV stream cards with React Bits interactive visuals
+  const bentoItems = [
+    {
+      id: 'cam-main',
+      colSpan: 2,
+      rowSpan: 2,
+      content: <LiveCameraCard cam={CAMERAS[0]} colSpan={2} rowSpan={2} />,
+    },
+    {
+      id: 'vis-analytics',
+      label: 'REAL-TIME METRICS',
+      title: 'Crowd Inflow Velocity',
+      description: 'Sector inflow rate surging +18% past 15 minutes',
+      visual: 'analytics',
+      icon: <Activity size={15} color="#8e7ee7" />,
+      colSpan: 1,
+      rowSpan: 1,
+    },
+    {
+      id: 'vis-security',
+      label: 'EDGE SURVEILLANCE',
+      title: 'Vision Guard Active',
+      description: 'Autonomous neural density & anomaly detection online',
+      visual: 'security',
+      icon: <ShieldAlert size={15} color="#00ff88" />,
+      colSpan: 1,
+      rowSpan: 1,
+    },
+    {
+      id: 'cam-gate',
+      colSpan: 1,
+      rowSpan: 1,
+      content: <LiveCameraCard cam={CAMERAS[1]} />,
+    },
+    {
+      id: 'vis-dashboard',
+      label: 'LOAD DISTRIBUTION',
+      title: 'Venue Sector Loads',
+      description: 'Capacity balance between Gate A, Main Stage, and Exhibits',
+      visual: 'dashboard',
+      icon: <Layers size={15} color="#354cfd" />,
+      colSpan: 1,
+      rowSpan: 1,
+    },
+    {
+      id: 'vis-automation',
+      label: 'AI PROTOCOLS',
+      title: 'Crowd Re-Route Dispatch',
+      description: 'Auto-adjust digital corridor signage when sector density exceeds 85%',
+      visual: 'automation',
+      icon: <Radio size={15} color="#6854de" />,
+      colSpan: 2,
+      rowSpan: 2,
+    },
+    {
+      id: 'cam-food',
+      colSpan: 1,
+      rowSpan: 1,
+      content: <LiveCameraCard cam={CAMERAS[2]} />,
+    },
+    {
+      id: 'cam-merch',
+      colSpan: 1,
+      rowSpan: 1,
+      content: <LiveCameraCard cam={CAMERAS[3]} />,
+    },
+    {
+      id: 'vis-integration',
+      label: 'OPS DISPATCH HUB',
+      title: 'Command Center Synced',
+      description: 'Live alerts forwarded to Field Staff mobile terminals',
+      visual: 'integration',
+      icon: <Sparkles size={15} color="#b4a9ef" />,
+      colSpan: 2,
+      rowSpan: 1,
+    },
+  ];
+
   return (
     <div className="live-feed-page">
-      <header className="page-header">
-        <div>
-          <h1 className="page-title">
-            <ShinyText text="Live CCTV Feeds" speed={3.5} />
-          </h1>
-          <p className="page-sub">Edge AI computer vision monitoring all venue sectors</p>
+      {/* Page Header */}
+      <header className="live-page-header">
+        <div className="live-title-group">
+          <h1 className="live-heading">Edge Vision Feeds</h1>
+          <div className="techttext-subheading-wrap">
+            <TechText
+              text="Neural stream telemetry & crowd density distribution"
+              fontWeight={600}
+              fontSize={15}
+              align="left"
+              color="#1b1056"
+              accentColor="#4329d6"
+              reveal="off"
+              selection={false}
+              labels={false}
+              specks={0}
+              sweep={false}
+              clickKick
+              draggable
+              guides={false}
+            />
+          </div>
         </div>
-        <div className="live-status-badge">
-          <span className="live-blinker" />
-          <span>6 CHANNELS STREAMING</span>
+
+        <div className="live-stats-bar">
+          <div className="live-stat-card">
+            <span className="live-stat-label">ACTIVE CAMERAS</span>
+            <span className="live-stat-val">6 / 6 ONLINE</span>
+          </div>
+          <div className="live-stat-card">
+            <span className="live-stat-label">AI PROCESSING</span>
+            <span className="live-stat-val highlight">YOLOv11 · 14ms</span>
+          </div>
+          <div className="live-stat-card">
+            <span className="live-stat-label">TOTAL ATTENDEES</span>
+            <span className="live-stat-val">4,820 DETECTED</span>
+          </div>
         </div>
       </header>
-      <div className="feeds-grid">
-        {FEEDS.map((f) => (
-          <FeedCard key={f.id} feed={f} />
-        ))}
+
+      {/* React Bits Magic Bento Container */}
+      <div className="magic-bento-section">
+        <MagicBento
+          items={bentoItems}
+          columns={4}
+          rowHeight={210}
+          gap={14}
+          radius={18}
+          theme="dark"
+          glowColor="#4329d6"
+          enableBorderGlow={true}
+          enableSpotlight={true}
+          spotlightRadius={320}
+          enableStars={true}
+          particleCount={28}
+          enableTilt={true}
+          enableMagnetism={true}
+          clickEffect={true}
+        />
       </div>
     </div>
   );

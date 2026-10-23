@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { Eye, Plus, Download } from 'lucide-react';
+import TechText from './TechText';
 import './QRPortal.css';
-import SpotlightCard from './react-bits/SpotlightCard.jsx';
-import ShinyText from './react-bits/ShinyText.jsx';
-import StarBorder from './react-bits/StarBorder.jsx';
-import DecryptedText from './react-bits/DecryptedText.jsx';
 
 const SAMPLE_ATTENDEES = [
   { id: 'ATT-001', name: 'Arjun Sharma',  ticket: 'VIP',      gate: 'Gate A' },
@@ -41,33 +39,71 @@ export default function QRPortal({ setActiveView }) {
     setNewName('');
   };
 
+  const handleDownloadPng = () => {
+    const svgEl = document.querySelector('.qr-code-box svg');
+    if (!svgEl) return;
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width || 200;
+      canvas.height = img.height || 200;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `${selected.id}-pass.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  };
+
   return (
     <div className="qr-page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">
-            <ShinyText text="QR Credential Portal" speed={3.5} />
-          </h1>
-          <p className="page-sub">Issue cryptographic digital passes for dynamic venue routing</p>
+          <h1 className="page-title">QR Credential Portal</h1>
+          <div className="techttext-subheading-wrap">
+            <TechText
+              text="Issue digital credentials & dynamic venue passes"
+              fontWeight={600}
+              fontSize={15}
+              align="left"
+              color="#1b1056"
+              accentColor="#4329d6"
+              reveal="off"
+              selection={false}
+              labels={false}
+              specks={0}
+              sweep={false}
+              clickKick
+              draggable
+              guides={false}
+            />
+          </div>
         </div>
-        <StarBorder
+        <button
+          type="button"
           onClick={() => setActiveView('attendee')}
           id="preview-attendee-btn"
-          color="var(--color-periwinkle-300)"
+          className="btn-primary"
         >
-          <span>👤 Preview Attendee View</span>
-        </StarBorder>
+          <Eye size={16} strokeWidth={2} />
+          <span>Preview Attendee View</span>
+        </button>
       </header>
 
       <div className="qr-body">
-        {/* Form Card */}
-        <SpotlightCard className="qr-card add-card" spotlightColor="rgba(104, 84, 222, 0.15)">
-          <h3 className="card-title">Register Attendee</h3>
+        <div className="app-card qr-card add-card">
+          <h2 className="section-title">Register Attendee</h2>
           <div className="form-group">
             <label className="field-label" htmlFor="new-attendee-name">Full Name</label>
             <input
               id="new-attendee-name"
-              className="field-input mb-12"
+              className="field-input"
               placeholder="e.g. Ananya Reddy"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
@@ -78,7 +114,7 @@ export default function QRPortal({ setActiveView }) {
             <label className="field-label" htmlFor="new-ticket-type">Pass Tier</label>
             <select
               id="new-ticket-type"
-              className="field-input mb-16"
+              className="field-input"
               value={newTicket}
               onChange={(e) => setNewTicket(e.target.value)}
             >
@@ -89,18 +125,19 @@ export default function QRPortal({ setActiveView }) {
           </div>
 
           <button
-            className="btn-create"
+            type="button"
+            className="btn-primary btn-full"
             onClick={handleAdd}
             id="add-attendee-btn"
           >
-            + Issue Pass &amp; Generate QR
+            <Plus size={16} strokeWidth={2} />
+            <span>Issue Pass &amp; Generate QR</span>
           </button>
-        </SpotlightCard>
+        </div>
 
-        {/* List Card */}
-        <SpotlightCard className="qr-card attendee-list-card" spotlightColor="rgba(54, 87, 252, 0.15)">
+        <div className="app-card qr-card attendee-list-card">
           <div className="card-row">
-            <h3 className="card-title">Attendees Directory</h3>
+            <h2 className="section-title">Attendees Directory</h2>
             <span className="attendee-count-chip">{attendees.length} Passes</span>
           </div>
 
@@ -111,6 +148,7 @@ export default function QRPortal({ setActiveView }) {
                 <button
                   key={a.id}
                   id={`attendee-${a.id}`}
+                  type="button"
                   className={`attendee-row ${isSel ? 'active' : ''}`}
                   onClick={() => setSelected(a)}
                 >
@@ -128,32 +166,36 @@ export default function QRPortal({ setActiveView }) {
               );
             })}
           </div>
-        </SpotlightCard>
+        </div>
 
-        {/* QR Preview Card */}
-        <SpotlightCard className="qr-card qr-display-card" spotlightColor="rgba(0, 255, 136, 0.12)">
+        <div className="app-card qr-card qr-display-card">
           {selected ? (
             <>
               <div className="qr-header-wrap">
-                <span className="qr-badge-top">DIGITAL CREDENTIAL</span>
-                <h3 className="qr-attendee-title">
-                  <DecryptedText text={selected.name} animateOn="mount" speed={20} />
-                </h3>
+                <span className="field-label">DIGITAL CREDENTIAL</span>
+                <h2 className="section-title qr-attendee-title">{selected.name}</h2>
               </div>
 
-              <div className="qr-pass-box" id="qr-box">
-                <div className="qr-glow-halo" />
-                <div className="qr-svg-wrap">
-                  <QRCodeSVG
-                    value={qrPayload(selected)}
-                    size={180}
-                    bgColor="transparent"
-                    fgColor="#eceafb"
-                    level="H"
-                  />
-                </div>
-                <div className="qr-pass-tag">PRAVAAH SECURE ACCESS</div>
+              <div className="qr-code-box" id="qr-box">
+                <QRCodeSVG
+                  value={qrPayload(selected)}
+                  size={180}
+                  bgColor="#ffffff"
+                  fgColor="#0d082b"
+                  level="H"
+                />
               </div>
+
+              <p className="qr-caption">PRAVAAH SECURE ACCESS · {selected.id}</p>
+
+              <button
+                type="button"
+                className="btn-secondary btn-full btn-download-png"
+                onClick={handleDownloadPng}
+              >
+                <Download size={15} strokeWidth={2} />
+                <span>Download PNG</span>
+              </button>
 
               <div className="qr-info-grid">
                 <div className="qr-info-item">
@@ -170,20 +212,14 @@ export default function QRPortal({ setActiveView }) {
                 </div>
                 <div className="qr-info-item">
                   <span className="qr-info-label">Routing Status</span>
-                  <span className="qr-info-val" style={{ color: 'var(--color-onyx-500)' }}>
-                    Active
-                  </span>
+                  <span className="qr-info-val qr-status-active">Active</span>
                 </div>
               </div>
-
-              <p className="qr-hint">
-                Scan to launch interactive mobile wayfinding with dynamic crowd redirection
-              </p>
             </>
           ) : (
             <div className="placeholder-card">Select an attendee to view credential</div>
           )}
-        </SpotlightCard>
+        </div>
       </div>
     </div>
   );

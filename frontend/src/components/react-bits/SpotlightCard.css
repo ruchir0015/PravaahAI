@@ -1,29 +1,17 @@
 .spotlight-card {
   position: relative;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-radius: 12px;
+  border: 1px solid var(--border-default);
+  background-color: var(--surface-card);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-}
-
-.spotlight-card:hover {
-  border-color: var(--border-glow);
-  box-shadow: 0 10px 30px -10px rgba(9, 6, 30, 0.7), 0 0 20px -5px rgba(104, 84, 222, 0.15);
 }
 
 .spotlight-card-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  transition: opacity 0.3s ease;
+  display: none;
 }
 
 .spotlight-card-inner {
   position: relative;
-  z-index: 2;
   height: 100%;
 }

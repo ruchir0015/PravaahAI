@@ -1,0 +1,440 @@
+/* ==========================================================================
+   MagicBento Styles (Vanilla CSS fallback & styling for React Bits MagicBento)
+   ========================================================================== */
+
+.magic-bento {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  width: 100%;
+  grid-auto-flow: row dense;
+  color: var(--mb-ink, #f4f4f5);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.magic-bento__cell {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  --mb-delay: 0ms;
+}
+
+.magic-bento__card {
+  position: relative;
+  box-sizing: border-box;
+  isolation: isolate;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  user-select: none;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--mb-radius, 20px);
+  color: var(--mb-ink, #f4f4f5);
+  text-decoration: none;
+  outline: none;
+  background: var(--mb-surface, linear-gradient(180deg, #1a1820 0%, #121116 100%));
+  box-shadow: var(--mb-shadow, 0 24px 48px -28px rgba(0, 0, 0, 0.85));
+  transform: perspective(900px) translate3d(var(--mb-tx, 0px), var(--mb-ty, 0px), 0) rotateX(var(--mb-rx, 0deg)) rotateY(var(--mb-ry, 0deg)) scale(var(--mb-press, 1));
+  transition: transform 0.1s ease-out;
+}
+
+.magic-bento__card[data-clickable] {
+  cursor: pointer;
+}
+
+.magic-bento__card:focus-visible {
+  box-shadow: var(--mb-shadow), 0 0 0 2px var(--mb-focus, rgba(244, 244, 245, 0.5));
+}
+
+/* Image & Scrim */
+.magic-bento__card img {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Overlays */
+.magic-bento__card > span {
+  pointer-events: none;
+}
+
+/* Content Container */
+.magic-bento__card > div:not(.magic-bento__card-overlay) {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--mb-pad, 16px);
+}
+
+/* Header */
+.magic-bento__card header,
+.magic-bento__card .magic-bento-hdr,
+.magic-bento__card div > div:first-child:not([class*="visual"]):not([class*="plot"]) {
+  /* header area handled */
+}
+
+/* Specific elements within Card content */
+.magic-bento__card [class*="HEADER_CLASS"],
+.magic-bento__card > div > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--mb-muted, rgba(244, 244, 245, 0.6));
+}
+
+.magic-bento__card [data-image] div:first-child {
+  color: rgba(244, 244, 245, 0.72);
+}
+
+/* Visual Container */
+.magic-bento__card div[container-type="size"],
+.magic-bento__card div[class*="VISUAL_CLASS"],
+.magic-bento__card > div > div:nth-child(2) {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  container-type: size;
+}
+
+/* Text Container */
+.magic-bento__card [class*="TEXT_CLASS"],
+.magic-bento__card > div > div:last-child {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.magic-bento__card h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--mb-ink, #f4f4f5);
+}
+
+.magic-bento[data-autohide] .magic-bento__card h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.magic-bento__card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--mb-muted, rgba(244, 244, 245, 0.6));
+}
+
+.magic-bento[data-autohide] .magic-bento__card p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Built-in Visuals ── */
+
+/* Chart Visual */
+.magic-bento__chart {
+  display: flex;
+  min-height: 80px;
+  flex: 1 1 auto;
+  touch-action: pan-y;
+  flex-direction: column;
+}
+
+.magic-bento__chart > div:first-child,
+.magic-bento__bars > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.magic-bento__chart > div:first-child span:first-child,
+.magic-bento__bars > div:first-child span:first-child {
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--mb-ink, #f4f4f5);
+  font-variant-numeric: tabular-nums;
+}
+
+.magic-bento__chart > div:first-child span:last-child,
+.magic-bento__bars > div:first-child span:last-child {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mb-muted, rgba(244, 244, 245, 0.6));
+  font-variant-numeric: tabular-nums;
+}
+
+.magic-bento__chart > div:last-child {
+  position: relative;
+  margin-top: 6px;
+  min-height: 60px;
+  flex: 1 1 auto;
+}
+
+.magic-bento__chart svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.magic-bento__chart-area {
+  fill: rgba(var(--mb-accent-rgb, 67, 41, 214), 0.16);
+}
+
+.magic-bento__chart-line {
+  fill: none;
+  stroke: rgb(var(--mb-accent-rgb, 67, 41, 214));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+/* Bars Visual */
+.magic-bento__bars {
+  display: flex;
+  min-height: 80px;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.magic-bento__bars > div:last-child {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 60px;
+  flex: 1 1 auto;
+}
+
+.magic-bento__bar {
+  position: relative;
+  height: calc(var(--h, 0.5) * 100%);
+  min-height: 3px;
+  flex: 1 1 auto;
+  transform-origin: bottom;
+  border-radius: 3px 3px 2px 2px;
+  background-color: rgba(var(--mb-accent-rgb, 67, 41, 214), 0.18);
+  transition: background-color 200ms, filter 200ms;
+}
+
+.magic-bento__bar:hover {
+  background-color: rgba(var(--mb-accent-rgb, 67, 41, 214), 0.45);
+}
+
+.magic-bento__bar[data-peak] {
+  background-color: rgb(var(--mb-accent-rgb, 67, 41, 214));
+}
+
+.magic-bento__bar[data-peak]:hover {
+  filter: brightness(1.15);
+}
+
+/* Hub Visual */
+.magic-bento__hub {
+  position: relative;
+  margin: 0 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 240px;
+  flex: 1 1 auto;
+}
+
+.magic-bento__hub-links {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
+}
+
+.magic-bento__hub-links line {
+  stroke: var(--mb-line, rgba(244, 244, 245, 0.1));
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.magic-bento__hub-node {
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  margin-top: calc(var(--size, 26px) * -0.5);
+  margin-left: calc(var(--size, 26px) * -0.5);
+  box-sizing: border-box;
+  display: grid;
+  height: var(--size, 26px);
+  width: var(--size, 26px);
+  place-items: center;
+  border-radius: calc(var(--size, 26px) * 0.3);
+  color: var(--mb-ink, #f4f4f5);
+  background: var(--mb-tile, linear-gradient(180deg, #3a3644 0%, #27242f 100%));
+  box-shadow: var(--mb-tile-shadow, 0 4px 10px -4px rgba(0, 0, 0, 0.7));
+}
+
+.magic-bento__packet {
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  margin-top: -2px;
+  margin-left: -2px;
+  height: 4px;
+  width: 4px;
+  border-radius: 9999px;
+  opacity: 0;
+  background: rgb(var(--mb-accent-rgb, 67, 41, 214));
+}
+
+/* Shield Visual */
+.magic-bento__shield {
+  display: flex;
+  min-height: 0;
+  width: 100%;
+  max-width: 320px;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.magic-bento__setting {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--mb-inner-radius, 10px);
+  padding: 0 8px 0 10px;
+  font-size: 12.5px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--mb-ink, #f4f4f5);
+  background: var(--mb-tile, linear-gradient(180deg, #3a3644 0%, #27242f 100%));
+  box-shadow: var(--mb-tile-shadow, 0 4px 10px -4px rgba(0, 0, 0, 0.7));
+}
+
+/* Automation / Steps Visual */
+.magic-bento__steps {
+  position: relative;
+  margin: 0;
+  display: flex;
+  list-style: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 0;
+  border-radius: var(--mb-inner-radius, 10px);
+  background: var(--mb-well, rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 0 0 1px var(--mb-well-edge, rgba(255, 255, 255, 0.06));
+}
+
+.magic-bento__rail-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: top;
+  background: rgba(var(--mb-accent-rgb, 67, 41, 214), 0.55);
+}
+
+.magic-bento__step-time {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--mb-muted, rgba(244, 244, 245, 0.6));
+  font-variant-numeric: tabular-nums;
+}
+
+.magic-bento__pending {
+  box-sizing: border-box;
+  height: 12px;
+  width: 12px;
+  border-radius: 9999px;
+  border: 1.5px dashed var(--mb-faint, rgba(244, 244, 245, 0.3));
+  opacity: 0;
+}
+
+.magic-bento__spinner {
+  box-sizing: border-box;
+  height: 14px;
+  width: 14px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(var(--mb-accent-rgb, 67, 41, 214), 0.22);
+  border-top-color: rgb(var(--mb-accent-rgb, 67, 41, 214));
+  opacity: 0;
+}
+
+.magic-bento__done {
+  display: grid;
+  height: 16px;
+  width: 16px;
+  place-items: center;
+  border-radius: 9999px;
+  color: var(--mb-accent-ink, #ffffff);
+  background: rgb(var(--mb-accent-rgb, 67, 41, 214));
+}
+
+/* Collaboration Visual */
+.magic-bento__selection {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: var(--from, 0%);
+  width: var(--span, 40%);
+  border-radius: 3px;
+  background: rgba(var(--mb-accent-rgb, 67, 41, 214), 0.16);
+}
+
+.magic-bento__caret {
+  position: absolute;
+  top: -5px;
+  right: -1px;
+  bottom: -5px;
+  width: 1.5px;
+  border-radius: 1px;
+  background: rgb(var(--mb-accent-rgb, 67, 41, 214));
+}
+
+.magic-bento__cursor {
+  pointer-events: none;
+  position: absolute;
+  top: var(--y, 0%);
+  left: var(--x, 0%);
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+}
+
+.magic-bento__cursor svg {
+  display: block;
+  flex: none;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+}
+
+.magic-bento__cursor path {
+  fill: rgb(var(--mb-accent-rgb, 67, 41, 214));
+  stroke: var(--mb-cursor-stroke, rgba(18, 16, 22, 0.9));
+}

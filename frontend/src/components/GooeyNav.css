@@ -1,0 +1,147 @@
+/* ─────────────────────────────────────────────────────────────
+   GooeyNav Component Styles (Vanilla CSS Fallback & Support)
+   ───────────────────────────────────────────────────────────── */
+
+/* Root & Container */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.inset-0 { inset: 0; }
+.left-0 { left: 0; }
+.top-0 { top: 0; }
+.inline-flex { display: inline-flex; }
+.flex { display: flex; }
+.hidden { display: none; }
+.flex-none { flex: none; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.max-w-full { max-width: 100%; }
+.m-0 { margin: 0; }
+.p-0 { padding: 0; }
+.gap-2 { gap: 0.5rem; }
+.list-none { list-style: none; }
+.whitespace-nowrap { white-space: nowrap; }
+.border-none { border: none; }
+.bg-transparent { background: transparent; }
+.font-medium { font-weight: 500; }
+.no-underline { text-decoration: none; }
+.cursor-pointer { cursor: pointer; }
+.pointer-events-none { pointer-events: none; }
+.invisible { visibility: hidden; }
+.text-inherit { color: inherit; }
+.rounded-full { border-radius: 9999px; }
+
+/* Dynamic Root Elements */
+nav[class*="relative inline-flex"] {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  font-size: var(--gn-font, 13.5px);
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+/* Framed Panel */
+nav[class*="rounded-full"] {
+  border-radius: 9999px;
+  padding: var(--gn-pad, 5px);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: var(--gn-frame, rgba(13, 8, 43, 0.72));
+  box-shadow: var(--gn-frame-shadow, 0 20px 40px -15px rgba(9, 6, 30, 0.7));
+}
+
+/* Item List */
+ul[class*="relative m-0 flex"] {
+  position: relative;
+  margin: 0;
+  display: flex;
+  list-style: none;
+  flex-wrap: wrap;
+  gap: var(--gn-gap, 4px);
+  padding: 0;
+  align-items: center;
+}
+
+/* Overlay Mask List */
+ul[class*="pointer-events-none invisible absolute inset-0"] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gn-gap, 4px);
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  color: var(--gn-active-ink, #ffffff);
+  clip-path: inset(100%);
+  z-index: 3;
+}
+
+/* Navigation Links, Buttons & Ghost Spans - Identical metrics */
+li button[class*="inline-flex items-center"],
+li a[class*="inline-flex items-center"],
+li span[class*="inline-flex items-center"] {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  margin: 0;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  padding: var(--gn-y, 7.5px) var(--gn-x, 15px);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  color: var(--gn-muted, rgba(180, 169, 239, 0.72));
+  transition: color 200ms ease, background-color 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  z-index: 2;
+}
+
+/* Overlay items specifically take active ink color */
+ul[class*="pointer-events-none"] li span[class*="inline-flex items-center"] {
+  color: var(--gn-active-ink, #ffffff) !important;
+}
+
+li button[class*="inline-flex items-center"]:hover,
+li a[class*="inline-flex items-center"]:hover {
+  color: var(--gn-ink, #eceafb);
+}
+
+li[data-active] button,
+li[data-active] a {
+  color: var(--gn-ink, #eceafb);
+}
+
+/* Icon Support */
+span[class*="inline-flex flex-none"] svg {
+  height: 1.15em;
+  width: 1.15em;
+  vertical-align: middle;
+}
+
+/* Outer Rim Glow / Highlight */
+span[class*="pointer-events-none absolute inset-0 rounded-[inherit]"] {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--gn-frame-edge, rgba(180, 169, 239, 0.16)),
+              inset 0 1px 0 var(--gn-frame-highlight, rgba(255, 255, 255, 0.08));
+}
+
+/* WebGL Canvas */
+canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 1;
+}

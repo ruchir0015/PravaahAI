@@ -1,0 +1,135 @@
+/* ─────────────────────────────────────────────────────────────
+   Fixed TopBar Styles
+   Fixed on top across all pages, showcasing FoldText brand & GooeyNav
+   ───────────────────────────────────────────────────────────── */
+
+.fixed-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 68px;
+  background: rgba(9, 6, 30, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(180, 169, 239, 0.12);
+  box-shadow: 0 10px 30px -10px rgba(9, 6, 30, 0.7),
+              0 1px 3px 0 rgba(13, 8, 43, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 999;
+  box-sizing: border-box;
+}
+
+/* ── Left: Brand ── */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.topbar-brand-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 14px;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.topbar-brand-btn:hover {
+  background: rgba(104, 84, 222, 0.08);
+}
+
+.topbar-logo-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--color-indigo-ink-900), var(--color-indigo-ink-800));
+  border: 1.5px solid rgba(180, 169, 239, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(67, 41, 214, 0.25);
+  flex-shrink: 0;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.topbar-brand-btn:hover .topbar-logo-wrap {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(67, 41, 214, 0.35);
+}
+
+.topbar-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+}
+
+.topbar-brand-title-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-foldtext {
+  font-family: var(--font-body, 'Plus Jakarta Sans', system-ui, sans-serif);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* ── Center: GooeyNav Container ── */
+.topbar-center-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+}
+
+/* ── Right: Balance spacer ── */
+.topbar-spacer {
+  flex: 0 0 170px;
+  pointer-events: none;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 1024px) {
+  .topbar-center-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .fixed-topbar {
+    height: 60px;
+    padding: 0 16px;
+  }
+
+  .topbar-brand-btn {
+    gap: 8px;
+    padding: 4px 6px;
+  }
+
+  .topbar-logo-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .topbar-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .topbar-brand-title-wrap .topbar-foldtext {
+    font-size: 1.55rem !important;
+  }
+}

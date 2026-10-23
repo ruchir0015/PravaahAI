@@ -1,22 +1,28 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import {
+  UploadCloud,
+  FileText,
+  Check,
+  Save,
+  Image as ImageIcon,
+  ArrowRight,
+} from 'lucide-react';
+import TechText from './TechText';
 import './VenueSetup.css';
-import SpotlightCard from './react-bits/SpotlightCard.jsx';
-import ShinyText from './react-bits/ShinyText.jsx';
-import StarBorder from './react-bits/StarBorder.jsx';
 
 const SAMPLE_ZONES = [
-  { id: 'main-stage',   label: 'Main Stage',     x: 45, y: 30, w: 20, h: 15, color: 'red'    },
-  { id: 'food-court',   label: 'Food Court',      x: 15, y: 55, w: 25, h: 20, color: 'yellow' },
-  { id: 'entry-gate-a', label: 'Entry Gate A',    x: 5,  y: 80, w: 15, h: 10, color: 'green'  },
-  { id: 'entry-gate-b', label: 'Entry Gate B',    x: 78, y: 80, w: 15, h: 10, color: 'green'  },
-  { id: 'merch-zone',   label: 'Merch & Exhibits', x: 70, y: 30, w: 20, h: 20, color: 'green' },
+  { id: 'main-stage',   label: 'Main Stage',      x: 45, y: 30, w: 20, h: 15, color: 'red'    },
+  { id: 'food-court',   label: 'Food Court',       x: 15, y: 55, w: 25, h: 20, color: 'yellow' },
+  { id: 'entry-gate-a', label: 'Entry Gate A',     x: 5,  y: 80, w: 15, h: 10, color: 'green'  },
+  { id: 'entry-gate-b', label: 'Entry Gate B',     x: 78, y: 80, w: 15, h: 10, color: 'green'  },
+  { id: 'merch-zone',   label: 'Merch & Exhibits', x: 70, y: 30, w: 20, h: 20, color: 'green'  },
 ];
 
 const ZONE_COLOR_MAP = {
-  red:    { bg: 'rgba(255, 59, 92, 0.22)',   border: '#ff3b5c', label: '#ff8ca0' },
-  yellow: { bg: 'rgba(255, 193, 7, 0.22)',   border: '#ffc107', label: '#ffe082' },
-  green:  { bg: 'rgba(0, 255, 136, 0.22)',   border: '#00ff88', label: '#99ffcf' },
+  red:    { bg: 'var(--danger-bg)',   border: 'var(--danger-solid)', label: 'var(--danger-text)' },
+  yellow: { bg: 'var(--warning-bg)',  border: 'var(--warning-solid)', label: 'var(--warning-text)' },
+  green:  { bg: 'var(--success-bg)',  border: 'var(--success-solid)', label: 'var(--success-text)' },
 };
 
 export default function VenueSetup({ setVenueData, setZoneData, setActiveView }) {
@@ -61,42 +67,62 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
     setSaved(false);
   };
 
+  const isSaveDisabled = !mapImage || !venueName.trim();
+
   return (
     <div className="venue-setup">
       <header className="page-header">
         <div>
-          <h1 className="page-title">
-            <ShinyText text="Venue Setup" speed={3.5} />
-          </h1>
-          <p className="page-sub">Upload your venue floor plan and define crowd zones</p>
+          <h1 className="page-title">Venue Setup</h1>
+          <div className="techttext-subheading-wrap">
+            <TechText
+              text="Upload venue floor plan & calibrate crowd sectors"
+              fontWeight={600}
+              fontSize={15}
+              align="left"
+              color="#1b1056"
+              accentColor="#4329d6"
+              reveal="off"
+              selection={false}
+              labels={false}
+              specks={0}
+              sweep={false}
+              clickKick
+              draggable
+              guides={false}
+            />
+          </div>
         </div>
         <div className="header-actions">
           {saved ? (
             <button
               id="save-venue-btn"
-              className="btn-saved"
+              type="button"
+              className="btn-saved-badge"
               onClick={handleSave}
             >
-              <span className="saved-icon">✓</span> Saved &amp; Live
+              <Check size={16} strokeWidth={2.5} />
+              <span>Saved &amp; Active</span>
             </button>
           ) : (
-            <StarBorder
+            <button
               id="save-venue-btn"
+              type="button"
+              className="btn-save-action"
+              disabled={isSaveDisabled}
               onClick={handleSave}
-              className={(!mapImage || !venueName.trim()) ? 'btn-disabled' : ''}
-              color="var(--color-indigo-ink-300)"
             >
-              <span>💾 Save &amp; Activate</span>
-            </StarBorder>
+              <Save size={16} strokeWidth={2} />
+              <span>Save &amp; Activate</span>
+            </button>
           )}
         </div>
       </header>
 
       <div className="setup-body">
-        {/* Left panel */}
         <div className="setup-left">
-          <SpotlightCard className="setup-card" spotlightColor="rgba(142, 126, 231, 0.15)">
-            <h3 className="card-title">Event Details</h3>
+          <div className="app-card setup-card">
+            <h2 className="section-title">Event Details</h2>
             <label className="field-label" htmlFor="venue-name-input">Venue / Event Name</label>
             <input
               id="venue-name-input"
@@ -105,15 +131,21 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
               value={venueName}
               onChange={(e) => setVenueName(e.target.value)}
             />
-          </SpotlightCard>
+          </div>
 
-          <SpotlightCard className="setup-card" spotlightColor="rgba(104, 84, 222, 0.15)">
-            <h3 className="card-title">Upload Floor Plan</h3>
-            <div {...getRootProps()} className={`dropzone ${isDragActive ? 'drag-active' : ''}`} id="map-dropzone">
+          <div className="app-card setup-card">
+            <h2 className="section-title">Upload Floor Plan</h2>
+            <div
+              {...getRootProps()}
+              className={`dropzone ${isDragActive ? 'drag-active' : ''}`}
+              id="map-dropzone"
+            >
               <input {...getInputProps()} />
               {mapImage ? (
                 <div className="drop-preview">
-                  <span className="drop-check">✓</span>
+                  <div className="drop-check-icon">
+                    <Check size={18} strokeWidth={2.5} />
+                  </div>
                   <div>
                     <div className="drop-preview-title">Floor plan loaded</div>
                     <div className="drop-preview-sub">Click or drag a new image to replace</div>
@@ -121,51 +153,51 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
                 </div>
               ) : (
                 <div className="drop-placeholder">
-                  <div className="drop-icon-badge">🗺️</div>
+                  <div className="drop-icon-box">
+                    <UploadCloud size={24} strokeWidth={1.75} />
+                  </div>
                   <span className="drop-text">Drop your venue map here</span>
                   <span className="drop-hint">PNG, JPG, SVG supported</span>
                   <button
                     type="button"
-                    className="btn-load-demo"
+                    className="btn-secondary btn-demo-load"
                     onClick={(e) => {
                       e.stopPropagation();
                       loadDemoMap();
                     }}
                   >
-                    ⚡ Load Demo Blueprint
+                    <FileText size={15} />
+                    <span>Load Demo Blueprint</span>
                   </button>
                 </div>
               )}
             </div>
-          </SpotlightCard>
+          </div>
 
-          <SpotlightCard className="setup-card" spotlightColor="rgba(0, 255, 136, 0.12)">
-            <h3 className="card-title">Zone Legend</h3>
+          <div className="app-card setup-card">
+            <h2 className="section-title">Zone Legend</h2>
             <div className="legend">
               {[
-                ['red', 'Critical Alert', 'Evacuate or redirect crowd flow'],
-                ['yellow', 'Moderate Density', 'Approaching capacity, monitor closely'],
-                ['green', 'Clear & Optimal', 'Normal traffic flow below limits'],
-              ].map(([c, title, desc]) => (
+                { c: 'red', title: 'Critical Alert', desc: 'Evacuate or redirect crowd flow' },
+                { c: 'yellow', title: 'Moderate Density', desc: 'Approaching capacity, monitor closely' },
+                { c: 'green', title: 'Clear & Optimal', desc: 'Normal traffic flow below limits' },
+              ].map(({ c, title, desc }) => (
                 <div key={c} className="legend-row">
                   <span className={`legend-dot dot-${c}`} />
-                  <div>
-                    <div className="legend-label" style={{ color: ZONE_COLOR_MAP[c].label }}>
-                      {title}
-                    </div>
+                  <div className="legend-info">
+                    <div className="legend-label">{title}</div>
                     <div className="legend-desc">{desc}</div>
                   </div>
                 </div>
               ))}
             </div>
-          </SpotlightCard>
+          </div>
         </div>
 
-        {/* Right — map canvas */}
-        <SpotlightCard className="setup-card map-canvas-card" spotlightColor="rgba(54, 87, 252, 0.15)">
+        <div className="app-card map-canvas-card">
           <div className="card-row">
             <div>
-              <h3 className="card-title">Floor Plan Preview</h3>
+              <h2 className="section-title">Floor Plan Preview</h2>
               <span className="hint-text">Interactive zone matrix — click any zone to cycle its status</span>
             </div>
             <div className="zone-count-chip">
@@ -183,6 +215,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
                   return (
                     <button
                       key={z.id}
+                      type="button"
                       id={`zone-${z.id}`}
                       className="zone-overlay"
                       style={{
@@ -190,21 +223,22 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
                         top: `${z.y}%`,
                         width: `${z.w}%`,
                         height: `${z.h}%`,
-                        background: c.bg,
+                        backgroundColor: c.bg,
                         borderColor: c.border,
+                        color: c.label,
                       }}
                       onClick={() => cycleColor(z.id)}
                       title={`${z.label} — click to change status`}
                     >
-                      <span className="zone-indicator-pulse" style={{ background: c.border }} />
-                      <span className="zone-label" style={{ color: c.label }}>{z.label}</span>
+                      <span className="zone-dot-marker" style={{ backgroundColor: c.border }} />
+                      <span className="zone-label">{z.label}</span>
                     </button>
                   );
                 })}
               </>
             ) : (
               <div className="canvas-empty">
-                <div className="canvas-empty-icon">🗺️</div>
+                <ImageIcon className="canvas-empty-icon" size={44} strokeWidth={1.5} />
                 <div className="canvas-empty-title">Upload a floor plan to preview zones</div>
                 <p className="canvas-empty-sub">Once uploaded, you can calibrate sensors and monitor live attendee density</p>
               </div>
@@ -213,16 +247,18 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
 
           {saved && (
             <div className="canvas-footer-banner">
-              <span className="banner-msg">✓ Venue configuration synchronized</span>
+              <span className="banner-msg">Venue configuration synchronized</span>
               <button
-                className="btn-nav-next"
+                type="button"
+                className="btn-primary"
                 onClick={() => setActiveView('zones')}
               >
-                Go to Zone Monitor →
+                <span>Go to Zone Monitor</span>
+                <ArrowRight size={15} />
               </button>
             </div>
           )}
-        </SpotlightCard>
+        </div>
       </div>
     </div>
   );

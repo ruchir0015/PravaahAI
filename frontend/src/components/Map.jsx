@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import TechText from './TechText';
 import './Map.css';
-import SpotlightCard from './react-bits/SpotlightCard.jsx';
-import ShinyText from './react-bits/ShinyText.jsx';
-import DecryptedText from './react-bits/DecryptedText.jsx';
 
 const MAPBOX_TOKEN =
   import.meta.env.VITE_MAP_TOKEN ||
@@ -17,7 +15,6 @@ export default function Map({ venueData }) {
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
   const [coords, setCoords] = useState({ lng: 77.1025, lat: 28.7041, zoom: 12 });
-  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current) return;
@@ -31,30 +28,31 @@ export default function Map({ venueData }) {
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: 'mapbox://styles/mapbox/light-v11',
       center: [coords.lng, coords.lat],
       zoom: coords.zoom,
       attributionControl: false,
     });
 
     map.on('load', () => {
-      setMapLoaded(true);
-
-      // Add a stylish pulse marker for the main venue
       const el = document.createElement('div');
       el.className = 'geo-venue-marker';
       el.innerHTML = `
-        <div class="geo-marker-pulse"></div>
-        <div class="geo-marker-pin">⚡</div>
+        <div class="geo-marker-pin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
       `;
 
       new mapboxgl.Marker(el)
         .setLngLat([coords.lng, coords.lat])
         .setPopup(
           new mapboxgl.Popup({ offset: 25 }).setHTML(`
-            <div style="color: #09061e; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600;">
+            <div style="color: #0d082b; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 4px;">
               <strong>${venueData?.name || 'TechTrix 2026 Venue'}</strong><br/>
-              <span>Main Operations Sector</span>
+              <span style="color: #3c5d57; font-size: 11px;">Main Operations Sector</span>
             </div>
           `)
         )
@@ -87,12 +85,25 @@ export default function Map({ venueData }) {
     <div className="geo-map-page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">
-            <ShinyText text="Geo GIS & Perimeter Radar" speed={3.5} />
-          </h1>
-          <p className="page-sub">
-            Global positioning telemetry &amp; external venue perimeter surveillance
-          </p>
+          <h1 className="page-title">Geo GIS &amp; Perimeter Radar</h1>
+          <div className="techttext-subheading-wrap">
+            <TechText
+              text="Global positioning telemetry & perimeter radar"
+              fontWeight={600}
+              fontSize={15}
+              align="left"
+              color="#1b1056"
+              accentColor="#4329d6"
+              reveal="off"
+              selection={false}
+              labels={false}
+              specks={0}
+              sweep={false}
+              clickKick
+              draggable
+              guides={false}
+            />
+          </div>
         </div>
         <div className="geo-status-badge">
           <span className="gps-live-dot" />
@@ -101,24 +112,18 @@ export default function Map({ venueData }) {
       </header>
 
       <div className="geo-map-body">
-        {/* Main Map Canvas */}
-        <SpotlightCard className="geo-map-card" spotlightColor="rgba(54, 87, 252, 0.15)">
+        <div className="app-card geo-map-card">
           <div className="map-container" ref={mapContainer} />
 
-          {/* Floating Telemetry HUD */}
           <div className="geo-floating-hud">
             <div className="hud-metric">
               <span className="hud-label">LATITUDE</span>
-              <span className="hud-val">
-                <DecryptedText text={`${coords.lat.toFixed(4)}° N`} speed={20} />
-              </span>
+              <span className="hud-val">{coords.lat.toFixed(4)}° N</span>
             </div>
             <div className="hud-divider" />
             <div className="hud-metric">
               <span className="hud-label">LONGITUDE</span>
-              <span className="hud-val">
-                <DecryptedText text={`${coords.lng.toFixed(4)}° E`} speed={20} />
-              </span>
+              <span className="hud-val">{coords.lng.toFixed(4)}° E</span>
             </div>
             <div className="hud-divider" />
             <div className="hud-metric">
@@ -128,10 +133,10 @@ export default function Map({ venueData }) {
             <div className="hud-divider" />
             <div className="hud-metric">
               <span className="hud-label">STYLE</span>
-              <span className="hud-val" style={{ color: 'var(--color-onyx-500)' }}>DARK V11</span>
+              <span className="hud-val hud-style-tag">LIGHT V11</span>
             </div>
           </div>
-        </SpotlightCard>
+        </div>
       </div>
     </div>
   );

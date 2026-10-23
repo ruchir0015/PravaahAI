@@ -1,16 +1,40 @@
-.app-shell {
+.app-root {
   display: flex;
+  flex-direction: column;
   height: 100svh;
   overflow: hidden;
   position: relative;
-  background: var(--bg-base);
+  background-color: var(--surface-page);
+}
+
+.app-shell {
+  display: flex;
+  margin-top: 68px;
+  height: calc(100svh - 68px);
+  overflow: hidden;
+  position: relative;
+  background-color: var(--surface-page);
 }
 
 .main-content {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
-  z-index: 2;
+  background-color: var(--surface-page);
+}
+
+@media (max-width: 1024px) {
+  .app-shell {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    margin-top: 60px;
+    height: calc(100svh - 60px);
+  }
 }
