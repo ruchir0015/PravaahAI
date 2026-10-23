@@ -9,7 +9,7 @@
   flex-direction: column;
   gap: 20px;
   box-sizing: border-box;
-  background: var(--bg-primary, #0a081a);
+  background: transparent;
   min-height: 100%;
 }
 

@@ -295,7 +295,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       {/* Deployment Notification Toast */}
       {toastMsg && (
         <div className="vs-toast-banner">
-          <span className="vs-toast-icon">🚀</span>
+          <Sparkles size={16} className="text-amber-400" />
           <span className="vs-toast-text">{toastMsg}</span>
         </div>
       )}
@@ -312,7 +312,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'pets2009' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('pets2009')}
           >
-            <span className="preset-icon">🎓</span>
+            <FileText size={16} className="text-indigo-400" />
             <div>
               <div className="preset-name">PETS 2009 Benchmark (Campus Fair View)</div>
               <div className="preset-sub">University Campus · 698 Frames</div>
@@ -324,7 +324,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'shanghaitech' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('shanghaitech')}
           >
-            <span className="preset-icon">🏙️</span>
+            <Layers size={16} className="text-cyan-400" />
             <div>
               <div className="preset-name">ShanghaiTech Part B (Concourse Stream)</div>
               <div className="preset-sub">Urban Concourse · 150 Frames</div>
@@ -336,7 +336,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
             className={`vs-preset-btn ${activeDatasetId === 'crowd_default' ? 'active' : ''}`}
             onClick={() => handleSelectPreset('crowd_default')}
           >
-            <span className="preset-icon">🎪</span>
+            <Sparkles size={16} className="text-amber-400" />
             <div>
               <div className="preset-name">Arena Mela Concourse (Default)</div>
               <div className="preset-sub">Concourse Entry Ghats &amp; Gates</div>
@@ -351,7 +351,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
               setDeployed(false);
             }}
           >
-            <span className="preset-icon">📁</span>
+            <UploadCloud size={16} className="text-emerald-400" />
             <div>
               <div className="preset-name">Custom CCTV &amp; Fairground Map</div>
               <div className="preset-sub">Upload your own footage &amp; blueprint</div>
@@ -554,7 +554,10 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
 
           {deployed && (
             <div className="canvas-footer-banner">
-              <span className="banner-msg">✅ Configuration active &amp; streaming to neural engine</span>
+              <span className="banner-msg flex items-center gap-1.5">
+                <Check size={15} className="text-emerald-400" />
+                <span>Configuration active &amp; streaming to neural engine</span>
+              </span>
               <button
                 type="button"
                 className="btn-primary"

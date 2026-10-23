@@ -456,7 +456,7 @@ export default function CrowdDashboard() {
   return (
     <div className="telemetry-dashboard font-sans">
       {/* ── Top Bar: Control Room Telemetry Header ── */}
-      <header className="flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800 flex-shrink-0 shadow-md">
+      <header className="flex items-center justify-between px-4 py-3 bg-zinc-950/70 backdrop-blur-md border-b border-zinc-800/60 flex-shrink-0 shadow-md">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse" />
@@ -486,17 +486,8 @@ export default function CrowdDashboard() {
           </div>
         </div>
 
-        {/* Global Telemetry Vitals & PII Toggle */}
+        {/* Master PII Masking Toggle */}
         <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-3 text-[11px] font-mono bg-zinc-900/90 border border-zinc-800 px-3 py-1 rounded">
-            <span className="text-zinc-400">LATENCY: <strong className="text-white tabular-nums">14ms</strong></span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-400">FPS: <strong className="text-white tabular-nums">25.0</strong></span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-400">GEOFENCE: <strong className="text-amber-400">1 CAUTION</strong></span>
-          </div>
-
-          {/* Master PII Masking Toggle */}
           <button
             type="button"
             className={`flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1 rounded border transition-all duration-150 ${

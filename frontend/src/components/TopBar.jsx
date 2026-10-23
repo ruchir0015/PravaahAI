@@ -49,11 +49,10 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
                 creaseShading={0.45}
                 fontSize="2.05rem"
                 fontWeight={800}
-                color="#ffffff"
+                color="#0d082b"
                 className="topbar-foldtext"
               />
             </div>
-            <span className="topbar-brand-sub">प्रवाह · Real-Time Crowd &amp; Fleet Command</span>
           </div>
         </button>
       </div>

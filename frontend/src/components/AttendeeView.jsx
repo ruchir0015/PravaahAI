@@ -102,10 +102,6 @@ export default function AttendeeView({ venueData }) {
       {/* ── Top Header ── */}
       <header className="fair-header">
         <div className="fair-header-left">
-          <div className="fair-badge">
-            <span className="fair-badge-dot" />
-            <span>FESTIVAL VISITOR COMPANION · मेला साथी</span>
-          </div>
           <h1 className="fair-title">{venueTitle}</h1>
           <p className="fair-subtitle">
             Live queue tracker, digital entry pass, and smooth pedestrian route recommendations
@@ -133,10 +129,6 @@ export default function AttendeeView({ venueData }) {
               <h2 className="section-title">Fairground Navigation &amp; Walking Vector</h2>
               <span className="hint-text">Green routes bypass turnstile bottlenecks automatically</span>
             </div>
-            <span className="live-flow-chip">
-              <ShieldCheck size={14} color="#10b981" />
-              <span>LIVE SENSING</span>
-            </span>
           </div>
 
           <div className="fair-map-viewport">
