@@ -19,8 +19,8 @@
 
 .app-shell {
   display: flex;
-  margin-top: 68px;
-  height: calc(100svh - 68px);
+  margin-top: 70px;
+  height: calc(100svh - 70px);
   overflow: hidden;
   position: relative;
   z-index: 1;

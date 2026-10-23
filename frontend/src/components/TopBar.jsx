@@ -8,9 +8,9 @@ import PillNav from './PillNav';
 import './TopBar.css';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Command Center', href: '#dashboard', icon: <Compass size={15} strokeWidth={2.2} /> },
-  { id: 'setup',     label: 'Fairgrounds & Cameras', href: '#setup', icon: <MapPin size={15} strokeWidth={2.2} /> },
-  { id: 'attendee',  label: 'Visitor Pass & Guide', href: '#attendee', icon: <Sparkles size={15} strokeWidth={2.2} /> },
+  { id: 'dashboard', label: 'Command Center', href: '#dashboard' },
+  { id: 'setup',     label: 'Fairgrounds & Cameras', href: '#setup' },
+  { id: 'attendee',  label: 'Visitor Pass & Guide', href: '#attendee' },
 ];
 
 export default function TopBar({ activeView = 'dashboard', setActiveView }) {
@@ -26,16 +26,9 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
     }
   };
 
-  const handleLogoClick = (event) => {
-    event?.preventDefault();
-    if (setActiveView) {
-      setActiveView('dashboard');
-    }
-  };
-
   return (
     <header className="fixed-topbar" id="main-topbar">
-      {/* Left: Pravaah Brand Mark */}
+      {/* Left: Brand with Pravaah Logo and FoldText */}
       <div className="topbar-left">
         <button
           type="button"
@@ -43,6 +36,10 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
           onClick={() => setActiveView && setActiveView('dashboard')}
           title="Pravaah · Unified Event Crowd Command"
         >
+          <div className="topbar-logo-wrap">
+            <img src="/logoo.png" alt="Pravaah Logo" className="topbar-logo" />
+            <div className="topbar-logo-glow" />
+          </div>
           <div className="topbar-brand-info">
             <div className="topbar-brand-title-wrap">
               <FoldText
@@ -61,7 +58,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
                 refoldAngle={45}
                 perspective={800}
                 creaseShading={0.45}
-                fontSize="1.95rem"
+                fontSize="2.05rem"
                 fontWeight={800}
                 color="#0d082b"
                 className="topbar-foldtext"
@@ -71,13 +68,9 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
         </button>
       </div>
 
-      {/* Center: React Bits PillNav with Logo first and 3 Navigation Items */}
+      {/* Center: React Bits PillNav stretched across center with larger text and no icons */}
       <nav className="topbar-center-nav">
         <PillNav
-          logo="/logoo.png"
-          logoAlt="Pravaah Logo"
-          logoHref="#dashboard"
-          onLogoClick={handleLogoClick}
           items={NAV_ITEMS}
           activeHref={currentHref}
           onItemClick={handleItemClick}
@@ -86,7 +79,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
           itemStyle="pill"
           hoverEffect="fill"
           indicator="dot"
-          size="md"
+          size="xl"
           surface="glass"
           highlightColor="#4329d6"
           highlightTextColor="#ffffff"

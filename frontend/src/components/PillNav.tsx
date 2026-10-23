@@ -34,7 +34,7 @@ export interface PillNavProps {
   linkComponent?: ElementType;
   theme?: 'dark' | 'light';
   layout?: 'split' | 'joined';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   surface?: 'glass' | 'solid' | 'none';
   itemStyle?: 'pill' | 'plain';
   hoverEffect?: 'fill' | 'glide' | 'none';
@@ -112,20 +112,20 @@ const THEMES: Record<string, Record<string, string>> = {
 
 const SIZES: Record<string, Record<string, string>> = {
   sm: {
-    '--pn-h': '36px',
+    '--pn-h': '38px',
     '--pn-pad': '3px',
-    '--pn-inner': '30px',
-    '--pn-x': '12px',
-    '--pn-font': '13px',
+    '--pn-inner': '32px',
+    '--pn-x': '16px',
+    '--pn-font': '13.5px',
     '--pn-gap': '6px',
     '--pn-mark': '18px'
   },
   md: {
-    '--pn-h': '44px',
+    '--pn-h': '46px',
     '--pn-pad': '4px',
-    '--pn-inner': '36px',
-    '--pn-x': '16px',
-    '--pn-font': '14px',
+    '--pn-inner': '38px',
+    '--pn-x': '22px',
+    '--pn-font': '15px',
     '--pn-gap': '8px',
     '--pn-mark': '22px'
   },
@@ -133,15 +133,24 @@ const SIZES: Record<string, Record<string, string>> = {
     '--pn-h': '52px',
     '--pn-pad': '5px',
     '--pn-inner': '42px',
-    '--pn-x': '20px',
-    '--pn-font': '15px',
-    '--pn-gap': '10px',
+    '--pn-x': '28px',
+    '--pn-font': '16px',
+    '--pn-gap': '8px',
     '--pn-mark': '26px'
+  },
+  xl: {
+    '--pn-h': '56px',
+    '--pn-pad': '6px',
+    '--pn-inner': '44px',
+    '--pn-x': '34px',
+    '--pn-font': '17px',
+    '--pn-gap': '10px',
+    '--pn-mark': '28px'
   }
 };
 
 const ROOT =
-  'group/nav relative inline-flex max-w-full items-center gap-[var(--pn-gap)] text-[length:var(--pn-font)] leading-none [-webkit-tap-highlight-color:transparent] [--pn-roll:calc(var(--pn-inner)/2_+_0.7em)] data-[collapsed]:flex data-[collapsed]:w-full data-[collapsed]:justify-between data-[layout=joined]:gap-[2px] data-[layout=joined]:rounded-full data-[layout=joined]:p-[var(--pn-pad)] data-[items=pill]:[--pn-item-gap:3px] data-[panel]:[background:transparent] data-[panel]:[box-shadow:none] data-[panel]:[-webkit-backdrop-filter:none] data-[panel]:[backdrop-filter:none]';
+  'group/nav relative inline-flex max-w-full items-center gap-[var(--pn-gap)] text-[length:var(--pn-font)] leading-none [-webkit-tap-highlight-color:transparent] [--pn-roll:calc(var(--pn-inner)/2_+_1.1em)] data-[collapsed]:flex data-[collapsed]:w-full data-[collapsed]:justify-between data-[layout=joined]:gap-[4px] data-[layout=joined]:rounded-full data-[layout=joined]:p-[var(--pn-pad)] data-[items=pill]:[--pn-item-gap:4px] data-[panel]:[background:transparent] data-[panel]:[box-shadow:none] data-[panel]:[-webkit-backdrop-filter:none] data-[panel]:[backdrop-filter:none]';
 const SURFACE =
   '[background:var(--pn-surface)] [box-shadow:var(--pn-shadow)] [-webkit-backdrop-filter:var(--pn-blur)] [backdrop-filter:var(--pn-blur)]';
 const RIM =
@@ -157,10 +166,10 @@ const MARK =
 const BAR =
   'relative z-[1] box-border flex h-[var(--pn-h)] min-w-0 items-center rounded-full p-[var(--pn-pad)] group-data-[layout=joined]/nav:h-[var(--pn-inner)] group-data-[layout=joined]/nav:p-0';
 const TRACK = 'relative h-full';
-const LIST = 'm-0 flex h-full list-none items-stretch gap-[var(--pn-item-gap,2px)] p-0';
+const LIST = 'm-0 flex h-full list-none items-stretch gap-[var(--pn-item-gap,4px)] p-0';
 const SLOT = 'group/slot flex';
 const ITEM =
-  'relative isolate inline-flex h-full cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border-0 px-[var(--pn-x)] [background:none] [font-family:inherit] [font-size:inherit] [line-height:inherit] font-medium tracking-[-0.005em] text-[var(--pn-text)] no-underline outline-none transition-[color] duration-[250ms] ease-[ease] group-data-[lit]/slot:text-[var(--pn-strong)] aria-[current=page]:text-[var(--pn-strong)] group-data-[items=pill]/nav:[background:var(--pn-tile)] group-data-[items=pill]/nav:[box-shadow:var(--pn-tile-rim)] group-data-[items=pill]/nav:text-[var(--pn-strong)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] motion-reduce:transition-none';
+  'relative isolate inline-flex h-full cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap rounded-full border-0 px-[var(--pn-x)] [background:none] [font-family:inherit] [font-size:inherit] [line-height:inherit] font-semibold tracking-[-0.01em] text-[var(--pn-text)] no-underline outline-none transition-[color] duration-[250ms] ease-[ease] group-data-[lit]/slot:text-[var(--pn-strong)] aria-[current=page]:text-[var(--pn-strong)] group-data-[items=pill]/nav:[background:var(--pn-tile)] group-data-[items=pill]/nav:[box-shadow:var(--pn-tile-rim)] group-data-[items=pill]/nav:text-[var(--pn-strong)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] motion-reduce:transition-none';
 const FACE =
   'inline-flex items-center gap-[0.45em] transition-transform duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)] [&_svg]:h-[1.15em] [&_svg]:w-[1.15em] [&_svg]:flex-none group-data-[on]/slot:-translate-y-[var(--pn-roll)] group-data-[on]/slot:duration-500 group-data-[hover]/slot:-translate-y-[var(--pn-roll)] group-data-[hover]/slot:duration-500 motion-reduce:transition-none';
 const FACE_ALT =
@@ -170,11 +179,11 @@ const FILL =
 const GLIDE =
   'pointer-events-none absolute inset-y-0 left-0 w-0 origin-center rounded-full opacity-0 [background:var(--pn-pill)] [box-shadow:var(--pn-pill-shadow)] will-change-[transform,width,opacity] group-data-[focus]/nav:[box-shadow:var(--pn-pill-shadow),0_0_0_2px_var(--pn-ring)]';
 const INK =
-  'pointer-events-none absolute inset-0 flex items-stretch gap-[var(--pn-item-gap,2px)] text-[var(--pn-pill-ink)] [clip-path:inset(0_100%_0_0)]';
+  'pointer-events-none absolute inset-0 flex items-stretch gap-[var(--pn-item-gap,4px)] text-[var(--pn-pill-ink)] [clip-path:inset(0_100%_0_0)]';
 const INK_ITEM =
-  'inline-flex h-full items-center justify-center gap-[0.45em] whitespace-nowrap px-[var(--pn-x)] font-medium tracking-[-0.005em] [&_svg]:h-[1.15em] [&_svg]:w-[1.15em] [&_svg]:flex-none';
+  'inline-flex h-full items-center justify-center gap-[0.45em] whitespace-nowrap px-[var(--pn-x)] font-semibold tracking-[-0.01em] [&_svg]:h-[1.15em] [&_svg]:w-[1.15em] [&_svg]:flex-none';
 const DOT =
-  'pointer-events-none absolute bottom-[calc((var(--pn-inner)_-_var(--pn-font))/4_-_2px)] left-0 -ml-[2px] h-[4px] w-[4px] rounded-full opacity-0 [background:var(--pn-dot)] transition-[background-color] duration-300 ease-[ease] will-change-[transform,opacity] group-data-[dot-lit]/nav:[background:var(--pn-pill-ink)]';
+  'pointer-events-none absolute bottom-[5px] left-0 -ml-[2.5px] h-[5px] w-[5px] rounded-full opacity-0 [background:var(--pn-dot)] transition-[background-color] duration-300 ease-[ease] will-change-[transform,opacity] group-data-[dot-lit]/nav:[background:var(--pn-pill-ink)]';
 const TOGGLE =
   'relative z-[3] inline-grid h-[var(--pn-h)] w-[var(--pn-h)] flex-none cursor-pointer place-items-center rounded-full border-0 p-0 text-[var(--pn-strong)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--pn-ring)] group-data-[layout=joined]/nav:h-[var(--pn-inner)] group-data-[layout=joined]/nav:w-[var(--pn-inner)]';
 const TOGGLE_BARE = 'bg-transparent';
