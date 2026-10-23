@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, type CSSProperties, type HTMLAttributes } from 'react';
-import './Grainient.css';
 
 export type GrainientType = 'linear' | 'radial';
 
@@ -666,6 +665,7 @@ const Grainient = ({
       gl.deleteVertexArray(vao);
       gl.deleteProgram(field.program);
       gl.deleteProgram(composite.program);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, []);
 
@@ -676,11 +676,11 @@ const Grainient = ({
   return (
     <div
       ref={containerRef}
-      className={['grainient-container relative h-full w-full overflow-hidden', className].filter(Boolean).join(' ')}
+      className={['relative h-full w-full overflow-hidden', className].filter(Boolean).join(' ')}
       style={style}
       {...rest}
     >
-      <canvas ref={canvasRef} className="grainient-canvas absolute inset-0 block h-full w-full" aria-hidden="true" />
+      <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" aria-hidden="true" />
     </div>
   );
 };

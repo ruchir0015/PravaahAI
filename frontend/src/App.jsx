@@ -5,6 +5,8 @@ import CrowdDashboard from './components/CrowdDashboard.jsx';
 import VenueSetup from './components/VenueSetup.jsx';
 import AttendeeView from './components/AttendeeView.jsx';
 
+import Grainient from './components/Grainient';
+
 // Authority views (shown with authority topbar)
 const VIEWS = {
   dashboard: CrowdDashboard,
@@ -61,6 +63,17 @@ function App() {
 
   return (
     <div className="app-root">
+      {/* Universal Grainient WebGL Animated Background */}
+      <div className="app-grainient-bg" aria-hidden="true">
+        <Grainient
+          colors={["#000000", "#101317", "#0f1212", "#94a3b8", "#000000"]}
+          angle={55}
+          flow={0.8}
+          silk={0.35}
+          grainAmount={0.08}
+        />
+      </div>
+
       {/* Hide navbar on visitor view — it is a separate thing opened by QR */}
       {!isVisitorView && (
         <TopBar activeView={activeView} setActiveView={setActiveView} />
