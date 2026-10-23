@@ -1,10 +1,5 @@
-import {
-  Compass,
-  MapPin,
-  Sparkles,
-} from 'lucide-react';
 import FoldText from './FoldText';
-import PillNav from './PillNav';
+import GooeyNav from './GooeyNav';
 import './TopBar.css';
 
 const NAV_ITEMS = [
@@ -14,13 +9,10 @@ const NAV_ITEMS = [
 ];
 
 export default function TopBar({ activeView = 'dashboard', setActiveView }) {
-  const currentHref =
-    activeView === 'live' || activeView === 'zones'
-      ? '#dashboard'
-      : `#${activeView}`;
+  const currentKey = activeView === 'live' || activeView === 'zones' ? 'dashboard' : activeView;
+  const activeIndex = Math.max(0, NAV_ITEMS.findIndex(item => item.id === currentKey));
 
-  const handleItemClick = (item, index, event) => {
-    event?.preventDefault();
+  const handleNavChange = (index, item) => {
     if (item?.id && setActiveView) {
       setActiveView(item.id);
     }
@@ -68,21 +60,25 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
         </button>
       </div>
 
-      {/* Center: React Bits PillNav stretched across center with larger text and no icons */}
+      {/* Center: React Bits GooeyNav with WebGL droplet physics */}
       <nav className="topbar-center-nav">
-        <PillNav
+        <GooeyNav
           items={NAV_ITEMS}
-          activeHref={currentHref}
-          onItemClick={handleItemClick}
+          activeIndex={activeIndex}
+          onChange={handleNavChange}
           theme="light"
-          layout="joined"
-          itemStyle="pill"
-          hoverEffect="fill"
-          indicator="dot"
-          size="xl"
-          surface="glass"
-          highlightColor="#4329d6"
-          highlightTextColor="#ffffff"
+          size="lg"
+          frame={true}
+          color="#4329d6"
+          activeTextColor="#ffffff"
+          colors={['#4329d6', '#6854de', '#8e7ee7']}
+          particleCount={16}
+          spread={62}
+          animationTime={600}
+          timeVariance={250}
+          gooeyness={0.55}
+          wobble={0.5}
+          hoverEffect={true}
         />
       </nav>
 
@@ -91,4 +87,5 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
     </header>
   );
 }
+
 
