@@ -14,7 +14,7 @@ import './GooeyNav.css';
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 type Palette = 'dark' | 'light';
-type Size = 'sm' | 'md' | 'lg';
+type Size = 'sm' | 'md' | 'lg' | 'xl';
 type Rgba = number[];
 
 export interface GooeyNavItem {
@@ -113,24 +113,25 @@ const THEMES: Record<Palette, Record<string, string>> = {
     '--gn-muted': 'rgba(180, 169, 239, 0.72)'
   },
   light: {
-    '--gn-frame': 'rgba(240, 240, 243, 0.8)',
-    '--gn-frame-edge': 'rgba(24, 24, 27, 0.07)',
+    '--gn-frame': 'rgba(240, 240, 243, 0.85)',
+    '--gn-frame-edge': 'rgba(24, 24, 27, 0.08)',
     '--gn-frame-highlight': 'rgba(255, 255, 255, 0.95)',
-    '--gn-frame-shadow': '0 22px 44px -22px rgba(24, 24, 27, 0.3), 0 6px 16px -10px rgba(24, 24, 27, 0.16)',
+    '--gn-frame-shadow': '0 18px 36px -18px rgba(67, 41, 214, 0.18), 0 4px 12px -6px rgba(24, 24, 27, 0.08)',
     '--gn-ink': '#0d082b',
-    '--gn-muted': 'rgba(39, 39, 42, 0.62)'
+    '--gn-muted': 'rgba(75, 72, 105, 0.75)'
   }
 };
 
 const PILLS: Record<Palette, { color: string; hover: string; shadow: number }> = {
   dark: { color: '#4329d6', hover: 'rgba(180, 169, 239, 0.12)', shadow: 0.4 },
-  light: { color: '#27272a', hover: 'rgba(24, 24, 27, 0.06)', shadow: 0.2 }
+  light: { color: '#4329d6', hover: 'rgba(67, 41, 214, 0.08)', shadow: 0.25 }
 };
 
 const SIZES: Record<Size, Record<string, string>> = {
-  sm: { '--gn-pad': '4px', '--gn-gap': '2px', '--gn-font': '12.5px', '--gn-x': '12px', '--gn-y': '6px' },
-  md: { '--gn-pad': '5px', '--gn-gap': '4px', '--gn-font': '13.5px', '--gn-x': '15px', '--gn-y': '7.5px' },
-  lg: { '--gn-pad': '7px', '--gn-gap': '6px', '--gn-font': '15px', '--gn-x': '18px', '--gn-y': '9px' }
+  sm: { '--gn-pad': '4px', '--gn-gap': '3px', '--gn-font': '13px', '--gn-x': '14px', '--gn-y': '7px' },
+  md: { '--gn-pad': '5px', '--gn-gap': '4px', '--gn-font': '14px', '--gn-x': '18px', '--gn-y': '8px' },
+  lg: { '--gn-pad': '6px', '--gn-gap': '6px', '--gn-font': '15.5px', '--gn-x': '24px', '--gn-y': '10px' },
+  xl: { '--gn-pad': '7px', '--gn-gap': '8px', '--gn-font': '16.5px', '--gn-x': '30px', '--gn-y': '11px' }
 };
 
 const ROOT = 'relative inline-flex max-w-full text-[length:var(--gn-font)] leading-[1.2]';
@@ -140,7 +141,7 @@ const LIST_BASE = 'm-0 flex list-none flex-wrap gap-[var(--gn-gap)] p-0';
 const LIST = `relative ${LIST_BASE}`;
 const OVERLAY = `${LIST_BASE} pointer-events-none invisible absolute inset-0 text-[var(--gn-active-ink)] [clip-path:inset(100%)]`;
 const LINK_BASE =
-  'inline-flex items-center gap-2 whitespace-nowrap rounded-full border-none bg-transparent px-[var(--gn-x)] py-[var(--gn-y)] [font-family:inherit] [font-size:inherit] [line-height:inherit] font-medium no-underline';
+  'inline-flex items-center gap-2 whitespace-nowrap rounded-full border-none bg-transparent px-[var(--gn-x)] py-[var(--gn-y)] [font-family:inherit] [font-size:inherit] [line-height:inherit] font-semibold no-underline';
 const LINK = `${LINK_BASE} cursor-pointer text-[var(--gn-muted)] transition-colors duration-200 [-webkit-tap-highlight-color:transparent] group-data-[active]:text-[var(--gn-ink)] hover:text-[var(--gn-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--gn-ink)]`;
 const GHOST = `${LINK_BASE} text-inherit`;
 const ICON = 'inline-flex flex-none [&_svg]:h-[1.15em] [&_svg]:w-[1.15em]';
@@ -883,7 +884,7 @@ const GooeyNav = ({
         className: LINK,
         'aria-current': index === current ? ('page' as const) : undefined,
         onClick: (event: MouseEvent) => {
-          if (!item.href || item.href === '#') event.preventDefault();
+          event.preventDefault();
           select(index);
         }
       };

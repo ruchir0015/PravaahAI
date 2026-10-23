@@ -1,0 +1,22 @@
+/* ─────────────────────────────────────────────────────────────
+   Grainient WebGL2 Component Styles
+   Supports both Tailwind utility classes and fallback classes
+   ───────────────────────────────────────────────────────────── */
+
+.grainient-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.grainient-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}

@@ -77,8 +77,8 @@ export default function ZoneMap({ venueData, setActiveView }) {
               fontWeight={600}
               fontSize={14}
               align="left"
-              color="#1b1056"
-              accentColor="#4329d6"
+              color="#e5e7eb"
+              accentColor="#6854de"
               reveal="off"
               selection={false}
               labels={false}

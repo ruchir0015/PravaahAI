@@ -4,16 +4,27 @@
   height: 100svh;
   overflow: hidden;
   position: relative;
-  background-color: var(--surface-page);
+  background-color: transparent;
+}
+
+.app-grainient-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .app-shell {
   display: flex;
-  margin-top: 68px;
-  height: calc(100svh - 68px);
+  margin-top: 70px;
+  height: calc(100svh - 70px);
   overflow: hidden;
   position: relative;
-  background-color: var(--surface-page);
+  z-index: 1;
+  background-color: transparent;
 }
 
 /* Visitor-facing view (no navbar, full screen) */
@@ -30,7 +41,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  background-color: var(--surface-page);
+  z-index: 1;
+  background-color: transparent;
 }
 
 @media (max-width: 1024px) {

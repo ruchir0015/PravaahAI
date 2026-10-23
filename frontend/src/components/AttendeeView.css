@@ -9,7 +9,7 @@
   flex-direction: column;
   gap: 20px;
   box-sizing: border-box;
-  background: var(--bg-primary, #0a081a);
+  background: transparent;
   min-height: 100%;
   font-family: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -28,6 +28,33 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.att-brand-logo-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  border: 1px solid var(--border-default);
+}
+
+.att-brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.att-brand-name {
+  font-family: var(--heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.att-venue {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .fair-badge {
