@@ -170,20 +170,18 @@ export default function AttendeeView({ venueData, setActiveView }) {
       {/* ── Top Header ── */}
       <header className="fair-header">
         <div className="fair-header-left">
-          <div className="fair-badge">
-            <span className="fair-badge-dot" />
-            <span>VISITOR GUIDE</span>
-          </div>
           <h1 className="fair-title">{venueTitle}</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="fair-header-right">
           <button
             type="button"
-            className="px-3 py-1.5 rounded-lg bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold border border-zinc-700 transition flex items-center gap-1.5"
+            id="attendee-qr-btn"
+            className="att-visitor-qr-btn"
             onClick={() => setShowQRModal(true)}
+            title="Scan or share Universal Visitor QR Pass"
           >
-            <QrCode size={13} />
-            <span>Pass QR</span>
+            <QrCode size={15} />
+            <span>Visitor QR</span>
           </button>
         </div>
       </header>

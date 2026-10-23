@@ -58,34 +58,20 @@
 }
 
 .fair-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #f59e0b;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  width: fit-content;
+  display: none !important;
 }
 
 .fair-badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 8px #f59e0b;
+  display: none !important;
 }
 
 .fair-title {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
-  color: #f8fafc;
+  color: #000000 !important;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  text-shadow: none !important;
 }
 
 .fair-subtitle {
@@ -94,7 +80,30 @@
   margin: 0;
 }
 
-/* ── Digital Pass Chip ── */
+/* ── Prominent Visitor QR Button ── */
+.att-visitor-qr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: #000000 !important;
+  border: 1px solid #27272a !important;
+  color: #ffffff !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.att-visitor-qr-btn:hover {
+  background: #181920 !important;
+  border-color: #3f3f46 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
 .fair-pass-chip {
   display: flex;
   align-items: center;
@@ -154,8 +163,9 @@
 .fair-map-card {
   padding: 18px 20px;
   border-radius: 14px;
-  background: rgba(15, 12, 35, 0.85);
-  border: 1px solid rgba(104, 84, 222, 0.2);
+  background: #000000 !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -192,8 +202,8 @@
   height: 480px;
   border-radius: 12px;
   overflow: hidden;
-  background: #070514;
-  border: 1.5px solid rgba(104, 84, 222, 0.25);
+  background: #000000 !important;
+  border: 1px solid #27272a !important;
   box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.8);
 }
 
@@ -207,8 +217,9 @@
 .fair-destinations-card {
   padding: 18px 20px;
   border-radius: 14px;
-  background: rgba(15, 12, 35, 0.85);
-  border: 1px solid rgba(104, 84, 222, 0.2);
+  background: #000000 !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -228,8 +239,8 @@
   align-items: center;
   padding: 10px 14px;
   border-radius: 10px;
-  background: rgba(10, 8, 24, 0.75);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: #0d0e12 !important;
+  border: 1.5px solid #27272a !important;
   cursor: pointer;
   transition: all 140ms ease;
   text-align: left;
@@ -237,8 +248,8 @@
 
 .dest-row-btn:hover,
 .dest-row-btn.is-selected {
-  background: rgba(79, 70, 229, 0.15);
-  border-color: #f59e0b;
+  background: #141626 !important;
+  border-color: #6366f1 !important;
   transform: translateX(2px);
 }
 
