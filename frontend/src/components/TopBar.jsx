@@ -53,7 +53,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
                 className="topbar-foldtext"
               />
             </div>
-            <span className="topbar-brand-sub">प्रवाह · Event &amp; Fair Flow Command</span>
+            <span className="topbar-brand-sub">प्रवाह · Real-Time Crowd &amp; Fleet Command</span>
           </div>
         </button>
       </div>
