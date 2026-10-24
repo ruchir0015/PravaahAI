@@ -17,7 +17,9 @@ import {
   CheckCircle2,
   ChevronRight,
   CornerUpRight,
-  ShieldAlert
+  ShieldAlert,
+  Move,
+  FastForward
 } from 'lucide-react';
 import './AttendeeView.css';
 
@@ -60,6 +62,7 @@ export default function AttendeeView() {
 
   // Selected destination sector
   const [selectedSectorId, setSelectedSectorId] = useState('P2');
+  const [customDestPos, setCustomDestPos] = useState(null); // { x, y, label }
   const [searchFilter, setSearchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL'); // 'ALL' | 'FAST' | 'GATES'
 
@@ -67,13 +70,16 @@ export default function AttendeeView() {
   const [userPos, setUserPos] = useState({ x: 16, y: 86, label: 'Gate A – North Entrance', isGPS: false });
   const [liveGPSActive, setLiveGPSActive] = useState(false);
   const [gpsData, setGpsData] = useState(null);
+  const gpsBaselineRef = useRef(null);
+
+  // Interactive Drag & Drop State for pins ('DEST' | 'USER' | null)
+  const [dragMode, setDragMode] = useState(null);
+  const svgRef = useRef(null);
 
   // Navigation State
   const [isNavigating, setIsNavigating] = useState(false);
-  const [navProgress, setNavProgress] = useState(0); // 0 to 100%
-  const [navStepIndex, setNavStepIndex] = useState(0);
   const [evacuationMode, setEvacuationMode] = useState(false);
-  const navTimerRef = useRef(null);
+  const [initialNavDistance, setInitialNavDistance] = useState(null);
   const gpsWatchIdRef = useRef(null);
 
   // UI Feedback
@@ -152,6 +158,7 @@ export default function AttendeeView() {
         h,
         cx,
         cy,
+        bbox,
         camera_id: z.camera_id || 'CAM-01'
       };
     });
@@ -178,13 +185,23 @@ export default function AttendeeView() {
   const greenAlternatives = sectors.filter(s => s.color === 'GREEN');
   const recommendedSector = greenAlternatives.length > 0 ? greenAlternatives[0] : sectors[0];
 
-  // ── 3. Live Geolocation Sensor Tracker ─────────────────────────────────────
+  // Effective Destination Position (Supports Dragging Anywhere!)
+  const destinationPos = useMemo(() => {
+    if (customDestPos) return customDestPos;
+    if (activeSector) {
+      return { x: activeSector.cx, y: activeSector.cy, label: activeSector.label };
+    }
+    return { x: 75, y: 25, label: 'Sector P2 – Central Promenade' };
+  }, [customDestPos, activeSector]);
+
+  // ── 3. Real-Time Geolocation Tracking (Dynamic GPS) ─────────────────────────
   const toggleLiveGPS = () => {
     if (liveGPSActive) {
       if (gpsWatchIdRef.current) {
         navigator.geolocation?.clearWatch(gpsWatchIdRef.current);
       }
       setLiveGPSActive(false);
+      gpsBaselineRef.current = null;
       showToast("Live GPS tracking paused");
       return;
     }
@@ -194,25 +211,41 @@ export default function AttendeeView() {
       return;
     }
 
-    showToast("Connecting to device GPS...");
+    showToast("Connecting to live device GPS...");
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude, accuracy, heading } = position.coords;
         setGpsData({ lat: latitude, lng: longitude, accuracy, heading });
         setLiveGPSActive(true);
 
-        setUserPos(prev => ({
-          ...prev,
-          label: `GPS Location (±${Math.round(accuracy)}m)`,
-          isGPS: true
-        }));
+        // Dynamic GPS baseline calibration
+        if (!gpsBaselineRef.current) {
+          gpsBaselineRef.current = { lat: latitude, lng: longitude, initialX: userPos.x, initialY: userPos.y };
+        } else {
+          const dLat = latitude - gpsBaselineRef.current.lat;
+          const dLng = longitude - gpsBaselineRef.current.lng;
+          // 1 deg lat ~= 111,320m; 1 deg lng ~= 111,320m * cos(lat)
+          const metersNorth = dLat * 111320;
+          const metersEast = dLng * 111320 * Math.cos(gpsBaselineRef.current.lat * Math.PI / 180);
+
+          // Scaled to map percentage (assuming ~150m venue dimension)
+          const newX = Math.round(Math.max(4, Math.min(96, gpsBaselineRef.current.initialX + (metersEast / 1.5))));
+          const newY = Math.round(Math.max(4, Math.min(96, gpsBaselineRef.current.initialY - (metersNorth / 1.5))));
+
+          setUserPos({
+            x: newX,
+            y: newY,
+            label: `Live GPS (±${Math.round(accuracy)}m)`,
+            isGPS: true
+          });
+        }
       },
       (error) => {
         console.warn("GPS watch error:", error);
-        showToast("Location access unavailable. Tap map to place pin.");
+        showToast("Location access unavailable. You can drag your pin manually on the map.");
         setLiveGPSActive(false);
       },
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 12000 }
+      { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 }
     );
 
     gpsWatchIdRef.current = watchId;
@@ -226,29 +259,81 @@ export default function AttendeeView() {
     };
   }, []);
 
-  // ── 4. User Position Controls: Click to Place Pin or Select Gate ───────────
-  const handleMapCanvasClick = (e) => {
-    const svg = e.currentTarget;
+  // ── 4. Interactive Drag & Drop Engine (Destination & Current Location) ─────
+  const getCanvasCoords = (e) => {
+    if (!svgRef.current) return { x: 50, y: 50 };
+    const svg = svgRef.current;
     const rect = svg.getBoundingClientRect();
-    const clickX = ((e.clientX - rect.left) / rect.width) * 100;
-    const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-    const clampedX = Math.round(Math.max(4, Math.min(96, clickX)));
-    const clampedY = Math.round(Math.max(4, Math.min(96, clickY)));
+    const clickX = ((clientX - rect.left) / rect.width) * 100;
+    const clickY = ((clientY - rect.top) / rect.height) * 100;
 
+    return {
+      x: Math.round(Math.max(4, Math.min(96, clickX))),
+      y: Math.round(Math.max(4, Math.min(96, clickY)))
+    };
+  };
+
+  const handlePointerDown = (mode, e) => {
+    e.stopPropagation();
+    setDragMode(mode);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragMode) return;
+    e.preventDefault();
+    const { x, y } = getCanvasCoords(e);
+
+    if (dragMode === 'DEST') {
+      // Check if dropped inside any existing sector
+      const matchedSector = sectors.find(s => {
+        const bbox = s.bbox || [0, 0, 1, 1];
+        return x >= bbox[0] * 100 && x <= bbox[2] * 100 &&
+               y >= bbox[1] * 100 && y <= bbox[3] * 100;
+      });
+
+      if (matchedSector) {
+        setSelectedSectorId(matchedSector.id);
+        setCustomDestPos({ x, y, label: matchedSector.label });
+      } else {
+        setCustomDestPos({ x, y, label: `Custom Point (${x}%, ${y}%)` });
+      }
+    } else if (dragMode === 'USER') {
+      setUserPos({
+        x,
+        y,
+        label: `Current Position (${x}%, ${y}%)`,
+        isGPS: false
+      });
+      // Reset GPS baseline if manually moved
+      gpsBaselineRef.current = null;
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (dragMode) {
+      if (dragMode === 'DEST') {
+        showToast(`Destination pin set to ${destinationPos.label}`);
+      } else if (dragMode === 'USER') {
+        showToast(`Current location pin moved`);
+      }
+      setDragMode(null);
+    }
+  };
+
+  const handleMapCanvasClick = (e) => {
+    if (dragMode) return;
+    const { x, y } = getCanvasCoords(e);
     setUserPos({
-      x: clampedX,
-      y: clampedY,
-      label: `Custom Pin (${clampedX}%, ${clampedY}%)`,
+      x,
+      y,
+      label: `Selected Location (${x}%, ${y}%)`,
       isGPS: false
     });
-
-    if (isNavigating) {
-      setNavProgress(0);
-      setNavStepIndex(0);
-    }
-
-    showToast(`Location set to (${clampedX}%, ${clampedY}%)`);
+    gpsBaselineRef.current = null;
+    showToast(`Location set to (${x}%, ${y}%)`);
   };
 
   const handleSelectStartingGate = (gate) => {
@@ -258,109 +343,86 @@ export default function AttendeeView() {
       label: gate.name,
       isGPS: false
     });
-    if (isNavigating) {
-      setNavProgress(0);
-      setNavStepIndex(0);
-    }
+    gpsBaselineRef.current = null;
     showToast(`Starting from ${gate.name}`);
   };
 
-  // ── 5. Intelligent Waypoint Pathfinding ────────────────────────────────────
+  // ── 5. Dynamic Waypoint Path & Real-Time Distance Engine ────────────────────
   const navigationRoute = useMemo(() => {
-    if (!activeSector) return [];
-
     const startX = userPos.x;
     const startY = userPos.y;
-    const endX = activeSector.cx;
-    const endY = activeSector.cy;
+    const endX = destinationPos.x;
+    const endY = destinationPos.y;
 
+    // Transit promenade hub point (creates a realistic 2-segment walkway corridor)
     const transitX = 50;
     const transitY = (startY + endY) / 2;
 
-    const waypoints = [
-      {
-        x: startX,
-        y: startY,
-        instruction: `Head out from ${userPos.label}`
-      },
-      {
-        x: transitX,
-        y: transitY,
-        instruction: `Continue straight along Main Promenade toward ${activeSector.label}`
-      },
-      {
-        x: endX,
-        y: endY,
-        instruction: `Arrive at ${activeSector.label} Entry Gate`
-      }
+    return [
+      { x: startX, y: startY, instruction: `Head out from ${userPos.label}` },
+      { x: transitX, y: transitY, instruction: `Continue along Main Promenade toward ${destinationPos.label}` },
+      { x: endX, y: endY, instruction: `Arrive at ${destinationPos.label}` }
     ];
+  }, [userPos, destinationPos]);
 
-    return waypoints;
-  }, [userPos, activeSector]);
-
-  // Interpolated walker coordinates based on navProgress
-  const walkerPos = useMemo(() => {
-    if (navigationRoute.length < 2) return { x: userPos.x, y: userPos.y };
-
-    if (navProgress <= 50) {
-      const ratio = navProgress / 50;
-      const p0 = navigationRoute[0];
-      const p1 = navigationRoute[1];
-      return {
-        x: p0.x + (p1.x - p0.x) * ratio,
-        y: p0.y + (p1.y - p0.y) * ratio
-      };
-    } else {
-      const ratio = (navProgress - 50) / 50;
-      const p1 = navigationRoute[1];
-      const p2 = navigationRoute[2];
-      return {
-        x: p1.x + (p2.x - p1.x) * ratio,
-        y: p1.y + (p2.y - p1.y) * ratio
-      };
-    }
-  }, [navigationRoute, navProgress, userPos]);
-
-  // Distance estimation in real meters
+  // Real-time actual physical distance in meters between user and destination
   const routeDistanceMeters = useMemo(() => {
-    if (!activeSector) return 80;
-    const dx = activeSector.cx - userPos.x;
-    const dy = activeSector.cy - userPos.y;
-    const mapDist = Math.sqrt(dx * dx + dy * dy);
-    return Math.round(mapDist * 3.2);
-  }, [activeSector, userPos]);
+    const dx = destinationPos.x - userPos.x;
+    const dy = destinationPos.y - userPos.y;
+    const mapDist = Math.hypot(dx, dy);
+    return Math.round(mapDist * 3.2); // ~3.2m per map percentage unit
+  }, [destinationPos, userPos]);
 
   const estimatedWalkMinutes = Math.max(1, Math.round(routeDistanceMeters / 75)); // ~75m per min walk
+
+  // Dynamic progress calculated from real distance relative to starting distance
+  const dynamicProgress = useMemo(() => {
+    if (!initialNavDistance || initialNavDistance <= 0) return 0;
+    if (routeDistanceMeters <= 8) return 100;
+    const completed = 1 - (routeDistanceMeters / initialNavDistance);
+    return Math.max(5, Math.min(95, Math.round(completed * 100)));
+  }, [routeDistanceMeters, initialNavDistance]);
+
+  // Current step instruction based on distance
+  const currentStep = useMemo(() => {
+    if (routeDistanceMeters <= 10) {
+      return { index: 3, text: `🎉 Arrived! You have reached ${destinationPos.label}.` };
+    }
+    if (routeDistanceMeters > (initialNavDistance ? initialNavDistance * 0.5 : 80)) {
+      return { index: 1, text: `Step 1 of 3: Head out from ${userPos.label} along pedestrian walkway` };
+    }
+    return { index: 2, text: `Step 2 of 3: Proceed along Main Promenade directly toward ${destinationPos.label}` };
+  }, [routeDistanceMeters, initialNavDistance, destinationPos, userPos]);
 
   // ── 6. Navigation Controls ────────────────────────────────────────────────
   const startNavigation = () => {
     setIsNavigating(true);
-    setNavProgress(0);
-    setNavStepIndex(0);
-
-    if (navTimerRef.current) clearInterval(navTimerRef.current);
-
-    navTimerRef.current = setInterval(() => {
-      setNavProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(navTimerRef.current);
-          showToast(`Arrived at ${activeSector?.label || 'destination'}!`);
-          return 100;
-        }
-        const next = prev + 5;
-        if (next > 50 && prev <= 50) setNavStepIndex(1);
-        if (next >= 100) setNavStepIndex(2);
-        return next;
-      });
-    }, 450);
+    setInitialNavDistance(routeDistanceMeters);
+    showToast(`Navigation active: Move with your phone or drag your pin to navigate!`);
   };
 
   const stopNavigation = () => {
     setIsNavigating(false);
-    setNavProgress(0);
-    setNavStepIndex(0);
-    if (navTimerRef.current) clearInterval(navTimerRef.current);
+    setInitialNavDistance(null);
+    setEvacuationMode(false);
     showToast("Navigation stopped");
+  };
+
+  // Optional manual step simulator for desktop testing without phone GPS
+  const handleSimulateStepForward = () => {
+    const dx = destinationPos.x - userPos.x;
+    const dy = destinationPos.y - userPos.y;
+    const stepRatio = 0.25; // advance 25% closer
+
+    const newX = Math.round(userPos.x + dx * stepRatio);
+    const newY = Math.round(userPos.y + dy * stepRatio);
+
+    setUserPos({
+      x: newX,
+      y: newY,
+      label: `Walking Location (${newX}%, ${newY}%)`,
+      isGPS: false
+    });
   };
 
   const handleTriggerSafeExit = () => {
@@ -368,22 +430,18 @@ export default function AttendeeView() {
     const targetExit = exitGates.length > 0 ? exitGates[0] : gates[0];
 
     setEvacuationMode(true);
+    setCustomDestPos({ x: targetExit.x, y: targetExit.y, label: targetExit.name });
+    setIsNavigating(true);
+    setInitialNavDistance(Math.round(Math.hypot(targetExit.x - userPos.x, targetExit.y - userPos.y) * 3.2));
     showToast(`Emergency Route Engaged: Guiding to ${targetExit.name}`);
-    startNavigation();
   };
-
-  useEffect(() => {
-    return () => {
-      if (navTimerRef.current) clearInterval(navTimerRef.current);
-    };
-  }, []);
 
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  // Filtered sectors for destinations search and categories
+  // Filtered sectors for destinations search
   const filteredSectors = useMemo(() => {
     return sectors.filter(s => {
       const matchesSearch = s.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
@@ -396,11 +454,11 @@ export default function AttendeeView() {
 
   return (
     <div className="gmaps-attendee-page">
-      {/* ── Google Maps Style Clean Top Bar ── */}
+      {/* ── Top Bar ── */}
       <header className="gmaps-top-header">
         <div className="gmaps-header-brand">
           <div className="gmaps-pin-icon-wrap">
-            <MapPin size={20} className="text-blue-600" fill="#2563eb" />
+            <MapPin size={22} className="text-blue-600" fill="#2563eb" />
           </div>
           <div>
             <h1 className="gmaps-venue-title">{venueTitle}</h1>
@@ -414,7 +472,7 @@ export default function AttendeeView() {
             type="button"
             className={`gmaps-gps-btn ${liveGPSActive ? 'is-active' : ''}`}
             onClick={toggleLiveGPS}
-            title="Track my real-time GPS location"
+            title="Track my real-time GPS location via phone sensor"
           >
             <LocateFixed size={15} className={liveGPSActive ? 'animate-spin' : ''} />
             <span>{liveGPSActive ? 'Live GPS Active' : 'Share Location'}</span>
@@ -430,7 +488,7 @@ export default function AttendeeView() {
         </div>
       )}
 
-      {/* Safety Congestion Alert Banner */}
+      {/* Congestion Alert Banner */}
       {activeSector && activeSector.color === 'RED' && (
         <div className="gmaps-alert-banner">
           <div className="flex items-center gap-2.5">
@@ -449,7 +507,7 @@ export default function AttendeeView() {
             className="gmaps-btn-reroute"
             onClick={() => {
               setSelectedSectorId(recommendedSector.id);
-              if (isNavigating) setNavProgress(0);
+              setCustomDestPos(null);
               showToast(`Rerouted to ${recommendedSector.label}`);
             }}
           >
@@ -459,9 +517,9 @@ export default function AttendeeView() {
         </div>
       )}
 
-      {/* ── Main Structured Two-Column View ── */}
+      {/* ── Main Structured Grid ── */}
       <div className="gmaps-content-grid">
-        {/* Left Column: Interactive Map Card */}
+        {/* Left Column: Interactive Map Canvas */}
         <section className="gmaps-card gmaps-map-section">
           <div className="gmaps-card-header">
             <div className="flex items-center gap-2">
@@ -484,8 +542,16 @@ export default function AttendeeView() {
           </div>
 
           {/* Blueprint SVG Canvas */}
-          <div className="gmaps-canvas-wrapper">
+          <div
+            className={`gmaps-canvas-wrapper ${dragMode ? 'is-dragging' : ''}`}
+            onMouseMove={handlePointerMove}
+            onTouchMove={handlePointerMove}
+            onMouseUp={handlePointerUp}
+            onTouchEnd={handlePointerUp}
+            onMouseLeave={handlePointerUp}
+          >
             <svg
+              ref={svgRef}
               className="gmaps-blueprint-svg"
               viewBox="0 0 100 100"
               preserveAspectRatio="xMidYMid meet"
@@ -495,14 +561,17 @@ export default function AttendeeView() {
                 <pattern id="gmapsGrid" width="10" height="10" patternUnits="userSpaceOnUse">
                   <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#e2e8f0" strokeWidth="0.4" />
                 </pattern>
-                {/* Google Maps Blue GPS Pulse */}
                 <radialGradient id="gmapsGpsGlow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stopColor="#2563eb" stopOpacity="0.45" />
                   <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
                 </radialGradient>
+                <radialGradient id="gmapsDestGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                </radialGradient>
               </defs>
 
-              {/* Clean Blueprint Architectural Background */}
+              {/* Background Architectural Canvas */}
               <rect width="100" height="100" fill="#f8fafc" />
               {mapImage ? (
                 <image
@@ -532,7 +601,7 @@ export default function AttendeeView() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedSectorId(s.id);
-                      if (isNavigating) setNavProgress(0);
+                      setCustomDestPos(null);
                     }}
                     style={{ cursor: 'pointer' }}
                   >
@@ -602,75 +671,70 @@ export default function AttendeeView() {
                 );
               })}
 
-              {/* ── Google Maps Route Polyline ── */}
-              {isNavigating && navigationRoute.length >= 2 && (
-                <polyline
-                  points={navigationRoute.map(p => `${p.x},${p.y}`).join(' ')}
-                  fill="none"
-                  stroke={evacuationMode ? '#dc2626' : '#2563eb'}
-                  strokeWidth="2.2"
-                  strokeDasharray="3 2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              )}
+              {/* ── Dynamic Route Polyline ── */}
+              <polyline
+                points={navigationRoute.map(p => `${p.x},${p.y}`).join(' ')}
+                fill="none"
+                stroke={evacuationMode ? '#dc2626' : '#2563eb'}
+                strokeWidth={isNavigating ? '2.6' : '1.8'}
+                strokeDasharray={isNavigating ? 'none' : '3 2'}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
 
-              {/* Destination Pin */}
-              {activeSector && (
-                <g>
-                  <circle
-                    cx={activeSector.cx}
-                    cy={activeSector.cy}
-                    r="3.4"
-                    fill={STATUS_CONFIG[activeSector.color]?.mapStroke || '#2563eb'}
-                    stroke="#ffffff"
-                    strokeWidth="1.2"
-                  />
-                  <circle cx={activeSector.cx} cy={activeSector.cy} r="1.2" fill="#ffffff" />
-                  <text
-                    x={activeSector.cx}
-                    y={activeSector.cy - 5}
-                    textAnchor="middle"
-                    fill="#0f172a"
-                    fontSize="2.5"
-                    fontWeight="800"
-                  >
-                    Destination
-                  </text>
-                </g>
-              )}
-
-              {/* ── Google Maps Blue Location Pin ("YOU ARE HERE") ── */}
-              <g transform={`translate(${userPos.x}, ${userPos.y})`}>
-                <circle r="6" fill="url(#gmapsGpsGlow)" />
-                <circle r="3" fill="#2563eb" stroke="#ffffff" strokeWidth="1.4" />
-                <circle r="1.2" fill="#ffffff" />
+              {/* ── DRAGGABLE DESTINATION PIN ── */}
+              <g
+                transform={`translate(${destinationPos.x}, ${destinationPos.y})`}
+                onMouseDown={(e) => handlePointerDown('DEST', e)}
+                onTouchStart={(e) => handlePointerDown('DEST', e)}
+                style={{ cursor: 'grab' }}
+              >
+                <circle r="7" fill="url(#gmapsDestGlow)" />
+                <circle r="3.6" fill="#10b981" stroke="#ffffff" strokeWidth="1.4" />
+                <circle r="1.4" fill="#ffffff" />
+                <rect x="-14" y="-10.5" width="28" height="6" rx="2.5" fill="#0f172a" opacity="0.9" />
                 <text
                   x="0"
-                  y="-4.5"
+                  y="-6.5"
                   textAnchor="middle"
-                  fill="#1d4ed8"
+                  fill="#ffffff"
                   fontSize="2.3"
                   fontWeight="800"
+                  pointerEvents="none"
+                >
+                  DESTINATION
+                </text>
+              </g>
+
+              {/* ── DRAGGABLE 'YOU ARE HERE' USER PIN ── */}
+              <g
+                transform={`translate(${userPos.x}, ${userPos.y})`}
+                onMouseDown={(e) => handlePointerDown('USER', e)}
+                onTouchStart={(e) => handlePointerDown('USER', e)}
+                style={{ cursor: 'grab' }}
+              >
+                <circle r="7" fill="url(#gmapsGpsGlow)" />
+                <circle r="3.4" fill="#2563eb" stroke="#ffffff" strokeWidth="1.4" />
+                <circle r="1.3" fill="#ffffff" />
+                <rect x="-16" y="-10" width="32" height="6" rx="2.5" fill="#1d4ed8" opacity="0.9" />
+                <text
+                  x="0"
+                  y="-6"
+                  textAnchor="middle"
+                  fill="#ffffff"
+                  fontSize="2.3"
+                  fontWeight="800"
+                  pointerEvents="none"
                 >
                   YOU ARE HERE
                 </text>
               </g>
-
-              {/* ── Dynamic Animated Walker ── */}
-              {isNavigating && (
-                <g transform={`translate(${walkerPos.x}, ${walkerPos.y})`}>
-                  <circle r="6" fill="url(#gmapsGpsGlow)" />
-                  <circle r="3.2" fill="#2563eb" stroke="#ffffff" strokeWidth="1.4" />
-                  <circle r="1.2" fill="#ffffff" />
-                </g>
-              )}
             </svg>
 
-            {/* Tap instruction hint */}
+            {/* Tap & Drag hint badge */}
             <div className="gmaps-map-hint">
-              <MapPin size={12} className="text-blue-600" />
-              <span>Tap anywhere on the blueprint to set your location</span>
+              <Move size={12} className="text-blue-600" />
+              <span>Drag Destination or User pin anywhere · Tap map to reposition</span>
             </div>
           </div>
         </section>
@@ -682,85 +746,98 @@ export default function AttendeeView() {
             <div className="gmaps-nav-card">
               <div className="gmaps-nav-header">
                 <div className="flex items-center gap-2">
-                  <Footprints size={18} className="text-blue-600" />
+                  <Footprints size={20} className="text-blue-600" />
                   <div>
                     <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      {evacuationMode ? 'Emergency Egress Active' : 'Turn-by-Turn Walk Directions'}
+                      {evacuationMode ? 'Emergency Egress Active' : 'Live Walk Directions'}
                     </div>
-                    <div className="text-xs text-slate-500 font-medium">
-                      {routeDistanceMeters}m · ~{estimatedWalkMinutes} min walk
+                    <div className="text-xs text-slate-500 font-semibold mt-0.5">
+                      {routeDistanceMeters}m remaining · ~{estimatedWalkMinutes} min walk
                     </div>
                   </div>
                 </div>
                 <span className="text-sm font-bold text-blue-600 font-mono">
-                  {navProgress}%
+                  {routeDistanceMeters <= 8 ? 'ARRIVED' : `${dynamicProgress}%`}
                 </span>
               </div>
 
               {/* Progress Bar */}
               <div className="gmaps-progress-bar">
-                <div className="gmaps-progress-fill" style={{ width: `${navProgress}%` }} />
+                <div className="gmaps-progress-fill" style={{ width: `${dynamicProgress}%` }} />
               </div>
 
-              {/* Current Step Instruction */}
+              {/* Step Instruction */}
               <div className="gmaps-step-box">
                 <div className="flex items-start gap-2.5">
-                  <CornerUpRight size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                  <CornerUpRight size={17} className="text-blue-600 shrink-0 mt-0.5" />
                   <div>
                     <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      Step {navStepIndex + 1} of {navigationRoute.length}
+                      Turn-by-Turn Guidance
                     </div>
-                    <div className="text-xs font-semibold text-slate-900 mt-0.5 leading-snug">
-                      {navigationRoute[navStepIndex]?.instruction || `Proceed toward ${activeSector?.label}`}
+                    <div className="text-xs font-semibold text-slate-900 mt-1 leading-snug">
+                      {currentStep.text}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Navigation Stop / Reset Controls */}
-              <div className="flex items-center gap-2 mt-1">
+              {/* Navigation Controls: Stop & Step Forward Simulator */}
+              <div className="flex items-center gap-2 mt-2">
                 <button
                   type="button"
                   className="gmaps-btn-stop flex-1"
                   onClick={stopNavigation}
                 >
-                  <Square size={13} fill="currentColor" />
-                  <span>{navProgress >= 100 ? 'End Route' : 'Stop Navigation'}</span>
+                  <Square size={14} fill="currentColor" />
+                  <span>{routeDistanceMeters <= 8 ? 'Finish Navigation' : 'Stop Navigation'}</span>
                 </button>
+
                 <button
                   type="button"
-                  className="gmaps-btn-subtle"
-                  onClick={startNavigation}
-                  title="Restart route from departure gate"
+                  className="gmaps-btn-step"
+                  onClick={handleSimulateStepForward}
+                  title="Simulate walking step forward along route"
                 >
-                  <RotateCcw size={14} />
+                  <FastForward size={14} />
+                  <span>Step Closer</span>
                 </button>
               </div>
             </div>
           ) : (
+            /* Spacious, De-cramped Selected Destination Card */
             <div className="gmaps-destination-card">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
-                  Selected Destination
-                </span>
-                <span className="text-xs font-semibold text-slate-500">
+              <div className="gmaps-dest-top-row">
+                <div className="flex items-center gap-2">
+                  <span className="gmaps-dest-tag">SELECTED DESTINATION</span>
+                  <span className="gmaps-draggable-tag">
+                    <Move size={11} />
+                    <span>Draggable Pin</span>
+                  </span>
+                </div>
+                <span className="gmaps-dest-distance">
                   {routeDistanceMeters}m away
                 </span>
               </div>
 
-              <div className="text-base font-bold text-slate-900 mb-1">
-                {activeSector?.label || 'Select a sector'}
+              <div className="gmaps-dest-title">
+                {destinationPos.label}
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-slate-600 mb-4">
-                <span className="flex items-center gap-1 font-semibold text-slate-800">
-                  <Clock size={13} className="text-slate-500" />
-                  {STATUS_CONFIG[activeSector?.color]?.label || 'Direct Entry'}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users size={13} className="text-slate-500" />
-                  {activeSector?.count} / {activeSector?.capacity} capacity
-                </span>
+              {/* Spacious, structured metric chips */}
+              <div className="gmaps-dest-chips-grid">
+                <div className="gmaps-metric-chip">
+                  <Clock size={13} className="text-slate-500 shrink-0" />
+                  <span className="font-semibold text-slate-800">
+                    {activeSector ? STATUS_CONFIG[activeSector.color]?.label : 'Custom Location'}
+                  </span>
+                </div>
+
+                <div className="gmaps-metric-chip">
+                  <Users size={13} className="text-slate-500 shrink-0" />
+                  <span>
+                    {activeSector ? `${activeSector.count} / ${activeSector.capacity} capacity` : 'Direct Waypoint'}
+                  </span>
+                </div>
               </div>
 
               <button
@@ -774,12 +851,12 @@ export default function AttendeeView() {
             </div>
           )}
 
-          {/* Departure Gate Row */}
+          {/* Departure Point Row */}
           <div className="gmaps-gates-box">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Departure Point:
+              Departure Gate:
             </span>
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="flex gap-2 flex-wrap">
               {gates.map((g) => {
                 const isSelected = userPos.label === g.name;
                 return (
@@ -832,7 +909,7 @@ export default function AttendeeView() {
           <div className="gmaps-places-list">
             {filteredSectors.map((s) => {
               const statusMeta = STATUS_CONFIG[s.color] || STATUS_CONFIG.GREEN;
-              const isChosen = activeSector?.id === s.id;
+              const isChosen = activeSector?.id === s.id && !customDestPos;
 
               return (
                 <button
@@ -841,7 +918,7 @@ export default function AttendeeView() {
                   className={`gmaps-place-row ${isChosen ? 'is-selected' : ''}`}
                   onClick={() => {
                     setSelectedSectorId(s.id);
-                    if (isNavigating) setNavProgress(0);
+                    setCustomDestPos(null);
                   }}
                 >
                   <div className="gmaps-place-left">
