@@ -51,6 +51,11 @@ function App() {
 
   useEffect(() => {
     const onHashChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('visitor') || params.get('pass') || params.get('attendee')) {
+        setActiveViewState('attendee');
+        return;
+      }
       const target = normalizeView(window.location.hash);
       setActiveViewState(target);
     };
@@ -63,20 +68,22 @@ function App() {
   const ActiveComponent = isVisitorView ? AttendeeView : (VIEWS[activeView] || CrowdDashboard);
 
   return (
-    <div className="app-root">
-      {/* Universal Grainient WebGL Animated Background */}
-      <div className="app-grainient-bg" aria-hidden="true">
-        <Grainient
-          colors={["#06070a", "#10131d", "#181d2e", "#3a4460", "#06070a"]}
-          angle={55}
-          flow={0.9}
-          scale={1.1}
-          speed={1.2}
-          silk={0.4}
-          grainAmount={0.08}
-          grainAnimated={true}
-        />
-      </div>
+    <div className={`app-root ${isVisitorView ? 'visitor-root' : ''}`}>
+      {/* Universal Grainient WebGL Animated Background - Only for Command Center & Setup, NEVER on Visitor View */}
+      {!isVisitorView && (
+        <div className="app-grainient-bg" aria-hidden="true">
+          <Grainient
+            colors={["#06070a", "#10131d", "#181d2e", "#3a4460", "#06070a"]}
+            angle={55}
+            flow={0.9}
+            scale={1.1}
+            speed={1.2}
+            silk={0.4}
+            grainAmount={0.08}
+            grainAnimated={true}
+          />
+        </div>
+      )}
 
       {/* Hide navbar on visitor view — it is a separate thing opened by QR */}
       {!isVisitorView && (

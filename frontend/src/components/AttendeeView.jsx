@@ -123,7 +123,10 @@ export default function AttendeeView() {
   // ── 2. Derive Active Venue Metadata, Sectors & Gates ───────────────────────
   const activeDataset = liveStatus?.dataset || venueConfig || {};
   const venueTitle = activeDataset.venue_name || activeDataset.name || 'University of Reading – Whiteknights Campus';
-  const mapImage = activeDataset.map_image || '/pets-campus-plan.svg';
+  const rawMap = activeDataset.map_image || '/pets-campus-plan.svg';
+  const mapImage = (typeof rawMap === 'string' && rawMap.includes('localhost:5050'))
+    ? rawMap.split('localhost:5050')[1]
+    : rawMap;
 
   // Live Sectors (Zones)
   const rawZones = liveStatus?.zones || {

@@ -714,6 +714,8 @@ def api_datasets():
 def api_venue_current():
     with lock:
         cfg = dict(active_config)
+    if "map_image" in cfg and cfg["map_image"] and "localhost:5050" in cfg["map_image"]:
+        cfg["map_image"] = cfg["map_image"].split("localhost:5050")[-1]
     return jsonify(cfg)
 
 @app.route("/api/dataset/switch", methods=["POST"])

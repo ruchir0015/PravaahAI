@@ -27,12 +27,27 @@
   background-color: transparent;
 }
 
-/* Visitor-facing view (no navbar, full screen) */
-.app-shell.visitor-mode {
-  margin-top: 0;
-  height: 100svh;
+/* Visitor-facing view (no navbar, full screen, clean light Google Maps background) */
+.app-root.visitor-root {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  min-height: 100vh;
+  height: auto;
+  overflow-y: auto;
 }
 
+.app-shell.visitor-mode {
+  margin-top: 0;
+  height: auto;
+  min-height: 100vh;
+  background: #f1f5f9 !important;
+  overflow-y: auto;
+}
+
+.app-shell.visitor-mode .main-content {
+  background: #f1f5f9 !important;
+  min-height: 100vh;
+}
 
 .main-content {
   flex: 1;

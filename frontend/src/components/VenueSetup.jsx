@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import './VenueSetup.css';
 
-const API = "http://localhost:5050";
+const API = "";
 
 export default function VenueSetup({ setVenueData, setZoneData, setActiveView }) {
   const [datasets, setDatasets] = useState([]);

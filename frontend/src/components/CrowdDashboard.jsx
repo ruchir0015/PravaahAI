@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import './CrowdDashboard.css';
 
-const API = 'http://localhost:5050';
+const API = '';
 const POLL_MS = 2000;
 
 const VENUE_NAMES = {

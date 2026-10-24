@@ -3,7 +3,7 @@ import { Crosshair, Radio, TrendingUp, TrendingDown, AlertTriangle, ShieldCheck,
 import TechText from './TechText';
 import './ZoneMap.css';
 
-const API = "http://localhost:5050";
+const API = "";
 const POLL_MS = 2000;
 
 const COLOR_MAP = {

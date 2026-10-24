@@ -15,7 +15,7 @@ import {
 import TechText from './TechText';
 import './LiveFeed.css';
 
-const API = "http://localhost:5050";
+const API = "";
 const POLL_MS = 2000;
 
 const COLOR_MAP = {
