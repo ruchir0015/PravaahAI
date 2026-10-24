@@ -581,14 +581,6 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
-.calib-reticle-handle {
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid #00ff88;
-  border-bottom: 2px solid #00ff88;
-  align-self: flex-end;
-}
-
 .canvas-empty {
   display: flex;
   flex-direction: column;
@@ -655,4 +647,531 @@
   background: #4338ca;
   border-color: #818cf8;
   transform: translateY(-1px);
+}
+
+/* ── Multi-CCTV Feeds List ── */
+.field-hint {
+  font-size: 11px;
+  color: #71717a;
+  display: block;
+  margin-top: 2px;
+}
+
+.vs-cctv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.vs-cam-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0d0e12 !important;
+  border: 1px solid #27272a !important;
+  transition: all 140ms ease;
+}
+
+.vs-cam-item.is-active-cam {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4);
+}
+
+.vs-cam-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cam-badge-id {
+  font-size: 11px;
+  font-weight: 800;
+  color: #a5b4fc;
+  background: rgba(79, 70, 229, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.cam-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.cam-status-dot.live {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.cam-status-dot.ready {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+.cam-status-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #a1a1aa;
+}
+
+.btn-cam-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #181920;
+  border: 1px solid #27272a;
+  color: #a1a1aa;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.btn-cam-pill:hover {
+  background: #22242f;
+  color: #ffffff;
+}
+
+.btn-cam-pill.active {
+  background: rgba(79, 70, 229, 0.25);
+  border-color: #6366f1;
+  color: #a5b4fc;
+}
+
+.cam-label-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+  display: block;
+}
+
+.cam-label-input {
+  width: 100%;
+  border: 1px solid #27272a !important;
+  border-radius: 6px;
+  background: #14151c !important;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff !important;
+  box-sizing: border-box;
+}
+
+.cam-label-input:focus {
+  outline: none;
+  border-color: #6366f1 !important;
+}
+
+.cam-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #141622;
+  border: 1px solid #27272a;
+}
+
+.cam-file-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.cam-file-meta {
+  font-size: 10px;
+  color: #71717a;
+}
+
+.cam-upload-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cam-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #181920;
+  border: 1px dashed #3f3f46;
+  color: #a1a1aa;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+
+.btn-cam-upload:hover {
+  background: #20222c;
+  color: #ffffff;
+  border-color: #6366f1;
+}
+
+.cam-source-hint {
+  font-size: 11px;
+  color: #71717a;
+}
+
+/* ── Venue Gates List ── */
+.vs-gates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.vs-gate-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #0d0e12 !important;
+  border: 1px solid #27272a !important;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.vs-gate-item:hover,
+.vs-gate-item.is-selected-gate {
+  border-color: #06b6d4 !important;
+  background: #0d1217 !important;
+}
+
+.vs-gate-main-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gate-id-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
+}
+
+.gate-name-input {
+  flex: 1;
+  border: 1px solid #27272a !important;
+  border-radius: 6px;
+  background: #14151c !important;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff !important;
+}
+
+.gate-type-select {
+  border: 1px solid #27272a !important;
+  border-radius: 6px;
+  background: #181920 !important;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #06b6d4 !important;
+}
+
+.gate-pos-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-left: 2px;
+}
+
+.gate-pos-pill {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #71717a;
+}
+
+.gate-drag-tip {
+  font-size: 10px;
+  color: #52525b;
+  font-style: italic;
+}
+
+/* ── Sector Camera Link Grid ── */
+.sector-meta-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.sector-cam-assign {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.sector-cam-select {
+  flex: 1;
+  border: 1px solid #27272a !important;
+  border-radius: 4px;
+  background: #181920 !important;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a5b4fc !important;
+  outline: none;
+}
+
+.sector-coords-hint {
+  font-size: 10px;
+  color: #71717a;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 2px;
+}
+
+.cam-count-chip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.gate-count-chip {
+  font-size: 11px;
+  font-weight: 700;
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* ── Map Toolbar ── */
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #0d0e12;
+  border: 1px solid #27272a;
+}
+
+.map-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.map-tb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #71717a;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.map-tb-btn:hover {
+  color: #ffffff;
+  background: #181920;
+}
+
+.map-tb-btn.active {
+  background: #141522;
+  color: #a5b4fc;
+  border-color: #6366f1;
+}
+
+.map-toolbar-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #71717a;
+}
+
+/* ── Gates on Map Canvas ── */
+.map-gate-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: grab;
+  z-index: 25;
+  user-select: none;
+  transition: transform 120ms ease;
+}
+
+.map-gate-marker:active {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.gate-marker-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #06b6d4;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.7);
+  border: 2px solid #ffffff;
+  flex-shrink: 0;
+}
+
+.map-gate-marker.type-emergency .gate-marker-pin {
+  background: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
+}
+
+.map-gate-marker.type-exit .gate-marker-pin {
+  background: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.7);
+}
+
+.gate-marker-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(10, 10, 16, 0.9);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.gate-pill-id {
+  font-size: 10px;
+  font-weight: 800;
+  color: #06b6d4;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.gate-pill-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ── Calibrated Sector Box Enhancements ── */
+.zone-overlay-calibrated {
+  position: absolute;
+  border: 2px solid #00ff88;
+  background: rgba(0, 255, 136, 0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.2);
+  cursor: grab;
+  user-select: none;
+  z-index: 15;
+}
+
+.zone-overlay-calibrated:active {
+  cursor: grabbing;
+}
+
+.zone-overlay-calibrated.is-selected-zone-box {
+  border-color: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.12) !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4) !important;
+}
+
+.calib-cam-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #a5b4fc;
+  background: rgba(18, 18, 30, 0.85);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  max-width: 90%;
+  margin-top: 2px;
+}
+
+.calib-cctv-cone {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.cctv-cone-apex {
+  padding: 2px;
+  border-radius: 3px;
+  background: rgba(6, 182, 212, 0.2);
+}
+
+.calib-reticle-handle {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00ff88;
+  cursor: nwse-resize;
+  border-radius: 3px;
+  transition: all 120ms ease;
+}
+
+.calib-reticle-handle:hover {
+  background: rgba(0, 255, 136, 0.3);
+  transform: scale(1.2);
 }

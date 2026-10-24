@@ -125,7 +125,15 @@ active_config = {
     "description": DATASET_PRESETS[INITIAL_DATASET]["description"],
     "zones": list(DATASET_PRESETS[INITIAL_DATASET]["zones"]),
     "corridors": dict(DATASET_PRESETS[INITIAL_DATASET]["corridors"]),
-    "parking": dict(DATASET_PRESETS[INITIAL_DATASET]["parking"])
+    "parking": dict(DATASET_PRESETS[INITIAL_DATASET]["parking"]),
+    "cameras": [
+        {"id": "CAM-01", "name": "Gate A – Entry Turnstiles", "source": DATASET_PRESETS[INITIAL_DATASET]["source"], "status": "LIVE", "coverage_zone": "Z1"},
+        {"id": "CAM-02", "name": "Gate B – Concourse Cam", "source": DATASET_PRESETS[INITIAL_DATASET]["source"], "status": "LIVE", "coverage_zone": "Z2"}
+    ],
+    "gates": [
+        {"id": "G1", "name": "Gate A – North Entrance", "x": 16, "y": 86, "type": "ENTRY"},
+        {"id": "G2", "name": "Gate B – South Grand Plaza", "x": 84, "y": 86, "type": "ENTRY"}
+    ]
 }
 
 # ── LSTM Model Architecture ──────────────────────────────────────────────────
@@ -650,6 +658,8 @@ def inference_thread(yolo_model, lstm_model, seq_len):
                     "green_zones": sum(1 for d in zone_data.values() if d["color"] == "GREEN"),
                 },
                 "zones": zone_data,
+                "cameras": list(active_config.get("cameras", [])),
+                "gates": list(active_config.get("gates", [])),
                 "alerts": alerts,
                 "suggestions": suggestions,
                 "traffic": {
@@ -739,24 +749,17 @@ def api_dataset_switch():
 @app.route("/api/venue/calibrate", methods=["POST"])
 def api_venue_calibrate():
     """
-    Allows user to calibrate custom venue map, name, and camera coverage zones.
-    Input JSON:
-      {
-        "venue_name": "My Venue",
-        "map_image": "/sample-floorplan.svg" or "/uploads/map.png",
-        "video_source": "custom" or path (optional),
-        "zones": [
-          { "id": "Z1", "label": "North Gate", "bbox": [0.0, 0.0, 0.5, 0.5], "capacity": 25 },
-          ...
-        ]
-      }
+    Allows user to calibrate custom venue map, name, multiple labeled CCTV cameras,
+    custom gates, and camera coverage zones.
     """
     global current_source_path
     data = request.get_json(silent=True) or {}
     
-    venue_name = data.get("venue_name", active_config["venue_name"])
-    map_image  = data.get("map_image", active_config["map_image"])
-    zones      = data.get("zones", active_config["zones"])
+    venue_name = data.get("venue_name", active_config.get("venue_name", "Venue"))
+    map_image  = data.get("map_image", active_config.get("map_image", ""))
+    zones      = data.get("zones", active_config.get("zones", []))
+    cameras    = data.get("cameras", active_config.get("cameras", []))
+    gates      = data.get("gates", active_config.get("gates", []))
     video_src  = data.get("video_source")
 
     # Format and normalize zones
@@ -765,6 +768,7 @@ def api_venue_calibrate():
         zid = z.get("id") or f"Z{idx+1}"
         zlabel = z.get("label") or f"Sector {zid}"
         zcap = int(z.get("capacity", 20))
+        cam_id = z.get("camera_id") or (cameras[idx]["id"] if idx < len(cameras) else "CAM-01")
         
         # Accept normalized bbox [x0, y0, x1, y1] or percentage {x, y, w, h}
         if "bbox" in z:
@@ -782,13 +786,16 @@ def api_venue_calibrate():
             "id": zid,
             "label": zlabel,
             "bbox": bbox,
-            "capacity": zcap
+            "capacity": zcap,
+            "camera_id": cam_id
         })
 
     with lock:
         active_config["venue_name"] = venue_name
         active_config["map_image"] = map_image
         active_config["zones"] = formatted_zones
+        active_config["cameras"] = cameras
+        active_config["gates"] = gates
         active_config["id"] = "custom"
         active_config["name"] = f"Custom Calibration · {venue_name}"
 
@@ -797,7 +804,7 @@ def api_venue_calibrate():
             current_source_path = video_src
             source_event.set()
 
-    print(f"[Calibrate] Calibrated {len(formatted_zones)} sectors for venue '{venue_name}'")
+    print(f"[Calibrate] Calibrated {len(formatted_zones)} sectors, {len(cameras)} cameras, {len(gates)} gates for venue '{venue_name}'")
     return jsonify({"success": True, "active_config": active_config})
 
 @app.route("/api/upload/video", methods=["POST"])
@@ -810,23 +817,44 @@ def api_upload_video():
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
+    camera_id = request.form.get("camera_id") or f"CAM-{int(time.time()) % 1000:03d}"
+    camera_label = request.form.get("label") or file.filename
+
     filename = f"cctv_{int(time.time())}_{file.filename}"
     save_path = os.path.join(UPLOADS_DIR, filename)
     file.save(save_path)
-    print(f"[Upload] Saved custom CCTV video: {save_path} ({os.path.getsize(save_path)} bytes)")
+    print(f"[Upload] Saved custom CCTV video ({camera_id}): {save_path} ({os.path.getsize(save_path)} bytes)")
 
     with lock:
         active_config["source"] = save_path
         active_config["id"] = "custom"
-        active_config["name"] = f"Custom CCTV · {file.filename}"
+        active_config["name"] = f"Custom CCTV · {camera_label}"
+        if "cameras" not in active_config:
+            active_config["cameras"] = []
+        cam_found = False
+        for c in active_config["cameras"]:
+            if c.get("id") == camera_id:
+                c["source"] = save_path
+                c["name"] = camera_label
+                c["status"] = "LIVE"
+                cam_found = True
+                break
+        if not cam_found:
+            active_config["cameras"].append({
+                "id": camera_id,
+                "name": camera_label,
+                "source": save_path,
+                "status": "LIVE"
+            })
         current_source_path = save_path
         source_event.set()
 
     return jsonify({
         "success": True,
+        "camera_id": camera_id,
         "filename": filename,
         "video_path": save_path,
-        "message": "Custom video uploaded and deployed to live AI inference pipeline!"
+        "message": f"Camera '{camera_label}' ({camera_id}) uploaded and linked to live AI pipeline!"
     })
 
 @app.route("/api/upload/map", methods=["POST"])
