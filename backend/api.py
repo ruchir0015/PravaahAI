@@ -710,7 +710,8 @@ def inference_thread(yolo_model, lstm_model, seq_len):
         time.sleep(max(0.08, INTERVAL - elapsed))
 
 # ── Flask Application & Endpoints ───────────────────────────────────────────
-app = Flask(__name__)
+FRONTEND_DIST = os.path.join(BASE_DIR, "..", "frontend", "dist")
+app = Flask(__name__, static_folder=FRONTEND_DIST if os.path.exists(FRONTEND_DIST) else None)
 CORS(app, origins="*")
 
 @app.route("/health")
@@ -723,6 +724,22 @@ def health():
         "venue": active_config["venue_name"],
         "zones_count": len(active_config["zones"]),
         "mode": "Spatial Heatmap & Zone Color-Coding (Red / Yellow / Green)"
+    })
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    if path.startswith("api/") or path.startswith("uploads/"):
+        return jsonify({"error": "Endpoint not found"}), 404
+    if os.path.exists(FRONTEND_DIST):
+        target = os.path.join(FRONTEND_DIST, path)
+        if path and os.path.isfile(target):
+            return send_from_directory(FRONTEND_DIST, path)
+        return send_from_directory(FRONTEND_DIST, "index.html")
+    return jsonify({
+        "status": "ok",
+        "service": "Pravaah AI Backend API is running",
+        "active_dataset": active_config["name"]
     })
 
 @app.route("/api/datasets")
