@@ -908,12 +908,25 @@ def api_system_network():
                 ips.append(ip)
     except Exception:
         pass
+
+    tunnel_file = os.path.join(BASE_DIR, "active_tunnel.json")
+    public_url = "https://e88928053e6601.lhr.life"
+    if os.path.exists(tunnel_file):
+        try:
+            with open(tunnel_file, "r") as f:
+                d = json.load(f)
+                public_url = d.get("public_url", public_url)
+        except Exception:
+            pass
         
     return jsonify({
         "primary_ip": ips[0] if ips else "localhost",
         "available_ips": ips,
+        "public_url": public_url,
+        "visitor_url": f"{public_url}/?visitor=1#attendee",
+        "hotspot_required": False,
         "port": 5174,
-        "visitor_path": "/#attendee"
+        "visitor_path": "/?visitor=1#attendee"
     })
 
 @app.route("/api/status")

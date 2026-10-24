@@ -37,18 +37,22 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
       .catch(() => {});
   }, []);
 
-  // Universal QR URL for All Visitors
+  // Universal QR URL for All Visitors - Public Cloud Deployment
   const universalQrUrl = useMemo(() => {
     if (customUrl.trim()) return customUrl.trim();
-    if (typeof window === 'undefined') return 'http://localhost:5174/#attendee';
+    if (networkInfo?.visitor_url) return networkInfo.visitor_url;
+    if (networkInfo?.public_url) return `${networkInfo.public_url}/?visitor=1#attendee`;
+    if (typeof window === 'undefined') return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
 
-    // If on actual domain / remote IP, use that
+    // If on actual domain / remote tunnel IP, use that host
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const host = isLocalhost
-      ? (networkInfo?.primary_ip || '11.20.17.207')
-      : window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    return `http://${host}${port}/?visitor=1#attendee`;
+    if (!isLocalhost) {
+      const port = window.location.port ? `:${window.location.port}` : '';
+      return `${window.location.protocol}//${window.location.hostname}${port}/?visitor=1#attendee`;
+    }
+
+    // Default to the live public tunnel so anyone can scan over 4G/5G/LTE with NO hotspot required!
+    return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
   }, [customUrl, networkInfo]);
 
   const handleCopyLink = () => {
@@ -211,9 +215,12 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
 
             {/* Quick Network Diagnostics Note */}
             <div className="mt-2 text-[11px] text-zinc-400 bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 leading-relaxed">
-              <div className="font-semibold text-zinc-200 mb-0.5">Phone Scanning Instructions:</div>
-              <div>• <strong>Same Wi-Fi / Laptop Hotspot:</strong> Phone must be on the same local Wi-Fi network as this PC ({networkInfo?.primary_ip || '11.20.17.207'}).</div>
-              <div>• <strong>Cellular 4G/5G or Isolated Wi-Fi:</strong> If campus/office Wi-Fi blocks local devices, run <code className="text-emerald-400 bg-black/60 px-1 py-0.5 rounded">npx localtunnel --port 5174</code> or <code className="text-emerald-400 bg-black/60 px-1 py-0.5 rounded">ngrok http 5174</code>, click <em>Edit IP/Tunnel</em> above, and paste the URL.</div>
+              <div className="font-semibold text-emerald-400 mb-0.5 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Direct Global Cloud Access (No Hotspot Required)</span>
+              </div>
+              <div className="text-zinc-300">• <strong>Scan from Any Mobile Device:</strong> Works seamlessly over cellular 4G/5G, LTE, or any external Wi-Fi. You do <em>not</em> need to be on the same hotspot.</div>
+              <div className="text-zinc-400 mt-0.5">• <strong>Target URL:</strong> <code className="text-emerald-400 bg-black/60 px-1 py-0.5 rounded font-mono text-[10.5px]">{universalQrUrl}</code></div>
             </div>
 
             <div className="topbar-modal-actions mt-3">

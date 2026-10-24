@@ -59,15 +59,28 @@ export default function CrowdDashboard({ setActiveView }) {
   // Universal Visitor QR State
   const [showUniversalQRModal, setShowUniversalQRModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [networkInfo, setNetworkInfo] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/system/network')
+      .then(res => res.json())
+      .then(data => {
+        if (data) setNetworkInfo(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const universalQrUrl = useMemo(() => {
-    if (typeof window === 'undefined') return 'http://localhost:5174/?visitor=1#attendee';
-    const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      ? '11.20.17.207'
-      : window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    return `http://${host}${port}/?visitor=1#attendee`;
-  }, []);
+    if (networkInfo?.visitor_url) return networkInfo.visitor_url;
+    if (networkInfo?.public_url) return `${networkInfo.public_url}/?visitor=1#attendee`;
+    if (typeof window === 'undefined') return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isLocalhost) {
+      const port = window.location.port ? `:${window.location.port}` : '';
+      return `${window.location.protocol}//${window.location.hostname}${port}/?visitor=1#attendee`;
+    }
+    return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
+  }, [networkInfo]);
 
   const handleCopyUniversalLink = () => {
     if (navigator.clipboard) {
