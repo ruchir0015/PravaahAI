@@ -42,7 +42,7 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
     if (customUrl.trim()) return customUrl.trim();
     if (networkInfo?.visitor_url) return networkInfo.visitor_url;
     if (networkInfo?.public_url) return `${networkInfo.public_url}/?visitor=1#attendee`;
-    if (typeof window === 'undefined') return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
+    if (typeof window === 'undefined') return 'https://public-cambridge-pizza-jury.trycloudflare.com/?visitor=1#attendee';
 
     // If on actual domain / remote tunnel IP, use that host
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -51,8 +51,8 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
       return `${window.location.protocol}//${window.location.hostname}${port}/?visitor=1#attendee`;
     }
 
-    // Default to the live public tunnel so anyone can scan over 4G/5G/LTE with NO hotspot required!
-    return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
+    // Default to the live public Cloudflare tunnel so anyone can scan over 4G/5G/LTE with NO hotspot required!
+    return 'https://public-cambridge-pizza-jury.trycloudflare.com/?visitor=1#attendee';
   }, [customUrl, networkInfo]);
 
   const handleCopyLink = () => {

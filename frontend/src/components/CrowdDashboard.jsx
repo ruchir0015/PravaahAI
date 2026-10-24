@@ -73,13 +73,13 @@ export default function CrowdDashboard({ setActiveView }) {
   const universalQrUrl = useMemo(() => {
     if (networkInfo?.visitor_url) return networkInfo.visitor_url;
     if (networkInfo?.public_url) return `${networkInfo.public_url}/?visitor=1#attendee`;
-    if (typeof window === 'undefined') return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
+    if (typeof window === 'undefined') return 'https://public-cambridge-pizza-jury.trycloudflare.com/?visitor=1#attendee';
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     if (!isLocalhost) {
       const port = window.location.port ? `:${window.location.port}` : '';
       return `${window.location.protocol}//${window.location.hostname}${port}/?visitor=1#attendee`;
     }
-    return 'https://e88928053e6601.lhr.life/?visitor=1#attendee';
+    return 'https://public-cambridge-pizza-jury.trycloudflare.com/?visitor=1#attendee';
   }, [networkInfo]);
 
   const handleCopyUniversalLink = () => {
