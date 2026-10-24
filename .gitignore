@@ -8,6 +8,7 @@
 !.env.example
 
 # ── Node / Frontend ───────────────────────────
+bin/
 node_modules/
 frontend/node_modules/
 dist/
