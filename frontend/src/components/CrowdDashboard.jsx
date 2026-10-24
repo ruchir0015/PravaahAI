@@ -449,7 +449,7 @@ export default function CrowdDashboard({ setActiveView }) {
       {/* ── 3-COLUMN OPERATIONAL COCKPIT ── */}
       <main className="command-grid-layout">
         {/* ====================================================================
-            COLUMN 1: Fleet & Transit Vehicles (Zerodha Watchlist Style)
+            COLUMN 1: Fleet & Transit Vehicles
             ==================================================================== */}
         <section className="telemetry-panel flex flex-col">
           <div className="panel-header-bar">

@@ -18,7 +18,8 @@ import {
   MapPin,
   CheckCircle2,
   Compass,
-  Navigation
+  Navigation,
+  X
 } from 'lucide-react';
 import './VenueSetup.css';
 
@@ -34,6 +35,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
   const [datasets, setDatasets] = useState([]);
   const [activeDatasetId, setActiveDatasetId] = useState('pets2009');
   const [mapImage, setMapImage] = useState('/pets-campus-plan.svg');
+  const [mapFile, setMapFile] = useState(null);
   const [venueName, setVenueName] = useState('University of Reading – Whiteknights Campus');
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
@@ -88,8 +90,10 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
   const onDropMap = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (!file) return;
+    setMapFile(file);
     const url = URL.createObjectURL(file);
     setMapImage(url);
+    setActiveDatasetId('custom');
     setDeployed(false);
   }, []);
 
@@ -119,6 +123,9 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
   const handleSelectPreset = async (dsId) => {
     setIsDeploying(true);
     setActiveDatasetId(dsId);
+    setVideoFile(null);
+    setVideoPreview(null);
+    setMapFile(null);
     try {
       const res = await fetch(`${API}/api/dataset/switch`, {
         method: 'POST',
@@ -189,17 +196,38 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
     setIsDeploying(true);
 
     try {
-      // 1. If custom video provided, upload it first
+      // 1. If custom video provided, upload it first to AI engine
+      let uploadedVideoPath = null;
       if (videoFile) {
         const fd = new FormData();
         fd.append('video', videoFile);
-        await fetch(`${API}/api/upload/video`, { method: 'POST', body: fd });
+        const vidRes = await fetch(`${API}/api/upload/video`, { method: 'POST', body: fd });
+        if (vidRes.ok) {
+          const vidData = await vidRes.json();
+          uploadedVideoPath = vidData.video_path;
+        }
       }
 
-      // 2. Calibrate venue & zones
+      // 2. If custom map file provided, upload it to backend uploads directory
+      let finalMapUrl = mapImage;
+      if (mapFile) {
+        const fd = new FormData();
+        fd.append('map', mapFile);
+        const mapRes = await fetch(`${API}/api/upload/map`, { method: 'POST', body: fd });
+        if (mapRes.ok) {
+          const mapData = await mapRes.json();
+          if (mapData.map_url) {
+            finalMapUrl = mapData.map_url.startsWith('http') ? mapData.map_url : `${API}${mapData.map_url}`;
+            setMapImage(finalMapUrl);
+          }
+        }
+      }
+
+      // 3. Calibrate venue & zones with dynamic backend AI pipeline
       const payload = {
         venue_name: venueName,
-        map_image: mapImage,
+        map_image: finalMapUrl,
+        video_source: uploadedVideoPath || undefined,
         zones: zones.map(z => ({
           id: z.id,
           label: z.label,
@@ -220,10 +248,13 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
       });
 
       if (calRes.ok) {
-        setVenueData?.({ name: venueName, mapImage });
+        setVenueData?.({ name: venueName, mapImage: finalMapUrl });
         setZoneData?.(zones);
         setDeployed(true);
-        setToastMsg(`Successfully deployed ${zones.length} sectors to real-time AI density pipeline!`);
+        const msg = (videoFile || mapFile)
+          ? `Custom files synchronized with backend AI inference pipeline!`
+          : `Successfully deployed ${zones.length} sectors to real-time AI density pipeline!`;
+        setToastMsg(msg);
         setTimeout(() => setToastMsg(null), 6000);
       }
     } catch (e) {
@@ -320,21 +351,6 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
               <div className="preset-sub">Main Exhibition Arena</div>
             </div>
           </button>
-
-          <button
-            type="button"
-            className={`vs-preset-btn ${activeDatasetId === 'custom' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveDatasetId('custom');
-              setDeployed(false);
-            }}
-          >
-            <UploadCloud size={18} className="preset-card-icon" />
-            <div>
-              <div className="preset-name">Custom Venue &amp; Map</div>
-              <div className="preset-sub">Upload your own camera footage &amp; layout</div>
-            </div>
-          </button>
         </div>
       </div>
 
@@ -362,7 +378,7 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           <div className="app-card setup-card">
             <div className="card-header-flex">
               <h2 className="section-title">Camera Feed Source</h2>
-              <span className="chip-badge">Live Source</span>
+              <span className="chip-badge">{videoFile ? 'Custom Feed' : 'Live Source'}</span>
             </div>
             <div
               {...getVideoRootProps()}
@@ -374,22 +390,35 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
                   <div className="drop-check-icon">
                     <Video size={18} strokeWidth={2.5} />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <div className="drop-preview-title">{videoFile.name}</div>
-                    <div className="drop-preview-sub">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB · Ready for processing</div>
+                    <div className="drop-preview-sub">{(videoFile.size / (1024 * 1024)).toFixed(1)} MB · Ready to synchronize</div>
                   </div>
+                  <button
+                    type="button"
+                    className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-red-400 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setVideoFile(null);
+                      setVideoPreview(null);
+                      setDeployed(false);
+                    }}
+                    title="Remove custom video file"
+                  >
+                    <X size={15} />
+                  </button>
                 </div>
               ) : activeDatasetId === 'pets2009' ? (
                 <div className="drop-placeholder">
                   <Video size={22} className="ds-source-icon" />
                   <span className="drop-text">Campus CCTV Feed Active</span>
-                  <span className="drop-hint">Real-time camera sequence</span>
+                  <span className="drop-hint">Drop custom video to override (MP4, AVI, MKV)</span>
                 </div>
               ) : activeDatasetId === 'shanghaitech' ? (
                 <div className="drop-placeholder">
                   <Video size={22} className="ds-source-icon" />
                   <span className="drop-text">Concourse CCTV Feed Active</span>
-                  <span className="drop-hint">Real-time street sequence</span>
+                  <span className="drop-hint">Drop custom video to override (MP4, AVI, MKV)</span>
                 </div>
               ) : (
                 <div className="drop-placeholder">
@@ -405,14 +434,43 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
           <div className="app-card setup-card">
             <div className="card-header-flex">
               <h2 className="section-title">Venue Ground Map</h2>
-              <span className="chip-badge">Floor Plan</span>
+              <span className="chip-badge">{mapFile ? 'Custom Blueprint' : 'Floor Plan'}</span>
             </div>
             <div
               {...getMapRootProps()}
               className={`dropzone ${isMapDragActive ? 'drag-active' : ''}`}
             >
               <input {...getMapInputProps()} />
-              {mapImage ? (
+              {mapFile ? (
+                <div className="drop-preview">
+                  <div className="drop-check-icon">
+                    <Check size={18} strokeWidth={2.5} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="drop-preview-title">{mapFile.name}</div>
+                    <div className="drop-preview-sub">{(mapFile.size / 1024).toFixed(0)} KB · Ready to synchronize</div>
+                  </div>
+                  <button
+                    type="button"
+                    className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-red-400 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMapFile(null);
+                      setMapImage(
+                        activeDatasetId === 'shanghaitech'
+                          ? '/shanghaitech-map.svg'
+                          : activeDatasetId === 'crowd_default'
+                          ? '/sample-floorplan.svg'
+                          : '/pets-campus-plan.svg'
+                      );
+                      setDeployed(false);
+                    }}
+                    title="Remove custom map"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              ) : mapImage ? (
                 <div className="drop-preview">
                   <div className="drop-check-icon">
                     <Check size={18} strokeWidth={2.5} />
