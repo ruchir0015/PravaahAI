@@ -676,6 +676,17 @@ export default function CrowdDashboard({ setActiveView }) {
 
                   {/* Dark Grid Canvas Backdrop */}
                   <rect width="100" height="100" fill="#0c0d12" />
+                  {activeDataset.map_image && (
+                    <image
+                      href={activeDataset.map_image.includes('localhost:5050') ? activeDataset.map_image.split('localhost:5050')[1] : activeDataset.map_image}
+                      x="0"
+                      y="0"
+                      width="100"
+                      height="100"
+                      preserveAspectRatio="none"
+                      opacity="0.55"
+                    />
+                  )}
                   <rect width="100" height="100" fill="url(#gridPattern)" />
 
                   {/* Corridors (C1 to C4) */}
@@ -705,24 +716,29 @@ export default function CrowdDashboard({ setActiveView }) {
                     strokeDasharray="2 2"
                   />
 
-                  <circle cx="50" cy="50" r="30" fill="url(#corridorGlow)" />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="30"
-                    fill="none"
-                    stroke="#22232a"
-                    strokeWidth="2.2"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="30"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="0.6"
-                    strokeDasharray="1 3"
-                  />
+                  {/* Arena Circular Track (Only shown for Arena datasets) */}
+                  {activeDataset.id !== 'shanghaitech' && (
+                    <>
+                      <circle cx="50" cy="50" r="30" fill="url(#corridorGlow)" />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="30"
+                        fill="none"
+                        stroke="#22232a"
+                        strokeWidth="2.2"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="30"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="0.6"
+                        strokeDasharray="1 3"
+                      />
+                    </>
+                  )}
 
                   {/* Perimeter Boundary Box */}
                   <rect
@@ -740,41 +756,52 @@ export default function CrowdDashboard({ setActiveView }) {
                   {/* Live Crowd Density Sectors */}
                   {status?.zones &&
                     Object.values(status.zones).map((z) => {
-                      const bbox = z.bbox || [0.1, 0.1, 0.4, 0.4];
+                      const bbox = z.map_bbox || z.bbox || [0.1, 0.1, 0.4, 0.4];
                       const bx = bbox[0] * 100;
                       const by = bbox[1] * 100;
                       const bw = (bbox[2] - bbox[0]) * 100;
                       const bh = (bbox[3] - bbox[1]) * 100;
                       const isRed = z.color === 'RED';
                       const isYellow = z.color === 'YELLOW';
+                      const fillColor = isRed
+                        ? 'rgba(239, 68, 68, 0.22)'
+                        : isYellow
+                        ? 'rgba(245, 158, 11, 0.16)'
+                        : 'rgba(16, 185, 129, 0.10)';
+                      const strokeColor = isRed
+                        ? '#ef4444'
+                        : isYellow
+                        ? '#f59e0b'
+                        : 'rgba(16, 185, 129, 0.6)';
 
                       return (
                         <g key={z.id}>
+                          <radialGradient id={`sectorGlow-${z.id}`} cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor={isRed ? '#ef4444' : isYellow ? '#f59e0b' : '#10b981'} stopOpacity={isRed ? 0.38 : isYellow ? 0.26 : 0.16} />
+                            <stop offset="70%" stopColor={isRed ? '#ef4444' : isYellow ? '#f59e0b' : '#10b981'} stopOpacity={isRed ? 0.16 : isYellow ? 0.10 : 0.05} />
+                            <stop offset="100%" stopColor={isRed ? '#ef4444' : isYellow ? '#f59e0b' : '#10b981'} stopOpacity={0} />
+                          </radialGradient>
                           <rect
-                            x={bx + 1}
-                            y={by + 1}
-                            width={bw - 2}
-                            height={bh - 2}
+                            x={bx + 0.5}
+                            y={by + 0.5}
+                            width={bw - 1}
+                            height={bh - 1}
                             rx="2"
-                            fill={
-                              isRed
-                                ? 'rgba(239, 68, 68, 0.18)'
-                                : isYellow
-                                ? 'rgba(245, 158, 11, 0.12)'
-                                : 'rgba(16, 185, 129, 0.08)'
-                            }
-                            stroke={
-                              isRed
-                                ? '#ef4444'
-                                : isYellow
-                                ? '#f59e0b'
-                                : 'rgba(16, 185, 129, 0.5)'
-                            }
-                            strokeWidth={isRed ? '1.2' : '0.6'}
+                            fill={`url(#sectorGlow-${z.id})`}
+                          />
+                          <rect
+                            x={bx + 0.5}
+                            y={by + 0.5}
+                            width={bw - 1}
+                            height={bh - 1}
+                            rx="2"
+                            fill={fillColor}
+                            stroke={strokeColor}
+                            strokeWidth={isRed ? '1.2' : '0.7'}
                           />
                           <text
-                            x={bx + 3}
-                            y={by + 5.5}
+                            x={bx + 2.5}
+                            y={by + 4.8}
                             fill="#f4f4f5"
                             fontSize="2.4"
                             fontFamily="sans-serif"
@@ -783,8 +810,8 @@ export default function CrowdDashboard({ setActiveView }) {
                             {z.id} · {z.saturation_pct}%
                           </text>
                           <text
-                            x={bx + 3}
-                            y={by + 8.5}
+                            x={bx + 2.5}
+                            y={by + 7.8}
                             fill="#a1a1aa"
                             fontSize="1.8"
                             fontFamily="sans-serif"

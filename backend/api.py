@@ -42,10 +42,10 @@ DATASET_PRESETS = {
         "venue_name": "University of Reading – Whiteknights Campus",
         "description": "IEEE PETS 2009 Benchmark sequence (View 001, 698 frames @ 25 FPS)",
         "zones": [
-            {"id": "P1", "label": "Sector P1 – North Pathway Entry",   "bbox": [0.0, 0.0, 0.5, 0.5], "capacity": 15},
-            {"id": "P2", "label": "Sector P2 – Central Promenade",     "bbox": [0.5, 0.0, 1.0, 0.5], "capacity": 18},
-            {"id": "P3", "label": "Sector P3 – South Campus Junction", "bbox": [0.5, 0.5, 1.0, 1.0], "capacity": 20},
-            {"id": "P4", "label": "Sector P4 – West Pavilion Quad",    "bbox": [0.0, 0.5, 0.5, 1.0], "capacity": 12},
+            {"id": "P1", "label": "Sector P1 – North Pathway Entry",   "bbox": [0.0, 0.0, 0.5, 0.5], "map_bbox": [0.26, 0.28, 0.48, 0.48], "capacity": 15},
+            {"id": "P2", "label": "Sector P2 – Central Promenade",     "bbox": [0.5, 0.0, 1.0, 0.5], "map_bbox": [0.52, 0.28, 0.74, 0.48], "capacity": 18},
+            {"id": "P3", "label": "Sector P3 – South Campus Junction", "bbox": [0.5, 0.5, 1.0, 1.0], "map_bbox": [0.52, 0.52, 0.74, 0.72], "capacity": 20},
+            {"id": "P4", "label": "Sector P4 – West Pavilion Quad",    "bbox": [0.0, 0.5, 0.5, 1.0], "map_bbox": [0.26, 0.52, 0.48, 0.72], "capacity": 12},
         ],
         "corridors": {
             "C1": {"name": "North Campus Access Road", "capacity_vpm": 60, "speed_limit": 40, "connects": "Sector P1 / Faculty Parking"},
@@ -57,7 +57,15 @@ DATASET_PRESETS = {
             "LOT_A": {"name": "North Faculty Deck", "capacity": 300, "connects": "C1"},
             "LOT_B": {"name": "South Transit Surface", "capacity": 250, "connects": "C2"},
             "LOT_C": {"name": "East Campus Overflow", "capacity": 450, "connects": "C3"},
-        }
+        },
+        "cameras": [
+            {"id": "CAM-01", "name": "Gate A – Entry Turnstiles", "source": os.path.join(DATASETS_DIR, "pets2009", "PETS2009.avi"), "status": "LIVE", "coverage_zone": "P1"},
+            {"id": "CAM-02", "name": "Gate B – Concourse Cam", "source": os.path.join(DATASETS_DIR, "pets2009", "PETS2009.avi"), "status": "LIVE", "coverage_zone": "P2"}
+        ],
+        "gates": [
+            {"id": "G1", "name": "Gate A – North Entrance", "x": 16, "y": 86, "type": "ENTRY"},
+            {"id": "G2", "name": "Gate B – South Grand Plaza", "x": 84, "y": 86, "type": "ENTRY"}
+        ]
     },
     "shanghaitech": {
         "id": "shanghaitech",
@@ -67,10 +75,10 @@ DATASET_PRESETS = {
         "venue_name": "ShanghaiTech Urban Pedestrian Concourse",
         "description": "High-density street surveillance sequence (150 real Part B test frames)",
         "zones": [
-            {"id": "S1", "label": "Sector S1 – Metro Exit Plaza",      "bbox": [0.0, 0.0, 0.5, 0.5], "capacity": 25},
-            {"id": "S2", "label": "Sector S2 – Commercial Boulevard",  "bbox": [0.5, 0.0, 1.0, 0.5], "capacity": 30},
-            {"id": "S3", "label": "Sector S3 – Central Crossing",      "bbox": [0.5, 0.5, 1.0, 1.0], "capacity": 24},
-            {"id": "S4", "label": "Sector S4 – Transit Terminal Link", "bbox": [0.0, 0.5, 0.5, 1.0], "capacity": 20},
+            {"id": "S1", "label": "Sector S1 – Metro Exit Plaza",      "bbox": [0.0, 0.0, 0.5, 0.5], "map_bbox": [0.15, 0.34, 0.47, 0.49], "capacity": 25},
+            {"id": "S2", "label": "Sector S2 – Commercial Boulevard",  "bbox": [0.5, 0.0, 1.0, 0.5], "map_bbox": [0.53, 0.34, 0.85, 0.49], "capacity": 30},
+            {"id": "S3", "label": "Sector S3 – Central Crossing",      "bbox": [0.5, 0.5, 1.0, 1.0], "map_bbox": [0.53, 0.52, 0.85, 0.68], "capacity": 24},
+            {"id": "S4", "label": "Sector S4 – Transit Terminal Link", "bbox": [0.0, 0.5, 0.5, 1.0], "map_bbox": [0.15, 0.52, 0.47, 0.68], "capacity": 20},
         ],
         "corridors": {
             "C1": {"name": "Metro Boulevard North", "capacity_vpm": 80, "speed_limit": 50, "connects": "Sector S1 / Metro Park"},
@@ -82,7 +90,16 @@ DATASET_PRESETS = {
             "LOT_A": {"name": "Metro North Garage", "capacity": 500, "connects": "C1"},
             "LOT_B": {"name": "Retail Center Deck", "capacity": 400, "connects": "C2"},
             "LOT_C": {"name": "Ring Park & Ride", "capacity": 750, "connects": "C3"},
-        }
+        },
+        "cameras": [
+            {"id": "CAM-01", "name": "Concourse Cam 1 – Metro Plaza", "source": os.path.join(DATASETS_DIR, "shanghaitech_test.mp4"), "status": "LIVE", "coverage_zone": "S1"},
+            {"id": "CAM-02", "name": "Concourse Cam 2 – Central Mall", "source": os.path.join(DATASETS_DIR, "shanghaitech_test.mp4"), "status": "LIVE", "coverage_zone": "S3"}
+        ],
+        "gates": [
+            {"id": "G1", "name": "Gate 1 – Metro North Terminal", "x": 50, "y": 17, "type": "ENTRY"},
+            {"id": "G2", "name": "Gate 2 – South Tramway Station", "x": 50, "y": 86, "type": "ENTRY"},
+            {"id": "G3", "name": "Emergency East Concourse Exit", "x": 92, "y": 50, "type": "EMERGENCY"}
+        ]
     },
     "crowd_default": {
         "id": "crowd_default",
@@ -92,10 +109,10 @@ DATASET_PRESETS = {
         "venue_name": "TechTrix Grand Arena",
         "description": "Arena Concourse Access Turnstiles & Gates",
         "zones": [
-            {"id": "Z1", "label": "Gate A – North Concourse",       "bbox": [0.0, 0.0, 0.5, 0.5], "capacity": 20},
-            {"id": "Z2", "label": "Gate B – South Grand Plaza",     "bbox": [0.5, 0.0, 1.0, 0.5], "capacity": 18},
-            {"id": "Z3", "label": "Central Promenade Hub",          "bbox": [0.0, 0.5, 0.5, 1.0], "capacity": 20},
-            {"id": "Z4", "label": "East Transit Exit Corridor",     "bbox": [0.5, 0.5, 1.0, 1.0], "capacity": 20},
+            {"id": "Z1", "label": "Gate A – North Concourse",       "bbox": [0.0, 0.0, 0.5, 0.5], "map_bbox": [0.12, 0.12, 0.48, 0.48], "capacity": 20},
+            {"id": "Z2", "label": "Gate B – South Grand Plaza",     "bbox": [0.5, 0.0, 1.0, 0.5], "map_bbox": [0.52, 0.12, 0.88, 0.48], "capacity": 18},
+            {"id": "Z3", "label": "Central Promenade Hub",          "bbox": [0.0, 0.5, 0.5, 1.0], "map_bbox": [0.12, 0.52, 0.48, 0.88], "capacity": 20},
+            {"id": "Z4", "label": "East Transit Exit Corridor",     "bbox": [0.5, 0.5, 1.0, 1.0], "map_bbox": [0.52, 0.52, 0.88, 0.88], "capacity": 20},
         ],
         "corridors": {
             "C1": {"name": "North Arterial Boulevard", "capacity_vpm": 75, "speed_limit": 50, "connects": "Gate A / Lot A"},
@@ -107,7 +124,15 @@ DATASET_PRESETS = {
             "LOT_A": {"name": "Lot A – North Deck",     "capacity": 450, "connects": "C1"},
             "LOT_B": {"name": "Lot B – South Surface",  "capacity": 350, "connects": "C2"},
             "LOT_C": {"name": "Lot C – East Overflow",  "capacity": 600, "connects": "C3"},
-        }
+        },
+        "cameras": [
+            {"id": "CAM-01", "name": "Gate A – Entry Turnstiles", "source": os.path.join(BASE_DIR, "crowd.mp4"), "status": "LIVE", "coverage_zone": "Z1"},
+            {"id": "CAM-02", "name": "Gate B – Concourse Cam", "source": os.path.join(BASE_DIR, "crowd.mp4"), "status": "LIVE", "coverage_zone": "Z2"}
+        ],
+        "gates": [
+            {"id": "G1", "name": "Gate A – North Entrance", "x": 16, "y": 86, "type": "ENTRY"},
+            {"id": "G2", "name": "Gate B – South Grand Plaza", "x": 84, "y": 86, "type": "ENTRY"}
+        ]
     }
 }
 
@@ -126,14 +151,8 @@ active_config = {
     "zones": list(DATASET_PRESETS[INITIAL_DATASET]["zones"]),
     "corridors": dict(DATASET_PRESETS[INITIAL_DATASET]["corridors"]),
     "parking": dict(DATASET_PRESETS[INITIAL_DATASET]["parking"]),
-    "cameras": [
-        {"id": "CAM-01", "name": "Gate A – Entry Turnstiles", "source": DATASET_PRESETS[INITIAL_DATASET]["source"], "status": "LIVE", "coverage_zone": "Z1"},
-        {"id": "CAM-02", "name": "Gate B – Concourse Cam", "source": DATASET_PRESETS[INITIAL_DATASET]["source"], "status": "LIVE", "coverage_zone": "Z2"}
-    ],
-    "gates": [
-        {"id": "G1", "name": "Gate A – North Entrance", "x": 16, "y": 86, "type": "ENTRY"},
-        {"id": "G2", "name": "Gate B – South Grand Plaza", "x": 84, "y": 86, "type": "ENTRY"}
-    ]
+    "cameras": list(DATASET_PRESETS[INITIAL_DATASET].get("cameras", [])),
+    "gates": list(DATASET_PRESETS[INITIAL_DATASET].get("gates", []))
 }
 
 # ── LSTM Model Architecture ──────────────────────────────────────────────────
@@ -390,14 +409,18 @@ def draw_overlay(frame, zone_data, density_map, dataset_title):
     h, w = frame.shape[:2]
     out = frame.copy()
 
-    # 1. Thermal Density Heatmap Blend (JET Colormap)
+    # 1. Thermal Density Heatmap Blend (Google Turbo Colormap + Feathered Alpha)
     if density_map is not None:
         try:
             d_resized = cv2.resize(density_map, (w, h))
-            d_norm = d_resized / (d_resized.max() + 1e-6)
-            heat = cv2.applyColorMap((d_norm * 255).astype(np.uint8), cv2.COLORMAP_JET)
-            mask = (d_norm > 0.08)[..., None]
-            out = np.where(mask, cv2.addWeighted(out, 0.42, heat, 0.58, 0), out)
+            max_val = float(d_resized.max())
+            if max_val > 1e-4:
+                d_norm = np.clip(d_resized / max_val, 0.0, 1.0)
+                heat = cv2.applyColorMap((d_norm * 255).astype(np.uint8), cv2.COLORMAP_TURBO)
+                # Feather alpha continuously from 0.0 at d_norm <= 0.05 to 0.52 at peak density
+                alpha = np.clip((d_norm - 0.05) / 0.70, 0.0, 1.0) * 0.52
+                alpha_3d = alpha[..., None]
+                out = (out.astype(np.float32) * (1.0 - alpha_3d) + heat.astype(np.float32) * alpha_3d).astype(np.uint8)
         except Exception:
             pass
 
@@ -418,13 +441,15 @@ def draw_overlay(frame, zone_data, density_map, dataset_title):
         color_bgr = COLOR_BGR.get(d["color"], (180, 180, 180))
 
         # Zone border
-        cv2.rectangle(out, (x0, y0), (x1, y1), color_bgr, 3)
+        cv2.rectangle(out, (x0, y0), (x1, y1), color_bgr, 2)
 
         # Translucent HUD card in corner of zone
         box_w = min(280, max(180, x1 - x0 - 8))
         box_h = 74
-        hud_x0 = x0 + 4
-        hud_y0 = y0 + 4
+        hud_x0 = x0 + 6
+        hud_y0 = y0 + 6
+        if y0 == 0 and x0 > 0:
+            hud_y0 = 66
 
         tint = out.copy()
         cv2.rectangle(tint, (hud_x0, hud_y0), (hud_x0 + box_w, hud_y0 + box_h), (12, 12, 18), -1)
@@ -486,15 +511,21 @@ def inference_thread(yolo_model, lstm_model, seq_len):
 
         if yolo_model is not None:
             try:
-                results = yolo_model(frame, classes=[0], verbose=False)[0]
+                results = yolo_model(frame, classes=[0], conf=0.18, verbose=False)[0]
                 for b in results.boxes.xyxy:
                     x1, y1, x2, y2 = map(int, b)
-                    cx, cy = (x1 + x2) // 2, y1 + (y2 - y1) // 3
+                    person_h = max(10, y2 - y1)
+                    cx = (x1 + x2) // 2
+                    # Torso center-of-mass for surveillance perspective camera
+                    cy = y1 + int(person_h * 0.52)
                     detections.append((cx, cy))
-                    # Gaussian kernel stamp on human centroid
-                    cv2.circle(density_map, (cx, cy), radius=28, color=1.0, thickness=-1)
 
-                density_map = cv2.GaussianBlur(density_map, (55, 55), 14)
+                    # Perspective-scaled radius: distant people get ~16px radius, foreground people up to ~52px
+                    r = int(np.clip(person_h * 0.32, 16, 52))
+                    cv2.circle(density_map, (cx, cy), radius=r, color=1.0, thickness=-1)
+
+                if len(detections) > 0:
+                    density_map = cv2.GaussianBlur(density_map, (51, 51), 15)
             except Exception as e:
                 print(f"[Inference Error] YOLO density estimation: {e}")
 
@@ -509,6 +540,7 @@ def inference_thread(yolo_model, lstm_model, seq_len):
             zlabel = z.get("label", zid)
             zcap = max(1, z.get("capacity", 20))
             bbox = z.get("bbox", [0.0, 0.0, 1.0, 1.0])
+            map_bbox = z.get("map_bbox", bbox)
 
             # Convert bbox to pixel coordinates
             zx0, zy0 = int(bbox[0] * w), int(bbox[1] * h)
@@ -541,6 +573,7 @@ def inference_thread(yolo_model, lstm_model, seq_len):
                 "id": zid,
                 "label": zlabel,
                 "bbox": bbox,
+                "map_bbox": map_bbox,
                 "capacity": zcap,
                 "count": cnt,
                 "saturation_pct": round(sat_pct, 1),
@@ -742,6 +775,10 @@ def api_dataset_switch():
         active_config["zones"] = list(preset["zones"])
         active_config["corridors"] = dict(preset["corridors"])
         active_config["parking"] = dict(preset["parking"])
+        if "cameras" in preset:
+            active_config["cameras"] = list(preset["cameras"])
+        if "gates" in preset:
+            active_config["gates"] = list(preset["gates"])
         current_source_path = preset["source"]
         source_event.set()
 

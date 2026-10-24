@@ -138,7 +138,7 @@ export default function AttendeeView() {
 
   const sectors = useMemo(() => {
     return Object.values(rawZones).map((z) => {
-      const bbox = z.bbox || [0.1, 0.1, 0.4, 0.4];
+      const bbox = z.map_bbox || z.bbox || [0.1, 0.1, 0.4, 0.4];
       const x = bbox[0] * 100;
       const y = bbox[1] * 100;
       const w = Math.max(10, (bbox[2] - bbox[0]) * 100);

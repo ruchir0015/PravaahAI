@@ -191,16 +191,19 @@ export default function VenueSetup({ setVenueData, setZoneData, setActiveView })
         setGates(presetGates);
 
         if (active.zones) {
-          const mapped = active.zones.map((z, idx) => ({
-            id: z.id,
-            label: z.label,
-            x: Math.round(z.bbox[0] * 100),
-            y: Math.round(z.bbox[1] * 100),
-            w: Math.round((z.bbox[2] - z.bbox[0]) * 100),
-            h: Math.round((z.bbox[3] - z.bbox[1]) * 100),
-            capacity: z.capacity,
-            camera_id: idx % 2 === 0 ? 'CAM-01' : 'CAM-02'
-          }));
+          const mapped = active.zones.map((z, idx) => {
+            const b = z.map_bbox || z.bbox || [0.1, 0.1, 0.4, 0.4];
+            return {
+              id: z.id,
+              label: z.label,
+              x: Math.round(b[0] * 100),
+              y: Math.round(b[1] * 100),
+              w: Math.round((b[2] - b[0]) * 100),
+              h: Math.round((b[3] - b[1]) * 100),
+              capacity: z.capacity,
+              camera_id: idx % 2 === 0 ? 'CAM-01' : 'CAM-02'
+            };
+          });
           setZones(mapped);
           setZoneData?.(mapped);
         }
