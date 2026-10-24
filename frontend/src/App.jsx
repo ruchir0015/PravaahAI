@@ -34,6 +34,7 @@ function getInitialView() {
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab');
   if (tab) return normalizeView(tab);
+  if (params.get('visitor') || params.get('pass') || params.get('attendee')) return 'attendee';
   return 'dashboard';
 }
 

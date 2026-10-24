@@ -21,16 +21,35 @@ const NAV_ITEMS = [
 export default function TopBar({ activeView = 'dashboard', setActiveView }) {
   const [showQRModal, setShowQRModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [networkInfo, setNetworkInfo] = useState(null);
+  const [customUrl, setCustomUrl] = useState('');
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+
+  // Auto-fetch detected server IP from backend
+  useEffect(() => {
+    fetch('/api/system/network')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.primary_ip) {
+          setNetworkInfo(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Universal QR URL for All Visitors
   const universalQrUrl = useMemo(() => {
-    if (typeof window === 'undefined') return 'http://localhost:5174/?visitor=1#attendee';
-    const host = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      ? '11.20.17.207'
+    if (customUrl.trim()) return customUrl.trim();
+    if (typeof window === 'undefined') return 'http://localhost:5174/#attendee';
+
+    // If on actual domain / remote IP, use that
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const host = isLocalhost
+      ? (networkInfo?.primary_ip || '11.20.17.207')
       : window.location.hostname;
     const port = window.location.port ? `:${window.location.port}` : '';
     return `http://${host}${port}/?visitor=1#attendee`;
-  }, []);
+  }, [customUrl, networkInfo]);
 
   const handleCopyLink = () => {
     if (navigator.clipboard) {
@@ -152,30 +171,59 @@ export default function TopBar({ activeView = 'dashboard', setActiveView }) {
                 />
               </div>
               <p className="topbar-qr-hint">
-                One single QR for all venue visitors. Point camera to view live queue times, navigation route &amp; event pass.
+                One single universal pass for all venue visitors. Scan with any phone camera to view live queue times, navigation route &amp; event pass.
               </p>
             </div>
 
+            {/* URL Display / Edit Mode */}
             <div className="topbar-modal-url-box">
-              <span className="topbar-url-text">{universalQrUrl}</span>
-              <button
-                type="button"
-                className="topbar-url-copy-btn"
-                onClick={handleCopyLink}
-              >
-                {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                <span>{copied ? 'Copied' : 'Copy'}</span>
-              </button>
+              {isEditingUrl ? (
+                <input
+                  type="text"
+                  className="topbar-url-input"
+                  value={customUrl}
+                  onChange={(e) => setCustomUrl(e.target.value)}
+                  placeholder="Paste ngrok, localtunnel, or custom domain..."
+                  autoFocus
+                />
+              ) : (
+                <span className="topbar-url-text">{universalQrUrl}</span>
+              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  className="topbar-url-copy-btn"
+                  onClick={() => setIsEditingUrl(!isEditingUrl)}
+                  title="Edit or paste public tunnel / custom domain URL"
+                >
+                  <span>{isEditingUrl ? 'Done' : 'Edit IP/Tunnel'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="topbar-url-copy-btn"
+                  onClick={handleCopyLink}
+                >
+                  {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
             </div>
 
-            <div className="topbar-modal-actions">
+            {/* Quick Network Diagnostics Note */}
+            <div className="mt-2 text-[11px] text-zinc-400 bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800 leading-relaxed">
+              <div className="font-semibold text-zinc-200 mb-0.5">Phone Scanning Instructions:</div>
+              <div>• <strong>Same Wi-Fi / Laptop Hotspot:</strong> Phone must be on the same local Wi-Fi network as this PC ({networkInfo?.primary_ip || '11.20.17.207'}).</div>
+              <div>• <strong>Cellular 4G/5G or Isolated Wi-Fi:</strong> If campus/office Wi-Fi blocks local devices, run <code className="text-emerald-400 bg-black/60 px-1 py-0.5 rounded">npx localtunnel --port 5174</code> or <code className="text-emerald-400 bg-black/60 px-1 py-0.5 rounded">ngrok http 5174</code>, click <em>Edit IP/Tunnel</em> above, and paste the URL.</div>
+            </div>
+
+            <div className="topbar-modal-actions mt-3">
               <button
                 type="button"
                 className="topbar-modal-preview-btn"
                 onClick={() => window.open(universalQrUrl, '_blank')}
               >
                 <ExternalLink size={14} />
-                <span>Open in New Tab (Preview)</span>
+                <span>Open in New Tab (Preview Companion)</span>
               </button>
             </div>
           </div>

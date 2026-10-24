@@ -9,7 +9,7 @@ Dynamic Multi-Dataset AI Pipeline for Authority Traffic & Crowd Management:
   6. Dynamic Intermodal Decision Engine: Crowd Diversion & Vehicular Rerouting
 """
 
-import os, cv2, time, threading, json, glob
+import os, cv2, time, threading, json, glob, socket
 from collections import deque
 import numpy as np
 import torch, torch.nn as nn
@@ -885,6 +885,36 @@ def api_upload_map():
 @app.route("/uploads/<path:filename>")
 def serve_uploads(filename):
     return send_from_directory(UPLOADS_DIR, filename)
+
+@app.route("/api/system/network")
+def api_system_network():
+    ips = []
+    # Try finding outgoing IP via socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        if local_ip and local_ip not in ips and not local_ip.startswith("127."):
+            ips.append(local_ip)
+    except Exception:
+        pass
+    
+    # Also inspect hostname addresses
+    try:
+        hostname = socket.gethostname()
+        for ip in socket.gethostbyname_ex(hostname)[2]:
+            if not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except Exception:
+        pass
+        
+    return jsonify({
+        "primary_ip": ips[0] if ips else "localhost",
+        "available_ips": ips,
+        "port": 5174,
+        "visitor_path": "/#attendee"
+    })
 
 @app.route("/api/status")
 def api_status():
