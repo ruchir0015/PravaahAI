@@ -1,75 +1,69 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import {
   Compass,
   MapPin,
-  ShieldCheck,
   AlertTriangle,
-  QrCode,
-  Download,
   Users,
   ArrowRight,
-  Check,
-  ExternalLink,
   Navigation,
   Play,
   Square,
   RotateCcw,
   Footprints,
-  Share2,
   LocateFixed,
-  Radio,
   DoorOpen,
-  LifeBuoy,
   Clock,
-  Sparkles,
   Search,
-  Eye,
   CheckCircle2,
-  Copy,
-  Info
+  ChevronRight,
+  CornerUpRight,
+  ShieldAlert
 } from 'lucide-react';
 import './AttendeeView.css';
 
-// In Vite development, relative fetch is automatically proxied to backend port 5050
 const API_BASE = '';
 const POLL_INTERVAL_MS = 2000;
 
-const STATUS_COLOR_MAP = {
+const STATUS_CONFIG = {
   RED: {
-    label: 'Critical · ~12m Wait',
-    sub: 'Severe Bottleneck Risk',
-    text: '#f87171',
-    bg: 'rgba(239, 68, 68, 0.12)',
-    border: '#ef4444'
+    label: 'Congested · ~12m Wait',
+    sub: 'Heavy Bottleneck',
+    textColor: '#b91c1c',
+    bgColor: '#fef2f2',
+    borderColor: '#fca5a5',
+    mapFill: 'rgba(239, 68, 68, 0.16)',
+    mapStroke: '#dc2626'
   },
   YELLOW: {
     label: 'Moderate · ~4m Wait',
-    sub: 'Steady Influx Flow',
-    text: '#fbbf24',
-    bg: 'rgba(245, 158, 11, 0.12)',
-    border: '#f59e0b'
+    sub: 'Steady Influx',
+    textColor: '#b45309',
+    bgColor: '#fffbeb',
+    borderColor: '#fde68a',
+    mapFill: 'rgba(245, 158, 11, 0.16)',
+    mapStroke: '#d97706'
   },
   GREEN: {
     label: 'Direct Entry · <1m Wait',
-    sub: 'Free Flow Access',
-    text: '#34d399',
-    bg: 'rgba(16, 185, 129, 0.12)',
-    border: '#10b981'
+    sub: 'Free Flowing',
+    textColor: '#15803d',
+    bgColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
+    mapFill: 'rgba(34, 197, 94, 0.16)',
+    mapStroke: '#16a34a'
   },
 };
 
-export default function AttendeeView({ setActiveView }) {
+export default function AttendeeView() {
   const [liveStatus, setLiveStatus] = useState(null);
   const [venueConfig, setVenueConfig] = useState(null);
-  const [networkInfo, setNetworkInfo] = useState(null);
 
   // Selected destination sector
   const [selectedSectorId, setSelectedSectorId] = useState('P2');
   const [searchFilter, setSearchFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL'); // 'ALL' | 'FAST' | 'GATES'
 
   // User position & location mode
-  // Default entrance location
   const [userPos, setUserPos] = useState({ x: 16, y: 86, label: 'Gate A – North Entrance', isGPS: false });
   const [liveGPSActive, setLiveGPSActive] = useState(false);
   const [gpsData, setGpsData] = useState(null);
@@ -82,13 +76,8 @@ export default function AttendeeView({ setActiveView }) {
   const navTimerRef = useRef(null);
   const gpsWatchIdRef = useRef(null);
 
-  // Modals & UI Feedback
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [showPassModal, setShowPassModal] = useState(false);
+  // UI Feedback
   const [toastMsg, setToastMsg] = useState(null);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [customTunnelUrl, setCustomTunnelUrl] = useState('');
-  const [isEditingTunnel, setIsEditingTunnel] = useState(false);
 
   // ── 1. Fetch Dynamic Venue & Live Status from Backend ──────────────────────
   useEffect(() => {
@@ -96,10 +85,9 @@ export default function AttendeeView({ setActiveView }) {
 
     const fetchConfig = async () => {
       try {
-        const [venueRes, statusRes, netRes] = await Promise.all([
+        const [venueRes, statusRes] = await Promise.all([
           fetch(`${API_BASE}/api/venue/current`),
-          fetch(`${API_BASE}/api/status`),
-          fetch(`${API_BASE}/api/system/network`).catch(() => null)
+          fetch(`${API_BASE}/api/status`)
         ]);
 
         if (active && venueRes.ok) {
@@ -112,12 +100,8 @@ export default function AttendeeView({ setActiveView }) {
             setLiveStatus(sData);
           }
         }
-        if (active && netRes && netRes.ok) {
-          const nData = await netRes.json();
-          setNetworkInfo(nData);
-        }
       } catch (err) {
-        // Fallback gracefully to offline defaults
+        // Fallback gracefully
       }
     };
 
@@ -183,7 +167,7 @@ export default function AttendeeView({ setActiveView }) {
     return rawGates;
   }, [liveStatus, venueConfig]);
 
-  // Auto-select initial destination if not selected
+  // Auto-select initial destination
   useEffect(() => {
     if (!selectedSectorId && sectors.length > 0) {
       setSelectedSectorId(sectors[0].id);
@@ -194,19 +178,7 @@ export default function AttendeeView({ setActiveView }) {
   const greenAlternatives = sectors.filter(s => s.color === 'GREEN');
   const recommendedSector = greenAlternatives.length > 0 ? greenAlternatives[0] : sectors[0];
 
-  // ── 3. Universal QR URL for All Visitors ───────────────────────────────────
-  const universalQrUrl = useMemo(() => {
-    if (customTunnelUrl.trim()) return customTunnelUrl.trim();
-    if (typeof window === 'undefined') return 'http://localhost:5174/?visitor=1#attendee';
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const host = isLocalhost
-      ? (networkInfo?.primary_ip || '11.20.17.207')
-      : window.location.hostname;
-    const port = window.location.port ? `:${window.location.port}` : '';
-    return `http://${host}${port}/?visitor=1#attendee`;
-  }, [customTunnelUrl, networkInfo]);
-
-  // ── 4. Live Geolocation Sensor Tracker ─────────────────────────────────────
+  // ── 3. Live Geolocation Sensor Tracker ─────────────────────────────────────
   const toggleLiveGPS = () => {
     if (liveGPSActive) {
       if (gpsWatchIdRef.current) {
@@ -229,7 +201,6 @@ export default function AttendeeView({ setActiveView }) {
         setGpsData({ lat: latitude, lng: longitude, accuracy, heading });
         setLiveGPSActive(true);
 
-        // Approximate map position based on slight GPS offset or keep pin anchored with GPS badge
         setUserPos(prev => ({
           ...prev,
           label: `GPS Location (±${Math.round(accuracy)}m)`,
@@ -238,7 +209,7 @@ export default function AttendeeView({ setActiveView }) {
       },
       (error) => {
         console.warn("GPS watch error:", error);
-        showToast("Location access denied or unavailable. Tap map to place pin.");
+        showToast("Location access unavailable. Tap map to place pin.");
         setLiveGPSActive(false);
       },
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 12000 }
@@ -255,7 +226,7 @@ export default function AttendeeView({ setActiveView }) {
     };
   }, []);
 
-  // ── 5. User Position Controls: Click to Place Pin or Select Gate ───────────
+  // ── 4. User Position Controls: Click to Place Pin or Select Gate ───────────
   const handleMapCanvasClick = (e) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
@@ -277,7 +248,7 @@ export default function AttendeeView({ setActiveView }) {
       setNavStepIndex(0);
     }
 
-    showToast(`Current location pin moved to (${clampedX}%, ${clampedY}%)`);
+    showToast(`Location set to (${clampedX}%, ${clampedY}%)`);
   };
 
   const handleSelectStartingGate = (gate) => {
@@ -294,7 +265,7 @@ export default function AttendeeView({ setActiveView }) {
     showToast(`Starting from ${gate.name}`);
   };
 
-  // ── 6. Intelligent Waypoint Pathfinding (Corridors & Avoids Straight Walls) ─
+  // ── 5. Intelligent Waypoint Pathfinding ────────────────────────────────────
   const navigationRoute = useMemo(() => {
     if (!activeSector) return [];
 
@@ -303,8 +274,6 @@ export default function AttendeeView({ setActiveView }) {
     const endX = activeSector.cx;
     const endY = activeSector.cy;
 
-    // Corridor transit point (hub through campus promenade at 50%, 50%)
-    // Creates a realistic 3-segment walkway path rather than cutting across buildings
     const transitX = 50;
     const transitY = (startY + endY) / 2;
 
@@ -312,17 +281,17 @@ export default function AttendeeView({ setActiveView }) {
       {
         x: startX,
         y: startY,
-        instruction: `Depart from ${userPos.label}`
+        instruction: `Head out from ${userPos.label}`
       },
       {
         x: transitX,
         y: transitY,
-        instruction: `Follow illuminated Main Promenade corridor toward ${activeSector.label}`
+        instruction: `Continue straight along Main Promenade toward ${activeSector.label}`
       },
       {
         x: endX,
         y: endY,
-        instruction: `Arrive at ${activeSector.label} Entry Turnstiles`
+        instruction: `Arrive at ${activeSector.label} Entry Gate`
       }
     ];
 
@@ -334,7 +303,6 @@ export default function AttendeeView({ setActiveView }) {
     if (navigationRoute.length < 2) return { x: userPos.x, y: userPos.y };
 
     if (navProgress <= 50) {
-      // First leg: waypoint 0 -> waypoint 1
       const ratio = navProgress / 50;
       const p0 = navigationRoute[0];
       const p1 = navigationRoute[1];
@@ -343,7 +311,6 @@ export default function AttendeeView({ setActiveView }) {
         y: p0.y + (p1.y - p0.y) * ratio
       };
     } else {
-      // Second leg: waypoint 1 -> waypoint 2
       const ratio = (navProgress - 50) / 50;
       const p1 = navigationRoute[1];
       const p2 = navigationRoute[2];
@@ -360,12 +327,12 @@ export default function AttendeeView({ setActiveView }) {
     const dx = activeSector.cx - userPos.x;
     const dy = activeSector.cy - userPos.y;
     const mapDist = Math.sqrt(dx * dx + dy * dy);
-    return Math.round(mapDist * 3.2); // ~3.2m per map percentage unit
+    return Math.round(mapDist * 3.2);
   }, [activeSector, userPos]);
 
-  const estimatedWalkSeconds = Math.round(routeDistanceMeters / 1.3); // 1.3 m/s human walking speed
+  const estimatedWalkMinutes = Math.max(1, Math.round(routeDistanceMeters / 75)); // ~75m per min walk
 
-  // ── 7. Navigation Controls (Start / Stop / Reset) ───────────────────────────
+  // ── 6. Navigation Controls ────────────────────────────────────────────────
   const startNavigation = () => {
     setIsNavigating(true);
     setNavProgress(0);
@@ -380,12 +347,12 @@ export default function AttendeeView({ setActiveView }) {
           showToast(`Arrived at ${activeSector?.label || 'destination'}!`);
           return 100;
         }
-        const next = prev + 4;
+        const next = prev + 5;
         if (next > 50 && prev <= 50) setNavStepIndex(1);
         if (next >= 100) setNavStepIndex(2);
         return next;
       });
-    }, 500);
+    }, 450);
   };
 
   const stopNavigation = () => {
@@ -400,7 +367,6 @@ export default function AttendeeView({ setActiveView }) {
     const exitGates = gates.filter(g => g.type === 'EXIT' || g.type === 'EMERGENCY');
     const targetExit = exitGates.length > 0 ? exitGates[0] : gates[0];
 
-    // Find nearest or safe exit
     setEvacuationMode(true);
     showToast(`Emergency Route Engaged: Guiding to ${targetExit.name}`);
     startNavigation();
@@ -414,167 +380,130 @@ export default function AttendeeView({ setActiveView }) {
 
   const showToast = (msg) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3200);
+    setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleCopyLink = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(universalQrUrl);
-      setCopiedLink(true);
-      showToast("Universal pass URL copied to clipboard");
-      setTimeout(() => setCopiedLink(false), 2500);
-    }
-  };
-
-  // Filtered sectors for destinations search
-  const filteredSectors = sectors.filter(s =>
-    s.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    s.id.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+  // Filtered sectors for destinations search and categories
+  const filteredSectors = useMemo(() => {
+    return sectors.filter(s => {
+      const matchesSearch = s.label.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                            s.id.toLowerCase().includes(searchFilter.toLowerCase());
+      if (!matchesSearch) return false;
+      if (categoryFilter === 'FAST') return s.color === 'GREEN';
+      return true;
+    });
+  }, [sectors, searchFilter, categoryFilter]);
 
   return (
-    <div className="attendee-fair-page">
-      {/* ── Top Floating Companion Header ── */}
-      <header className="fair-header">
-        <div className="fair-header-left">
-          <div className="flex items-center gap-2">
-            <span className="live-dot-pulse" />
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
-              Live Visitor Companion
-            </span>
-            <span className="text-xs text-zinc-600">·</span>
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-              <Radio size={12} className="animate-pulse" />
-              Live AI Sync
-            </span>
+    <div className="gmaps-attendee-page">
+      {/* ── Google Maps Style Clean Top Bar ── */}
+      <header className="gmaps-top-header">
+        <div className="gmaps-header-brand">
+          <div className="gmaps-pin-icon-wrap">
+            <MapPin size={20} className="text-blue-600" fill="#2563eb" />
           </div>
-          <h1 className="fair-title">{venueTitle}</h1>
+          <div>
+            <h1 className="gmaps-venue-title">{venueTitle}</h1>
+            <p className="gmaps-venue-sub">Interactive Campus &amp; Event Navigation</p>
+          </div>
         </div>
 
-        <div className="fair-header-right">
+        <div className="gmaps-header-actions">
           {/* Live GPS Tracker Toggle */}
           <button
             type="button"
-            className={`att-gps-btn ${liveGPSActive ? 'is-active' : ''}`}
+            className={`gmaps-gps-btn ${liveGPSActive ? 'is-active' : ''}`}
             onClick={toggleLiveGPS}
-            title="Track my real-time GPS location via phone sensor"
+            title="Track my real-time GPS location"
           >
-            <LocateFixed size={14} className={liveGPSActive ? 'animate-spin' : ''} />
-            <span>{liveGPSActive ? 'Live GPS Active' : 'Share My GPS'}</span>
-          </button>
-
-          {/* Universal Visitor Pass QR Button */}
-          <button
-            type="button"
-            id="attendee-qr-btn"
-            className="att-visitor-qr-btn"
-            onClick={() => setShowQRModal(true)}
-            title="Scan or share Universal Visitor QR Pass"
-          >
-            <QrCode size={14} />
-            <span>Visitor QR</span>
-          </button>
-
-          {/* Scannable Gate Pass Modal Button */}
-          <button
-            type="button"
-            className="att-pass-badge-btn"
-            onClick={() => setShowPassModal(true)}
-            title="Show scannable event access pass for turnstile security"
-          >
-            <Sparkles size={14} className="text-amber-400" />
-            <span>My Pass</span>
+            <LocateFixed size={15} className={liveGPSActive ? 'animate-spin' : ''} />
+            <span>{liveGPSActive ? 'Live GPS Active' : 'Share Location'}</span>
           </button>
         </div>
       </header>
 
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="att-toast-popup">
-          <CheckCircle2 size={15} className="text-emerald-400" />
+        <div className="gmaps-toast">
+          <CheckCircle2 size={16} className="text-emerald-600" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* Safety Alert Banner (Triggered when congestion is high) */}
+      {/* Safety Congestion Alert Banner */}
       {activeSector && activeSector.color === 'RED' && (
-        <div className="att-congestion-banner">
+        <div className="gmaps-alert-banner">
           <div className="flex items-center gap-2.5">
-            <AlertTriangle size={16} className="text-rose-400 shrink-0" />
+            <ShieldAlert size={18} className="text-red-600 shrink-0" />
             <div>
-              <div className="font-bold text-rose-300 text-xs uppercase tracking-wide">
-                Congestion Advisory · {activeSector.label}
+              <div className="font-bold text-red-900 text-xs">
+                Congestion Delay at {activeSector.label} ({activeSector.saturation.toFixed(0)}% Capacity)
               </div>
-              <div className="text-xs text-zinc-300">
-                Density reaches {activeSector.saturation.toFixed(0)}% saturation. High wait times. Authority recommends diverting to <strong>{recommendedSector.label}</strong>.
+              <div className="text-xs text-red-700">
+                Alternative: <strong>{recommendedSector.label}</strong> has direct access with 0 min wait.
               </div>
             </div>
           </div>
           <button
             type="button"
-            className="att-btn-reroute-pill"
+            className="gmaps-btn-reroute"
             onClick={() => {
               setSelectedSectorId(recommendedSector.id);
               if (isNavigating) setNavProgress(0);
               showToast(`Rerouted to ${recommendedSector.label}`);
             }}
           >
-            <span>Reroute to {recommendedSector.id}</span>
+            <span>Switch to {recommendedSector.id}</span>
             <ArrowRight size={13} />
           </button>
         </div>
       )}
 
-      {/* ── Main Two-Column Layout ── */}
-      <div className="fair-body-grid">
-        {/* Left Column: Interactive Floorplan Canvas */}
-        <div className="fair-map-card">
-          <div className="fair-map-header">
+      {/* ── Main Structured Two-Column View ── */}
+      <div className="gmaps-content-grid">
+        {/* Left Column: Interactive Map Card */}
+        <section className="gmaps-card gmaps-map-section">
+          <div className="gmaps-card-header">
             <div className="flex items-center gap-2">
-              <h2 className="section-title">Interactive Venue Blueprint</h2>
-              <span className="att-meta-chip">
-                {sectors.length} Sectors · {gates.length} Gates
-              </span>
+              <span className="gmaps-section-badge">MAP VIEW</span>
+              <h2 className="gmaps-card-title">Live Venue Blueprint</h2>
+              <span className="gmaps-count-chip">{sectors.length} Sectors</span>
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Emergency Safe Exit Button */}
               <button
                 type="button"
-                className="att-btn-emergency"
+                className="gmaps-btn-exit"
                 onClick={handleTriggerSafeExit}
-                title="Calculate nearest safe emergency exit evacuation path"
+                title="Find closest safe emergency exit route"
               >
-                <DoorOpen size={13} />
+                <DoorOpen size={14} />
                 <span>Nearest Safe Exit</span>
               </button>
             </div>
           </div>
 
-          {/* Blueprint SVG Map Container */}
-          <div className="fair-map-viewport">
+          {/* Blueprint SVG Canvas */}
+          <div className="gmaps-canvas-wrapper">
             <svg
-              className="fair-map-svg"
+              className="gmaps-blueprint-svg"
               viewBox="0 0 100 100"
               preserveAspectRatio="xMidYMid meet"
               onClick={handleMapCanvasClick}
             >
               <defs>
-                <pattern id="attGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#161822" strokeWidth="0.35" />
+                <pattern id="gmapsGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#e2e8f0" strokeWidth="0.4" />
                 </pattern>
-                <radialGradient id="userGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="walkerGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                {/* Google Maps Blue GPS Pulse */}
+                <radialGradient id="gmapsGpsGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
                 </radialGradient>
               </defs>
 
-              {/* Background blueprint image if available, else clean CAD grid */}
-              <rect width="100" height="100" fill="#040508" />
+              {/* Clean Blueprint Architectural Background */}
+              <rect width="100" height="100" fill="#f8fafc" />
               {mapImage ? (
                 <image
                   href={mapImage}
@@ -583,19 +512,19 @@ export default function AttendeeView({ setActiveView }) {
                   width="100"
                   height="100"
                   preserveAspectRatio="xMidYMid meet"
-                  opacity="0.38"
+                  opacity="0.32"
                 />
               ) : null}
-              <rect width="100" height="100" fill="url(#attGrid)" />
+              <rect width="100" height="100" fill="url(#gmapsGrid)" />
 
-              {/* Main Corridors & Pathways */}
-              <line x1="16" y1="50" x2="84" y2="50" stroke="#1c202d" strokeWidth="2.5" strokeLinecap="round" />
-              <line x1="50" y1="18" x2="50" y2="86" stroke="#1c202d" strokeWidth="2.5" strokeLinecap="round" />
+              {/* Corridors & Pathways */}
+              <line x1="16" y1="50" x2="84" y2="50" stroke="#cbd5e1" strokeWidth="3" strokeLinecap="round" />
+              <line x1="50" y1="18" x2="50" y2="86" stroke="#cbd5e1" strokeWidth="3" strokeLinecap="round" />
 
               {/* ── Calibrated Sectors ── */}
               {sectors.map((s) => {
                 const isSelected = activeSector?.id === s.id;
-                const statusMeta = STATUS_COLOR_MAP[s.color] || STATUS_COLOR_MAP.GREEN;
+                const statusMeta = STATUS_CONFIG[s.color] || STATUS_CONFIG.GREEN;
 
                 return (
                   <g
@@ -613,16 +542,15 @@ export default function AttendeeView({ setActiveView }) {
                       width={s.w - 2}
                       height={s.h - 2}
                       rx="3.5"
-                      fill={statusMeta.bg}
-                      stroke={isSelected ? '#ffffff' : statusMeta.border}
-                      strokeWidth={isSelected ? '1.8' : '0.9'}
-                      strokeDasharray={isSelected ? 'none' : 'none'}
+                      fill={statusMeta.mapFill}
+                      stroke={isSelected ? '#2563eb' : statusMeta.mapStroke}
+                      strokeWidth={isSelected ? '2.4' : '1.2'}
                     />
                     <text
                       x={s.cx}
                       y={s.cy - 1.2}
                       textAnchor="middle"
-                      fill="#ffffff"
+                      fill="#0f172a"
                       fontSize="3.4"
                       fontWeight="800"
                       fontFamily="system-ui, sans-serif"
@@ -633,7 +561,7 @@ export default function AttendeeView({ setActiveView }) {
                       x={s.cx}
                       y={s.cy + 3.2}
                       textAnchor="middle"
-                      fill={statusMeta.text}
+                      fill={statusMeta.mapStroke}
                       fontSize="2.4"
                       fontWeight="700"
                       fontFamily="system-ui, sans-serif"
@@ -644,11 +572,10 @@ export default function AttendeeView({ setActiveView }) {
                 );
               })}
 
-              {/* ── Calibrated Access Gates ── */}
+              {/* ── Calibrated Gates ── */}
               {gates.map((g) => {
-                const isEntry = g.type === 'ENTRY';
                 const isEmergency = g.type === 'EMERGENCY' || g.type === 'EXIT';
-                const gateColor = isEmergency ? '#ef4444' : isEntry ? '#38bdf8' : '#fbbf24';
+                const gateColor = isEmergency ? '#dc2626' : '#2563eb';
 
                 return (
                   <g
@@ -659,13 +586,13 @@ export default function AttendeeView({ setActiveView }) {
                     }}
                     style={{ cursor: 'pointer' }}
                   >
-                    <circle cx={g.x} cy={g.y} r="2.8" fill="#090a12" stroke={gateColor} strokeWidth="1.2" />
+                    <circle cx={g.x} cy={g.y} r="2.8" fill="#ffffff" stroke={gateColor} strokeWidth="1.4" />
                     <circle cx={g.x} cy={g.y} r="1.2" fill={gateColor} />
                     <text
                       x={g.x}
                       y={g.y + 5.5}
                       textAnchor="middle"
-                      fill={gateColor}
+                      fill="#1e293b"
                       fontSize="2.2"
                       fontWeight="700"
                     >
@@ -675,37 +602,37 @@ export default function AttendeeView({ setActiveView }) {
                 );
               })}
 
-              {/* ── Dynamic Waypoint Navigation Path ── */}
+              {/* ── Google Maps Route Polyline ── */}
               {isNavigating && navigationRoute.length >= 2 && (
                 <polyline
                   points={navigationRoute.map(p => `${p.x},${p.y}`).join(' ')}
                   fill="none"
-                  stroke={evacuationMode ? '#ef4444' : '#10b981'}
-                  strokeWidth="1.5"
-                  strokeDasharray="2.5 2"
+                  stroke={evacuationMode ? '#dc2626' : '#2563eb'}
+                  strokeWidth="2.2"
+                  strokeDasharray="3 2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               )}
 
-              {/* Static Destination Pin */}
+              {/* Destination Pin */}
               {activeSector && (
                 <g>
                   <circle
                     cx={activeSector.cx}
                     cy={activeSector.cy}
-                    r="3.2"
-                    fill={STATUS_COLOR_MAP[activeSector.color]?.border || '#10b981'}
+                    r="3.4"
+                    fill={STATUS_CONFIG[activeSector.color]?.mapStroke || '#2563eb'}
                     stroke="#ffffff"
-                    strokeWidth="1"
+                    strokeWidth="1.2"
                   />
                   <circle cx={activeSector.cx} cy={activeSector.cy} r="1.2" fill="#ffffff" />
                   <text
                     x={activeSector.cx}
                     y={activeSector.cy - 5}
                     textAnchor="middle"
-                    fill="#ffffff"
-                    fontSize="2.4"
+                    fill="#0f172a"
+                    fontSize="2.5"
                     fontWeight="800"
                   >
                     Destination
@@ -713,16 +640,16 @@ export default function AttendeeView({ setActiveView }) {
                 </g>
               )}
 
-              {/* ── Current User Location Pin ── */}
+              {/* ── Google Maps Blue Location Pin ("YOU ARE HERE") ── */}
               <g transform={`translate(${userPos.x}, ${userPos.y})`}>
-                <circle r="5" fill="url(#userGlow)" />
-                <circle r="2.6" fill="#38bdf8" stroke="#ffffff" strokeWidth="1" />
-                <circle r="1" fill="#ffffff" />
+                <circle r="6" fill="url(#gmapsGpsGlow)" />
+                <circle r="3" fill="#2563eb" stroke="#ffffff" strokeWidth="1.4" />
+                <circle r="1.2" fill="#ffffff" />
                 <text
                   x="0"
-                  y="-4"
+                  y="-4.5"
                   textAnchor="middle"
-                  fill="#38bdf8"
+                  fill="#1d4ed8"
                   fontSize="2.3"
                   fontWeight="800"
                 >
@@ -730,124 +657,127 @@ export default function AttendeeView({ setActiveView }) {
                 </text>
               </g>
 
-              {/* ── Dynamic Animated Walker (When Actively Navigating) ── */}
+              {/* ── Dynamic Animated Walker ── */}
               {isNavigating && (
                 <g transform={`translate(${walkerPos.x}, ${walkerPos.y})`}>
-                  <circle r="7" fill="url(#walkerGlow)" />
-                  <circle r="3" fill="#10b981" stroke="#ffffff" strokeWidth="1.2" />
+                  <circle r="6" fill="url(#gmapsGpsGlow)" />
+                  <circle r="3.2" fill="#2563eb" stroke="#ffffff" strokeWidth="1.4" />
                   <circle r="1.2" fill="#ffffff" />
                 </g>
               )}
             </svg>
 
-            {/* Tap instruction badge */}
-            <div className="att-map-hint-pill">
-              <MapPin size={11} className="text-sky-400" />
-              <span>Tap anywhere on the blueprint to update your location</span>
+            {/* Tap instruction hint */}
+            <div className="gmaps-map-hint">
+              <MapPin size={12} className="text-blue-600" />
+              <span>Tap anywhere on the blueprint to set your location</span>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Right Column: Waypoint Navigation Controls & Dynamic Sectors */}
-        <div className="fair-destinations-card">
-          {/* Active Navigation HUD or Route Launcher */}
+        {/* Right Column: Directions & Places Panel */}
+        <aside className="gmaps-card gmaps-side-panel">
+          {/* Active Navigation HUD or Route Preview */}
           {isNavigating ? (
-            <div className="att-nav-active-box">
-              <div className="flex items-center justify-between">
+            <div className="gmaps-nav-card">
+              <div className="gmaps-nav-header">
                 <div className="flex items-center gap-2">
-                  <Footprints size={16} className="text-emerald-400 animate-bounce" />
+                  <Footprints size={18} className="text-blue-600" />
                   <div>
-                    <div className="text-xs font-bold text-white uppercase tracking-wider">
-                      {evacuationMode ? 'Evacuation Routing Active' : 'Live Walk Guidance'}
+                    <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      {evacuationMode ? 'Emergency Egress Active' : 'Turn-by-Turn Walk Directions'}
                     </div>
-                    <div className="text-[11px] text-zinc-400">
-                      ~{routeDistanceMeters}m · ~{estimatedWalkSeconds}s walk
+                    <div className="text-xs text-slate-500 font-medium">
+                      {routeDistanceMeters}m · ~{estimatedWalkMinutes} min walk
                     </div>
                   </div>
                 </div>
-                <span className="text-sm font-mono font-bold text-emerald-400">
+                <span className="text-sm font-bold text-blue-600 font-mono">
                   {navProgress}%
                 </span>
               </div>
 
-              {/* Step Progress Bar */}
-              <div className="att-nav-bar">
-                <div className="att-nav-fill" style={{ width: `${navProgress}%` }} />
+              {/* Progress Bar */}
+              <div className="gmaps-progress-bar">
+                <div className="gmaps-progress-fill" style={{ width: `${navProgress}%` }} />
               </div>
 
-              {/* Step-by-Step Directions Banner */}
-              <div className="att-step-instruction">
-                <div className="font-semibold text-zinc-200 text-xs mb-0.5">
-                  Step {navStepIndex + 1} of {navigationRoute.length}:
-                </div>
-                <div className="text-xs text-zinc-300 leading-relaxed">
-                  {navigationRoute[navStepIndex]?.instruction || `Proceed toward ${activeSector?.label}`}
+              {/* Current Step Instruction */}
+              <div className="gmaps-step-box">
+                <div className="flex items-start gap-2.5">
+                  <CornerUpRight size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      Step {navStepIndex + 1} of {navigationRoute.length}
+                    </div>
+                    <div className="text-xs font-semibold text-slate-900 mt-0.5 leading-snug">
+                      {navigationRoute[navStepIndex]?.instruction || `Proceed toward ${activeSector?.label}`}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Stop & Reset Controls */}
-              <div className="flex items-center gap-2 mt-2">
+              {/* Navigation Stop / Reset Controls */}
+              <div className="flex items-center gap-2 mt-1">
                 <button
                   type="button"
-                  className="att-btn-stop-nav flex-1"
+                  className="gmaps-btn-stop flex-1"
                   onClick={stopNavigation}
                 >
                   <Square size={13} fill="currentColor" />
-                  <span>{navProgress >= 100 ? 'Finish Route' : 'Stop Navigating'}</span>
+                  <span>{navProgress >= 100 ? 'End Route' : 'Stop Navigation'}</span>
                 </button>
                 <button
                   type="button"
-                  className="att-btn-icon"
+                  className="gmaps-btn-subtle"
                   onClick={startNavigation}
-                  title="Restart guidance from beginning"
+                  title="Restart route from departure gate"
                 >
                   <RotateCcw size={14} />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="att-nav-ready-box">
+            <div className="gmaps-destination-card">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Navigation size={15} className="text-sky-400" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
-                    Selected Destination
-                  </span>
-                </div>
-                <span className="text-xs font-mono text-zinc-400">
-                  ~{routeDistanceMeters}m away
+                <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
+                  Selected Destination
+                </span>
+                <span className="text-xs font-semibold text-slate-500">
+                  {routeDistanceMeters}m away
                 </span>
               </div>
 
-              <div className="text-sm font-bold text-white mb-1">
+              <div className="text-base font-bold text-slate-900 mb-1">
                 {activeSector?.label || 'Select a sector'}
               </div>
-              <div className="text-xs text-zinc-400 mb-3 flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <Clock size={12} />
-                  {STATUS_COLOR_MAP[activeSector?.color]?.label || 'Direct Entry'}
+
+              <div className="flex items-center gap-3 text-xs text-slate-600 mb-4">
+                <span className="flex items-center gap-1 font-semibold text-slate-800">
+                  <Clock size={13} className="text-slate-500" />
+                  {STATUS_CONFIG[activeSector?.color]?.label || 'Direct Entry'}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Users size={12} />
-                  {activeSector?.count} / {activeSector?.capacity} occupancy
+                  <Users size={13} className="text-slate-500" />
+                  {activeSector?.count} / {activeSector?.capacity} capacity
                 </span>
               </div>
 
               <button
                 type="button"
-                className="att-btn-launch-nav"
+                className="gmaps-btn-primary"
                 onClick={startNavigation}
               >
                 <Play size={15} fill="currentColor" />
-                <span>Start Walking Route</span>
+                <span>Start Walking Directions ({estimatedWalkMinutes} min)</span>
               </button>
             </div>
           )}
 
-          {/* Quick Gate Selector ("I entered via...") */}
-          <div className="att-starting-gates-row">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-              Starting Gate:
+          {/* Departure Gate Row */}
+          <div className="gmaps-gates-box">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Departure Point:
             </span>
             <div className="flex gap-1.5 flex-wrap">
               {gates.map((g) => {
@@ -856,10 +786,10 @@ export default function AttendeeView({ setActiveView }) {
                   <button
                     key={g.id}
                     type="button"
-                    className={`att-gate-pill ${isSelected ? 'is-selected' : ''}`}
+                    className={`gmaps-gate-pill ${isSelected ? 'is-selected' : ''}`}
                     onClick={() => handleSelectStartingGate(g)}
                   >
-                    <DoorOpen size={11} />
+                    <DoorOpen size={12} />
                     <span>{g.name.split('–')[0].trim()}</span>
                   </button>
                 );
@@ -867,193 +797,85 @@ export default function AttendeeView({ setActiveView }) {
             </div>
           </div>
 
-          {/* Destination Sectors Search & Directory */}
-          <div className="att-directory-header">
-            <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
-              Venue Sectors &amp; Queues
-            </span>
-            <div className="att-search-wrap">
-              <Search size={12} className="text-zinc-500" />
+          {/* Search Bar & Filter Chips */}
+          <div className="gmaps-search-section">
+            <div className="gmaps-search-box">
+              <Search size={15} className="text-slate-400 shrink-0" />
               <input
                 type="text"
-                placeholder="Filter sectors..."
+                placeholder="Search sectors, zones, gates..."
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className="att-search-input"
+                className="gmaps-search-input"
               />
+            </div>
+
+            <div className="gmaps-filter-chips">
+              <button
+                type="button"
+                className={`gmaps-chip ${categoryFilter === 'ALL' ? 'is-active' : ''}`}
+                onClick={() => setCategoryFilter('ALL')}
+              >
+                All Sectors ({sectors.length})
+              </button>
+              <button
+                type="button"
+                className={`gmaps-chip ${categoryFilter === 'FAST' ? 'is-active' : ''}`}
+                onClick={() => setCategoryFilter('FAST')}
+              >
+                Direct Access ({greenAlternatives.length})
+              </button>
             </div>
           </div>
 
-          <div className="dest-list">
+          {/* Sectors Directory List */}
+          <div className="gmaps-places-list">
             {filteredSectors.map((s) => {
-              const statusMeta = STATUS_COLOR_MAP[s.color] || STATUS_COLOR_MAP.GREEN;
+              const statusMeta = STATUS_CONFIG[s.color] || STATUS_CONFIG.GREEN;
               const isChosen = activeSector?.id === s.id;
 
               return (
                 <button
                   key={s.id}
                   type="button"
-                  className={`dest-row-btn ${isChosen ? 'is-selected' : ''}`}
+                  className={`gmaps-place-row ${isChosen ? 'is-selected' : ''}`}
                   onClick={() => {
                     setSelectedSectorId(s.id);
                     if (isNavigating) setNavProgress(0);
                   }}
                 >
-                  <div className="dest-row-left">
-                    <span className="dest-dot" style={{ backgroundColor: statusMeta.border }} />
-                    <div className="dest-names">
-                      <span className="dest-title">{s.label}</span>
-                      <span className="dest-wait" style={{ color: statusMeta.text }}>
+                  <div className="gmaps-place-left">
+                    <div
+                      className="gmaps-place-dot"
+                      style={{ backgroundColor: statusMeta.mapStroke }}
+                    />
+                    <div className="gmaps-place-info">
+                      <span className="gmaps-place-title">{s.label}</span>
+                      <span className="gmaps-place-status" style={{ color: statusMeta.textColor }}>
                         {statusMeta.label}
                       </span>
                     </div>
                   </div>
-                  <span className="dest-sat-chip" style={{ color: statusMeta.text, borderColor: statusMeta.border }}>
-                    {s.saturation.toFixed(0)}% Load
-                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="gmaps-place-chip"
+                      style={{
+                        backgroundColor: statusMeta.bgColor,
+                        color: statusMeta.textColor,
+                        borderColor: statusMeta.borderColor
+                      }}
+                    >
+                      {s.saturation.toFixed(0)}% Load
+                    </span>
+                    <ChevronRight size={14} className="text-slate-400" />
+                  </div>
                 </button>
               );
             })}
           </div>
-        </div>
+        </aside>
       </div>
-
-      {/* ── Universal Visitor Gate Pass Modal ── */}
-      {showQRModal && (
-        <div className="qr-modal-overlay" onClick={() => setShowQRModal(false)}>
-          <div className="qr-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="flex items-center gap-2">
-                <QrCode size={16} className="text-sky-400" />
-                <span className="modal-tag">UNIVERSAL VISITOR PASS QR</span>
-              </div>
-              <button type="button" className="btn-close-modal" onClick={() => setShowQRModal(false)}>✕</button>
-            </div>
-
-            <div className="modal-qr-box">
-              <QRCodeSVG
-                value={universalQrUrl}
-                size={200}
-                bgColor="#ffffff"
-                fgColor="#090818"
-                level="Q"
-              />
-            </div>
-
-            <div className="modal-attendee-info">
-              <span className="modal-name">Universal Visitor Guide</span>
-              <span className="modal-tier">SCANNABLE QR PASS FOR ALL SMARTPHONES</span>
-              <span className="modal-sub">
-                Scan with your phone camera to open live venue navigation, crowd queue estimates, and digital pass.
-              </span>
-            </div>
-
-            {/* Editable Tunnel URL / Local LAN display */}
-            <div className="att-modal-url-box mt-3">
-              {isEditingTunnel ? (
-                <input
-                  type="text"
-                  value={customTunnelUrl}
-                  onChange={(e) => setCustomTunnelUrl(e.target.value)}
-                  placeholder="Paste ngrok, localtunnel, or domain..."
-                  className="att-modal-url-input"
-                  autoFocus
-                />
-              ) : (
-                <span className="att-modal-url-text">{universalQrUrl}</span>
-              )}
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  className="att-btn-pill-sm"
-                  onClick={() => setIsEditingTunnel(!isEditingTunnel)}
-                >
-                  {isEditingTunnel ? 'Done' : 'Edit Link'}
-                </button>
-                <button
-                  type="button"
-                  className="att-btn-pill-sm"
-                  onClick={handleCopyLink}
-                >
-                  {copiedLink ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                  <span>{copiedLink ? 'Copied' : 'Copy'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Network diagnostic tip for phone users */}
-            <div className="att-modal-tip">
-              <Info size={13} className="text-sky-400 shrink-0 mt-0.5" />
-              <div className="text-[11px] text-zinc-400 leading-normal">
-                <strong>Why wouldn't it open on phone?</strong> Make sure your phone is connected to the same Wi-Fi / Hotspot. If your campus/office network isolates devices, run <code className="text-emerald-300">npx localtunnel --port 5174</code> or <code className="text-emerald-300">ngrok http 5174</code>, click <em>Edit Link</em>, and paste the public link.
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 w-full mt-3">
-              <a
-                href={universalQrUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="att-btn-primary"
-              >
-                <ExternalLink size={14} />
-                <span>Open in New Tab (Preview Companion)</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Digital Event & Turnstile Gate Pass Modal ── */}
-      {showPassModal && (
-        <div className="qr-modal-overlay" onClick={() => setShowPassModal(false)}>
-          <div className="qr-modal-card att-event-pass-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-emerald-400" />
-                <span className="modal-tag">AUTHORIZED VISITOR ACCESS PASS</span>
-              </div>
-              <button type="button" className="btn-close-modal" onClick={() => setShowPassModal(false)}>✕</button>
-            </div>
-
-            <div className="att-pass-barcode-box">
-              <div className="text-xs font-mono font-bold text-zinc-400 tracking-widest uppercase">
-                {venueTitle}
-              </div>
-              <div className="text-lg font-black text-white mt-1">
-                GENERAL ACCESS · PASS #849-PVH
-              </div>
-              <div className="flex items-center justify-center my-3 bg-white p-3 rounded-lg">
-                <QRCodeSVG
-                  value={`PRAVAAH-PASS-${venueTitle}-GUEST`}
-                  size={140}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="H"
-                />
-              </div>
-              <div className="text-[11px] font-mono text-zinc-400">
-                Authorized entry at {userPos.label}
-              </div>
-            </div>
-
-            <div className="flex gap-2 w-full mt-3">
-              <button
-                type="button"
-                className="att-btn-primary flex-1"
-                onClick={() => {
-                  showToast("Access pass saved to offline cache");
-                  setShowPassModal(false);
-                }}
-              >
-                <Download size={14} />
-                <span>Save Offline Pass</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
